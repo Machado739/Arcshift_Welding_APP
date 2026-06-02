@@ -4,14 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.arcshiftwelding.ui.login.LoginScreen
+import com.example.arcshiftwelding.ui.clientes.ClientesScreen
+import com.example.arcshiftwelding.ui.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.dashboard.DashboardScreen
-import com.example.arcshiftwelding.ui.inventario.InventarioScreen
+import com.example.arcshiftwelding.ui.empleados.EmpleadosScreen
 import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.ingresos.IngresosScreen
-import com.example.arcshiftwelding.ui.cotizaciones.CotizacionesScreen
-import com.example.arcshiftwelding.ui.clientes.ClientesScreen
-import com.example.arcshiftwelding.ui.empleados.EmpleadosScreen
+import com.example.arcshiftwelding.ui.inventario.InventarioScreen
+import com.example.arcshiftwelding.ui.login.LoginScreen
+import com.example.arcshiftwelding.ui.reportes.ReportesScreen
 
 @Composable
 fun AppNavigation() {
@@ -19,46 +20,46 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = AppRoutes.LOGIN
+        startDestination = Routes.LOGIN
     ) {
-        composable(AppRoutes.LOGIN) {
-            LoginScreen(
-                onLoginClick = {
-                    navController.navigate(AppRoutes.DASHBOARD) {
-                        popUpTo(AppRoutes.LOGIN) {
-                            inclusive = true
-                        }
-                    }
-                }
-            )
+        composable(Routes.LOGIN) {
+            LoginScreen(onLoginClick = { navController.navigate(Routes.DASHBOARD) })
         }
 
-        composable(AppRoutes.DASHBOARD) {
+        composable(Routes.DASHBOARD) {
             DashboardScreen(navController)
         }
 
-        composable(AppRoutes.INVENTARIO) {
-            InventarioScreen()
+        composable(Routes.INVENTARIO) {
+            InventarioScreen(navController)
         }
 
-        composable(AppRoutes.GASTOS) {
-            GastosScreen()
+        composable(Routes.GASTOS) {
+            GastosScreen(navController)
         }
 
-        composable(AppRoutes.INGRESOS) {
-            IngresosScreen()
+        composable(Routes.INGRESOS) {
+            IngresosScreen(navController)
         }
 
-        composable(AppRoutes.COTIZACIONES) {
-            CotizacionesScreen()
+        composable(Routes.COTIZACIONES) {
+            CotizacionesScreen(navController)
         }
 
-        composable(AppRoutes.CLIENTES) {
-            ClientesScreen()
+        composable(Routes.CLIENTES) {
+            ClientesScreen(navController)
         }
 
-        composable(AppRoutes.EMPLEADOS) {
-            EmpleadosScreen()
+        composable(Routes.EMPLEADOS) {
+            EmpleadosScreen(navController)
+        }
+
+        composable(Routes.REPORTES) {
+            ReportesScreen(navController)
+        }
+
+        composable(Routes.MAS) {
+            MasScreen(navController)
         }
     }
 }
