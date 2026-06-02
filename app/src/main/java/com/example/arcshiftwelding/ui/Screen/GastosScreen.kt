@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.clientes
+package com.example.arcshiftwelding.ui.Screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +12,7 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 
 @Composable
-fun ClientesScreen(navController: NavController) {
+fun GastosScreen(navController: NavController) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController)
@@ -24,7 +24,7 @@ fun ClientesScreen(navController: NavController) {
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            Text("Clientes")
+            Text("Gastos")
         }
     }
 }

@@ -9,6 +9,10 @@ data class ProductoEntity(
     val id: Int = 0,
     val nombre: String,
     val descripcion: String,
+    val categoria: String,
     val cantidad: Int,
-    val precio: Double
+    val unidad: String,
+    val precioCompra: Double,
+    val precioVenta: Double,
+    val stockMinimo: Int
 )

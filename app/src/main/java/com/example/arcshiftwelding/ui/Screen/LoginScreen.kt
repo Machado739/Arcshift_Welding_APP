@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.login
+package com.example.arcshiftwelding.ui.Screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

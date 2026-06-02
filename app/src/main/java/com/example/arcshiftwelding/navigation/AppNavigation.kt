@@ -4,15 +4,15 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.arcshiftwelding.ui.clientes.ClientesScreen
-import com.example.arcshiftwelding.ui.cotizaciones.CotizacionesScreen
-import com.example.arcshiftwelding.ui.dashboard.DashboardScreen
-import com.example.arcshiftwelding.ui.empleados.EmpleadosScreen
-import com.example.arcshiftwelding.ui.gastos.GastosScreen
-import com.example.arcshiftwelding.ui.ingresos.IngresosScreen
-import com.example.arcshiftwelding.ui.inventario.InventarioScreen
-import com.example.arcshiftwelding.ui.login.LoginScreen
-import com.example.arcshiftwelding.ui.reportes.ReportesScreen
+import com.example.arcshiftwelding.ui.Screen.ClientesScreen
+import com.example.arcshiftwelding.ui.Screen.CotizacionesScreen
+import com.example.arcshiftwelding.ui.Screen.DashboardScreen
+import com.example.arcshiftwelding.ui.Screen.EmpleadosScreen
+import com.example.arcshiftwelding.ui.Screen.GastosScreen
+import com.example.arcshiftwelding.ui.Screen.IngresosScreen
+import com.example.arcshiftwelding.ui.Screen.InventarioScreen
+import com.example.arcshiftwelding.ui.Screen.LoginScreen
+import com.example.arcshiftwelding.ui.Screen.ReportesScreen
 
 @Composable
 fun AppNavigation() {

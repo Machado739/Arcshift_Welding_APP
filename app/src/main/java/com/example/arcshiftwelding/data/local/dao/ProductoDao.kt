@@ -10,6 +10,11 @@ interface ProductoDao {
     @Query("SELECT * FROM productos ORDER BY id DESC")
     fun obtenerProductos(): Flow<List<ProductoEntity>>
 
+    @Query("SELECT * FROM productos WHERE id = :id")
+    suspend fun obtenerProductoPorId(
+        id: Int
+    ): ProductoEntity?
+
     @Insert
     suspend fun insertarProducto(producto: ProductoEntity)
 
@@ -18,7 +23,4 @@ interface ProductoDao {
 
     @Delete
     suspend fun eliminarProducto(producto: ProductoEntity)
-
-    @Query("SELECT * FROM productos WHERE id = :id")
-    suspend fun obtenerProductoPorId(id: Int): ProductoEntity?
 }

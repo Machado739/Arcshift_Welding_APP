@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.inventario
+package com.example.arcshiftwelding.ui.Screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,3 +29,20 @@ fun InventarioScreen(navController: NavController) {
     }
 }
 
+@Composable
+fun IngresosScreen(navController: NavController) {
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(navController)
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Ingresos")
+        }
+    }
+}
