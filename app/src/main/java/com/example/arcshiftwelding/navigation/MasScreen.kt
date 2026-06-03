@@ -19,19 +19,19 @@ fun MasScreen(navController: NavController) {
         Column(
             modifier = Modifier.padding(padding)
         ) {
-            Button(onClick = { navController.navigate(Routes.INGRESOS) }) {
+            Button(onClick = { navController.navigate(AppRoutes.INGRESOS) }) {
                 Text("Ingresos")
             }
 
-            Button(onClick = { navController.navigate(Routes.COTIZACIONES) }) {
+            Button(onClick = { navController.navigate(AppRoutes.COTIZACIONES) }) {
                 Text("Cotizaciones")
             }
 
-            Button(onClick = { navController.navigate(Routes.EMPLEADOS) }) {
+            Button(onClick = { navController.navigate(AppRoutes.EMPLEADOS) }) {
                 Text("Empleados")
             }
 
-            Button(onClick = { navController.navigate(Routes.REPORTES) }) {
+            Button(onClick = { navController.navigate(AppRoutes.REPORTES) }) {
                 Text("Reportes")
             }
         }

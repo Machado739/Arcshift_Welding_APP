@@ -21,27 +21,27 @@ fun BottomNavigationBar(navController: NavController) {
     NavigationBar {
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(Routes.DASHBOARD) },
+            onClick = { navController.navigate(AppRoutes.DASHBOARD) },
             icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
             label = { Text("Dashborad") }
         )
         NavigationBarItem(
             selected = false,
-        onClick = { navController.navigate(Routes.INVENTARIO) },
+        onClick = { navController.navigate(AppRoutes.INVENTARIO) },
             icon = { Icon(Icons.Default.Inventory, contentDescription = "Inventario") },
             label = { Text("Inventario") }
         )
 
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(Routes.GASTOS) },
+            onClick = { navController.navigate(AppRoutes.GASTOS) },
             icon = { Icon(Icons.Default.AttachMoney, contentDescription = "Gastos") },
             label = { Text("Gastos") }
         )
 
         NavigationBarItem(
             selected = false,
-            onClick = { navController.navigate(Routes.CLIENTES) },
+            onClick = { navController.navigate(AppRoutes.CLIENTES) },
             icon = { Icon(Icons.Default.People, contentDescription = "Clientes") },
             label = { Text("Clientes") }
         )
@@ -62,28 +62,28 @@ fun BottomNavigationBar(navController: NavController) {
         DropdownMenuItem(
             text = { Text("Ingresos") },
             onClick = {
-                navController.navigate(Routes.INGRESOS)
+                navController.navigate(AppRoutes.INGRESOS)
                 expandedMas.value = false
             }
         )
         DropdownMenuItem(
             text = { Text("Cotizaciones") },
             onClick = {
-                navController.navigate(Routes.COTIZACIONES)
+                navController.navigate(AppRoutes.COTIZACIONES)
                 expandedMas.value = false
             }
         )
         DropdownMenuItem(
             text = { Text("Empleados") },
             onClick = {
-                navController.navigate(Routes.EMPLEADOS)
+                navController.navigate(AppRoutes.EMPLEADOS)
                 expandedMas.value = false
             }
         )
         DropdownMenuItem(
             text = { Text("Reportes") },
             onClick = {
-                navController.navigate(Routes.REPORTES)
+                navController.navigate(AppRoutes.REPORTES)
                 expandedMas.value = false
             }
         )

@@ -4,15 +4,20 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.arcshiftwelding.ui.Screen.AgregarStockScreen
 import com.example.arcshiftwelding.ui.Screen.ClientesScreen
 import com.example.arcshiftwelding.ui.Screen.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
+import com.example.arcshiftwelding.ui.Screen.DetalleProductoScreen
+import com.example.arcshiftwelding.ui.Screen.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.EmpleadosScreen
 import com.example.arcshiftwelding.ui.Screen.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.IngresosScreen
-import com.example.arcshiftwelding.ui.Screen.InventarioScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
+import com.example.arcshiftwelding.ui.Screen.NuevoProductoScreen
+import com.example.arcshiftwelding.ui.Screen.ReportarSalidaScreen
 import com.example.arcshiftwelding.ui.Screen.ReportesScreen
+import com.example.arcshiftwelding.ui.screens.inventario.InventarioScreen
 
 @Composable
 fun AppNavigation() {
@@ -20,45 +25,84 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.LOGIN
+        startDestination = AppRoutes.LOGIN
     ) {
-        composable(Routes.LOGIN) {
-            LoginScreen(onLoginClick = { navController.navigate(Routes.DASHBOARD) })
+        composable(AppRoutes.LOGIN) {
+            LoginScreen(onLoginClick = { navController.navigate(AppRoutes.DASHBOARD) })
         }
 
-        composable(Routes.DASHBOARD) {
+        composable(AppRoutes.DASHBOARD) {
             DashboardScreen(navController)
         }
 
-        composable(Routes.INVENTARIO) {
-            InventarioScreen(navController)
+        composable(AppRoutes.INVENTARIO) {
+            InventarioScreen(
+                navController = navController,
+                onNuevoProducto = {
+                    navController.navigate(AppRoutes.NUEVO_PRODUCTO)
+                },
+                onDetalleProducto = { producto ->
+                    navController.navigate(AppRoutes.detalleProducto(producto.id))
+                }
+            )
         }
 
-        composable(Routes.GASTOS) {
+        composable(AppRoutes.NUEVO_PRODUCTO) {
+            NuevoProductoScreen(navController)
+        }
+
+        composable(
+            route = AppRoutes.DETALLE_PRODUCTO
+        ) { backStackEntry ->
+
+            val productoId =
+                backStackEntry.arguments
+                    ?.getString("productoId")
+                    ?.toIntOrNull()
+
+            DetalleProductoScreen(
+                navController = navController,
+               // productoId = productoId ?: 0
+            )
+        }
+
+        composable(AppRoutes.EDITAR_PRODUCTO) {
+            EditarProductoScreen(navController)
+        }
+
+        composable(AppRoutes.AGREGAR_STOCK) {
+            AgregarStockScreen(navController)
+        }
+
+        composable(AppRoutes.REPORTAR_SALIDA) {
+            ReportarSalidaScreen(navController)
+        }
+
+        composable(AppRoutes.GASTOS) {
             GastosScreen(navController)
         }
 
-        composable(Routes.INGRESOS) {
+        composable(AppRoutes.INGRESOS) {
             IngresosScreen(navController)
         }
 
-        composable(Routes.COTIZACIONES) {
+        composable(AppRoutes.COTIZACIONES) {
             CotizacionesScreen(navController)
         }
 
-        composable(Routes.CLIENTES) {
+        composable(AppRoutes.CLIENTES) {
             ClientesScreen(navController)
         }
 
-        composable(Routes.EMPLEADOS) {
+        composable(AppRoutes.EMPLEADOS) {
             EmpleadosScreen(navController)
         }
 
-        composable(Routes.REPORTES) {
+        composable(AppRoutes.REPORTES) {
             ReportesScreen(navController)
         }
 
-        composable(Routes.MAS) {
+        composable(AppRoutes.MAS) {
             MasScreen(navController)
         }
     }
