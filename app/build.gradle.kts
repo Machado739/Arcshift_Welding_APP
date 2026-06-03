@@ -42,6 +42,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -65,4 +67,5 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.compose.material:material-icons-extended")
     ksp(libs.androidx.room.compiler)
+    implementation("io.coil-kt:coil-compose:2.7.0")
 }

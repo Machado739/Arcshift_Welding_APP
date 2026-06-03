@@ -1,12 +1,12 @@
-package com.example.arcshiftwelding.ui.Screen
+package com.example.arcshiftwelding.ui.Screen.inventario
 
-import android.R.attr.background
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,10 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
-import com.example.arcshiftwelding.ui.theme.DarkBackground
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +33,8 @@ import androidx.navigation.compose.rememberNavController
 fun NuevoProductoScreen(
     navController: NavController
 ) {
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,7 +83,7 @@ fun NuevoProductoScreen(
 @Composable
 fun FormularioCard(
     titulo: String,
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    icono: ImageVector,
     contenido: @Composable () -> Unit
 ) {
     Card(
@@ -133,7 +135,13 @@ fun SeccionInformacionGeneral() {
 
     var categoria by remember { mutableStateOf("") }
     var unidad by remember { mutableStateOf("") }
+    var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
+    val seleccionarImagenLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imagenUri = uri
+    }
     FormularioCard(
         titulo = "Información general",
         icono = Icons.Default.Info
@@ -159,26 +167,13 @@ fun SeccionInformacionGeneral() {
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Inventory2,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = Color.Gray
-                            )
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text("Agregar imagen")
-
-                            Text(
-                                text = "JPG, PNG (máx. 2MB)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
+                        SelectorImagenProductoNuevo(
+                            imagenUri = imagenUri,
+                            onSeleccionarImagen = {
+                                seleccionarImagenLauncher.launch("image/*")
+                            }
+                        )
                     }
 
                     OutlinedTextField(
@@ -753,6 +748,60 @@ fun MenuDesplegable(
                         onSeleccionar(opcion)
                         expanded = false
                     }
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SelectorImagenProductoNuevo(
+    imagenUri: Uri?,
+    onSeleccionarImagen: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .background(
+                color = Color(0xFFF2F2F2),
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable {
+                onSeleccionarImagen()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        if (imagenUri != null) {
+            Image(
+                painter = rememberAsyncImagePainter(imagenUri),
+                contentDescription = "Imagen del producto",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Inventory2,
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp),
+                    tint = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Cambiar foto del producto",
+                    fontWeight = FontWeight.Medium
+                )
+
+                Text(
+                    text = "JPG, PNG",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
                 )
             }
         }

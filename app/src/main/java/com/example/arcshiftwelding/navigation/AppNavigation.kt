@@ -4,18 +4,18 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.arcshiftwelding.ui.Screen.AgregarStockScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.AgregarStockScreen
 import com.example.arcshiftwelding.ui.Screen.ClientesScreen
 import com.example.arcshiftwelding.ui.Screen.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
-import com.example.arcshiftwelding.ui.Screen.DetalleProductoScreen
-import com.example.arcshiftwelding.ui.Screen.EditarProductoScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.EmpleadosScreen
 import com.example.arcshiftwelding.ui.Screen.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.IngresosScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
-import com.example.arcshiftwelding.ui.Screen.NuevoProductoScreen
-import com.example.arcshiftwelding.ui.Screen.ReportarSalidaScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.ReportarSalidaScreen
 import com.example.arcshiftwelding.ui.Screen.ReportesScreen
 import com.example.arcshiftwelding.ui.screens.inventario.InventarioScreen
 
@@ -62,12 +62,22 @@ fun AppNavigation() {
 
             DetalleProductoScreen(
                 navController = navController,
-               // productoId = productoId ?: 0
+        //        productoId = productoId ?: 0
             )
         }
 
-        composable(AppRoutes.EDITAR_PRODUCTO) {
-            EditarProductoScreen(navController)
+        composable(
+            route = AppRoutes.EDITAR_PRODUCTO
+        ) { backStackEntry ->
+
+            val productoId=
+                backStackEntry.arguments
+                    ?.getString("productoId")
+                    ?.toIntOrNull()
+            EditarProductoScreen(
+                navController = navController,
+        //        productoId = productoId ?: 0
+            )
         }
 
         composable(AppRoutes.AGREGAR_STOCK) {

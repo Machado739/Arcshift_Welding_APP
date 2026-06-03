@@ -11,7 +11,10 @@ object AppRoutes {
     const val DETALLE_PRODUCTO =
         "detalle_producto/{productoId}"
 
-    const val EDITAR_PRODUCTO = "editar_producto"
+    fun editarProducto(productoId: Int): String {
+        return "editar_producto/$productoId"
+    }
+    const val EDITAR_PRODUCTO = "editar_producto/{productoId}"
 
     const val AGREGAR_STOCK = "agregar_stock"
 

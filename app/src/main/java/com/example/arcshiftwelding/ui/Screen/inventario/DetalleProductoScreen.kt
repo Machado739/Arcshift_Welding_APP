@@ -1,20 +1,14 @@
-package com.example.arcshiftwelding.ui.Screen
+package com.example.arcshiftwelding.ui.Screen.inventario
 
 
-import android.R.attr.background
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,10 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
-import com.example.arcshiftwelding.ui.theme.DarkBackground
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.CheckCircleOutline
@@ -38,6 +29,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 
@@ -103,7 +95,7 @@ fun DetalleProductoScreen(
 
             SeccionAccionesRapidas(
                 onEditar = {
-                    navController.navigate(AppRoutes.EDITAR_PRODUCTO)
+                    navController.navigate(AppRoutes.editarProducto(1)) // Aquí deberías pasar el ID real del producto
                 },
                 onAgregarStock = {
                     navController.navigate(AppRoutes.AGREGAR_STOCK)
@@ -234,7 +226,7 @@ fun EncabezadoProductoDetalle() {
 @Composable
 fun DetalleCard(
     titulo: String,
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    icono: ImageVector,
     contenido: @Composable () -> Unit
 ) {
     Card(
@@ -740,7 +732,7 @@ fun SeccionAccionesRapidas(
 @Composable
 fun BotonAccionRapida(
     texto: String,
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    icono: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconTint: Color = Color(0xFF111827)
@@ -749,7 +741,7 @@ fun BotonAccionRapida(
         onClick = onClick,
         modifier = modifier.height(72.dp),
         shape = RoundedCornerShape(6.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+        contentPadding = PaddingValues(4.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = Color(0xFF111827)
         )
