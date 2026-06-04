@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.screens.inventario
+package com.example.arcshiftwelding.ui.Screen.inventario
 
 import android.R.attr.background
 import androidx.compose.foundation.background
@@ -113,7 +113,9 @@ fun InventarioScreen(
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = { },
+                onClick = {
+                    navController.navigate(AppRoutes.SELECCIONAR_PRODUCTO_REPONER)
+                          },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Reponer Stock")
@@ -140,7 +142,7 @@ fun InventarioScreen(
             }
         }
     }
-        }
+    }
 }
 
 @Composable
@@ -165,8 +167,11 @@ fun HeaderInventario() {
         IconButton(onClick = { }) {
             Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
         }
+        IconButton(onClick = { }) {
+            Icon(Icons.Default.ExitToApp, contentDescription = "Salir")
+        }
 
-        Text("Log\nOut")
+
     }
 }
 

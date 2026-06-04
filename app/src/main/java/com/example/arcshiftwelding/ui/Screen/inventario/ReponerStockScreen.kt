@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.screens.inventario
+package com.example.arcshiftwelding.ui.Screen.inventario
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

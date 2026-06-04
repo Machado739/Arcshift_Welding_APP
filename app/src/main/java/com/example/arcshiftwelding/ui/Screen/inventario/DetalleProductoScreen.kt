@@ -105,7 +105,7 @@ fun DetalleProductoScreen(
                     navController.navigate(AppRoutes.reportarSalida(productoId = 1))
                 },
                 onEliminar = {
-                    // Mostrar diálogo para eliminar
+                    navController.navigate(AppRoutes.eliminarProducto(productoId = 1))
                 }
             )
 
