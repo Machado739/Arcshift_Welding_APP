@@ -36,7 +36,8 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleProductoScreen(
-    navController: NavController
+    navController: NavController,
+    productoId: Int
 ) {
     Scaffold(
         topBar = {
@@ -95,16 +96,16 @@ fun DetalleProductoScreen(
 
             SeccionAccionesRapidas(
                 onEditar = {
-                    navController.navigate(AppRoutes.editarProducto(1)) // Aquí deberías pasar el ID real del producto
+                    navController.navigate(AppRoutes.editarProducto(productoId = 1))
                 },
                 onAgregarStock = {
-                    navController.navigate(AppRoutes.AGREGAR_STOCK)
+                    navController.navigate(AppRoutes.reponerStock(productoId = 1))
                 },
                 onReportarSalida = {
-                    navController.navigate(AppRoutes.REPORTAR_SALIDA)
+                    navController.navigate(AppRoutes.reportarSalida(productoId = 1))
                 },
                 onEliminar = {
-                    // Mostrar diálogo de confirmación
+                    // Mostrar diálogo para eliminar
                 }
             )
 
@@ -766,14 +767,4 @@ fun BotonAccionRapida(
             )
         }
     }
-}
-
-@Composable
-fun AgregarStockScreen(navController: NavController) {
-    Text("Pantalla Agregar Stock")
-}
-
-@Composable
-fun ReportarSalidaScreen(navController: NavController) {
-    Text("Pantalla Reportar Salida")
 }

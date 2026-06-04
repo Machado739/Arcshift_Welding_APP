@@ -57,7 +57,7 @@ import coil.compose.rememberAsyncImagePainter
 @Composable
 fun EditarProductoScreen(
     navController: NavController,
-    //productoId: Int
+    productoId: Int
 ) {
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 

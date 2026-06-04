@@ -1,7 +1,6 @@
 package com.example.arcshiftwelding.ui.screens.inventario
 
 import android.R.attr.background
-import android.widget.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
-import com.example.arcshiftwelding.ui.theme.DarkBackground
 
 data class ProductoUI(
     val id: Int,
