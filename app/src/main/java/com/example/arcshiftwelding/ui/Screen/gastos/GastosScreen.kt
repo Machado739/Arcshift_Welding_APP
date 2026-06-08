@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,8 +36,10 @@ data class GastoUi(
 @Composable
 fun GastosScreen(
     navController: NavController
-
 ) {
+
+    var categoriaSeleccionada by remember { mutableStateOf("Todos") }
+
     val gastos = listOf(
         GastoUi(1, "Compra de material", "Aceros del Norte", "Materiales", 3200.00, "10/5/2026", "Efectivo"),
         GastoUi(2, "Combustible", "Gasolinera PEMEX", "Transporte", 850.00, "08/5/2026", "Tarjeta"),
@@ -45,6 +48,9 @@ fun GastosScreen(
         GastoUi(5, "Pago a empleado", "Jaime Lozano", "Nómina", 980.00, "17/5/2026", "Efectivo"),
         GastoUi(6, "Compra de insumos", "Ferretería Industrial", "Materiales", 1250.00, "17/5/2026", "Tarjeta")
     )
+    val gastosFiltrados = gastos.filter { gasto ->
+        categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
+    }
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController)
@@ -55,10 +61,11 @@ fun GastosScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
+                .padding(padding)
                 .padding(8.dp)
         ) {
-
             HeaderGastos()
+
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -87,12 +94,16 @@ fun GastosScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            FiltrosCategoriaGastos()
-
+            FiltrosCategoriaGastos(
+                seleccionada = categoriaSeleccionada,
+                onSeleccionar = {
+                    categoriaSeleccionada = it
+                }
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             ListaGastos(
-                gastos = gastos,
+                gastos = gastosFiltrados,
                 onClickGasto = { gasto ->
                     navController.navigate(AppRoutes.detalleGasto(gasto.id))
                 }
@@ -118,6 +129,7 @@ fun HeaderGastos() {
         Text(
             text = "Gastos",
             style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
 
@@ -127,8 +139,6 @@ fun HeaderGastos() {
         IconButton(onClick = { }) {
             Icon(Icons.Default.ExitToApp, contentDescription = "Salir")
         }
-
-
     }
 }
 
@@ -271,28 +281,50 @@ fun BarraBusquedaFiltros() {
 }
 
 @Composable
-fun FiltrosCategoriaGastos() {
-    Row(
+fun FiltrosCategoriaGastos(
+    seleccionada: String,
+    onSeleccionar: (String) -> Unit
+) {
+    val categorias = listOf(
+        "Todos",
+        "Materiales",
+        "Servicios",
+        "Transporte",
+        "Nómina",
+        "Herramientas",
+        "Más"
+    )
+
+    LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp)
     ) {
-        CategoriaChip("Todos", true)
-        CategoriaChip("Materiales", false)
-        CategoriaChip("Servicios", false)
-        CategoriaChip("Transporte", false)
-        CategoriaChip("Más", false)
+        items(categorias) { categoria ->
+            CategoriaChip(
+                texto = categoria,
+                seleccionado = seleccionada == categoria,
+                onClick = {
+                    onSeleccionar(categoria)
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun CategoriaChip(
     texto: String,
-    seleccionado: Boolean
+    seleccionado: Boolean,
+    onClick: () -> Unit
 ) {
     AssistChip(
-        onClick = { },
+        onClick = onClick,
         label = {
-            Text(texto)
+            Text(
+                text = texto,
+                maxLines = 1
+            )
         },
         leadingIcon = {
             if (seleccionado) {
@@ -331,7 +363,7 @@ fun ListaGastos(
         item {
             Spacer(modifier = Modifier.height(8.dp))
             PaginacionGastos()
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -405,13 +437,7 @@ fun ItemGasto(
                     color = Color.DarkGray
                 )
             }
-
-            IconButton(onClick = { }) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "Opciones"
-                )
-            }
+            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 }

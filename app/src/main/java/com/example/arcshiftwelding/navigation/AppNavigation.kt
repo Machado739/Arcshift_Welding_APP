@@ -6,7 +6,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.arcshiftwelding.ui.Screen.ClientesScreen
 import com.example.arcshiftwelding.ui.Screen.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
@@ -26,6 +25,7 @@ import com.example.arcshiftwelding.ui.Screen.inventario.SeleccionarProductoRepon
 import com.example.arcshiftwelding.ui.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.DetalleGastoScreen
+import com.example.arcshiftwelding.ui.clientes.ClientesScreen
 
 
 @Composable
@@ -189,8 +189,44 @@ fun AppNavigation() {
         }
 
         composable(AppRoutes.CLIENTES) {
-            ClientesScreen(navController)
+            ClientesScreen(navController = navController)
         }
+
+       /* composable(AppRoutes.NUEVO_CLIENTE) {
+            NuevoClienteScreen(navController = navController)
+        }*/
+
+        /*composable(
+            route = AppRoutes.DETALLE_CLIENTE,
+            arguments = listOf(
+                navArgument("clienteId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
+
+            DetalleClienteScreen(
+                navController = navController,
+                clienteId = clienteId
+            )
+        }*/
+
+       /* composable(
+            route = AppRoutes.EDITAR_CLIENTE,
+            arguments = listOf(
+                navArgument("clienteId") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
+
+            EditarClienteScreen(
+                navController = navController,
+                clienteId = clienteId
+            )
+        }*/
 
         composable(AppRoutes.EMPLEADOS) {
             EmpleadosScreen(navController)

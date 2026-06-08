@@ -69,9 +69,6 @@ fun NuevoGastoScreen(
                 }
             )
         },
-        bottomBar = {
-            BottomBarAppDummy()
-        },
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
@@ -456,41 +453,5 @@ fun BotonAdjunto(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun BottomBarAppDummy() {
-    NavigationBar {
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Inicio") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
-            label = { Text("Inventario") }
-        )
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
-            label = { Text("Gastos") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = null) },
-            label = { Text("Ingresos") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = { Icon(Icons.Default.MoreHoriz, contentDescription = null) },
-            label = { Text("Más") }
-        )
     }
 }

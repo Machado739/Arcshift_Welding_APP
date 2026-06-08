@@ -51,9 +51,6 @@ fun NuevoProductoScreen(
                     }
                 }
             )
-        },
-        bottomBar = {
-            BottomNavigationBar(navController)
         }
     ) { padding ->
 

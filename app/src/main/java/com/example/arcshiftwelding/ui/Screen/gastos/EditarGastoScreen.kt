@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.arcshiftwelding.ui.Screen.gastos.BottomBarGastos
 import com.example.arcshiftwelding.ui.Screen.gastos.TarjetaDetalleGasto
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,9 +85,7 @@ fun EditarGastoScreen(
                 }
             )
         },
-        bottomBar = {
-            BottomBarGastos()
-        },
+
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 

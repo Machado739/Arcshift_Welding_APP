@@ -55,6 +55,24 @@ object AppRoutes {
     const val INGRESOS = "ingresos"
     const val COTIZACIONES = "cotizaciones"
     const val CLIENTES = "clientes"
+
+    const val NUEVO_CLIENTE = "nuevo_cliente"
+    const val DETALLE_CLIENTE = "detalle_cliente/{clienteId}"
+    const val EDITAR_CLIENTE = "editar_cliente/{clienteId}"
+    const val ELIMINAR_CLIENTE = "eliminar_cliente/{clienteId}"
+
+    fun detalleCliente(clienteId: Int): String {
+        return "detalle_cliente/$clienteId"
+    }
+
+    fun editarCliente(clienteId: Int): String {
+        return "editar_cliente/$clienteId"
+    }
+
+    fun eliminarCliente(clienteId: Int): String {
+        return "eliminar_cliente/$clienteId"
+    }
+
     const val EMPLEADOS = "empleados"
     const val REPORTES = "reportes"
 
