@@ -148,7 +148,7 @@ fun ClientesScreen(
 
             Button(
                 onClick = {
-                   // navController.navigate(AppRoutes.NUEVO_GASTO)
+                    navController.navigate(AppRoutes.NUEVO_CLIENTE)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),

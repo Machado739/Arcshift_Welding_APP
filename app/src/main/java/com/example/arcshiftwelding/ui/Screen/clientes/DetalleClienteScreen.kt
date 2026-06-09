@@ -1,7 +1,6 @@
 package com.example.arcshiftwelding.ui.Screen.clientes
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavController
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +28,8 @@ import androidx.compose.material3.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.arcshiftwelding.navigation.BottomNavigationBar
 
 data class ClienteDetalleUI(
     val id: Int,
@@ -112,7 +113,6 @@ fun DetalleClienteScreen(
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBarDetalleCliente(navController)
         }
     ) { paddingValues ->
 
@@ -243,7 +243,37 @@ fun HeaderDetalleCliente(
         }
     }
 }
+@Composable
+fun SeccionNotasCliente(
+    cliente: ClienteDetalleUI
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            TituloSeccionCliente(
+                titulo = "Notas del cliente",
+                icono = Icons.Default.Notes,
+                color = Color(0xFFF59E0B)
+            )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = cliente.notas,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.DarkGray
+            )
+        }
+    }
+}
 @Composable
 fun CardPrincipalCliente(
     cliente: ClienteDetalleUI
@@ -913,53 +943,3 @@ fun TituloSeccionCliente(
     }
 }
 
-@Composable
-fun BottomNavigationBarDetalleCliente(
-    navController: NavController
-) {
-    NavigationBar(
-        containerColor = Color.White
-    ) {
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.INICIO) },
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Inicio") }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.INVENTARIO) },
-            icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
-            label = { Text("Inventario") }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.GASTOS) },
-            icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = null) },
-            label = { Text("Gastos") }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.INGRESOS) },
-            icon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
-            label = { Text("Ingresos") }
-        )
-
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.COTIZACIONES) },
-            icon = { Icon(Icons.Default.Description, contentDescription = null) },
-            label = { Text("Cotizaciones") }
-        )
-
-        NavigationBarItem(
-            selected = true,
-            onClick = { navController.navigate(AppRoutes.CLIENTES) },
-            icon = { Icon(Icons.Default.Groups, contentDescription = null) },
-            label = { Text("Clientes") }
-        )
-    }
-}

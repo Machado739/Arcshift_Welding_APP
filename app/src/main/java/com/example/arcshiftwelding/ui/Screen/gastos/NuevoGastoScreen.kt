@@ -14,14 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoGastoScreen(
-    onBack: () -> Unit = {},
     onGuardar: () -> Unit = {},
-    onCancelar: () -> Unit = {}
-
+    onCancelar: () -> Unit = {},
+    navController: NavController
 ) {
     var concepto by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("Seleccionar categoría") }
@@ -54,17 +54,12 @@ fun NuevoGastoScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
-                    }
-
-                    TextButton(onClick = { }) {
-                        Text("Log Out")
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Regresar")
                     }
                 }
             )
