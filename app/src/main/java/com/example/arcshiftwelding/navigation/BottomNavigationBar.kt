@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.navigation
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.AttachMoney
@@ -8,84 +10,201 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val expandedMas = remember { mutableStateOf(false) }
 
-    NavigationBar {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val masSeleccionado = currentRoute in listOf(
+        AppRoutes.INGRESOS,
+        AppRoutes.COTIZACIONES,
+        AppRoutes.EMPLEADOS,
+        AppRoutes.REPORTES,
+        AppRoutes.MAS
+    )
+
+    NavigationBar(
+        modifier = Modifier.height(74.dp),
+        containerColor = Color.White,
+        tonalElevation = 8.dp
+    ) {
         NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.DASHBOARD) },
-            icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
-            label = { Text("Dashborad") }
-        )
-        NavigationBarItem(
-            selected = false,
-        onClick = { navController.navigate(AppRoutes.INVENTARIO) },
-            icon = { Icon(Icons.Default.Inventory, contentDescription = "Inventario") },
-            label = { Text("Inventario") }
+            selected = currentRoute == AppRoutes.DASHBOARD,
+            onClick = {
+                navController.navigateBottomBar(AppRoutes.DASHBOARD)
+            },
+            icon = {
+                Icon(
+                    Icons.Default.Dashboard,
+                    contentDescription = "Dashboard",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Dashboard",
+                    fontSize = 11.sp
+                )
+            },
+            colors = bottomNavigationItemColors()
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.GASTOS) },
-            icon = { Icon(Icons.Default.AttachMoney, contentDescription = "Gastos") },
-            label = { Text("Gastos") }
+            selected = currentRoute == AppRoutes.INVENTARIO,
+            onClick = {
+                navController.navigateBottomBar(AppRoutes.INVENTARIO)
+            },
+            icon = {
+                Icon(
+                    Icons.Default.Inventory,
+                    contentDescription = "Inventario",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Inventario",
+                    fontSize = 11.sp
+                )
+            },
+            colors = bottomNavigationItemColors()
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(AppRoutes.CLIENTES) },
-            icon = { Icon(Icons.Default.People, contentDescription = "Clientes") },
-            label = { Text("Clientes") }
+            selected = currentRoute == AppRoutes.GASTOS,
+            onClick = {
+                navController.navigateBottomBar(AppRoutes.GASTOS)
+            },
+            icon = {
+                Icon(
+                    Icons.Default.AttachMoney,
+                    contentDescription = "Gastos",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Gastos",
+                    fontSize = 11.sp
+                )
+            },
+            colors = bottomNavigationItemColors()
         )
 
         NavigationBarItem(
-            selected = false,
-            onClick = { expandedMas.value = true },
-            icon = { Icon(Icons.Default.MoreHoriz, contentDescription = "Más") },
-            label = { Text("Más") }
+            selected = currentRoute == AppRoutes.CLIENTES,
+            onClick = {
+                navController.navigateBottomBar(AppRoutes.CLIENTES)
+            },
+            icon = {
+                Icon(
+                    Icons.Default.People,
+                    contentDescription = "Clientes",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Clientes",
+                    fontSize = 11.sp
+                )
+            },
+            colors = bottomNavigationItemColors()
+        )
+
+        NavigationBarItem(
+            selected = masSeleccionado,
+            onClick = {
+                expandedMas.value = true
+            },
+            icon = {
+                Icon(
+                    Icons.Default.MoreHoriz,
+                    contentDescription = "Más",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = "Más",
+                    fontSize = 11.sp
+                )
+            },
+            colors = bottomNavigationItemColors()
         )
     }
 
     DropdownMenu(
         expanded = expandedMas.value,
-        onDismissRequest = { expandedMas.value = false},
+        onDismissRequest = { expandedMas.value = false },
         offset = DpOffset(x = 300.dp, y = -280.dp)
     ) {
         DropdownMenuItem(
             text = { Text("Ingresos") },
             onClick = {
-                navController.navigate(AppRoutes.INGRESOS)
+                navController.navigateBottomBar(AppRoutes.INGRESOS)
                 expandedMas.value = false
             }
         )
+
         DropdownMenuItem(
             text = { Text("Cotizaciones") },
             onClick = {
-                navController.navigate(AppRoutes.COTIZACIONES)
+                navController.navigateBottomBar(AppRoutes.COTIZACIONES)
                 expandedMas.value = false
             }
         )
+
         DropdownMenuItem(
             text = { Text("Empleados") },
             onClick = {
-                navController.navigate(AppRoutes.EMPLEADOS)
+                navController.navigateBottomBar(AppRoutes.EMPLEADOS)
                 expandedMas.value = false
             }
         )
+
         DropdownMenuItem(
             text = { Text("Reportes") },
             onClick = {
-                navController.navigate(AppRoutes.REPORTES)
+                navController.navigateBottomBar(AppRoutes.REPORTES)
                 expandedMas.value = false
             }
         )
+    }
+}
+
+@Composable
+fun bottomNavigationItemColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = Color(0xFF2563EB),
+    selectedTextColor = Color(0xFF2563EB),
+    unselectedIconColor = Color(0xFF64748B),
+    unselectedTextColor = Color(0xFF64748B),
+    indicatorColor = Color(0xFFE0ECFF)
+)
+
+fun NavController.navigateBottomBar(route: String) {
+    if (currentDestination?.route == route) return
+
+    navigate(route) {
+        popUpTo(AppRoutes.DASHBOARD) {
+            inclusive = false
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }

@@ -114,19 +114,18 @@ fun ClientesScreen(
         )
     )
     val clientesFiltrados = clientes.filter { cliente ->
-        categoriaSeleccionada == "Todos" || cliente.estado == categoriaSeleccionada
-    }
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController)
+        when (categoriaSeleccionada) {
+            "Todos" -> true
+            "Activos" -> cliente.estado == "Activo"
+            "Inactivos" -> cliente.estado == "Inactivo"
+            "Pendientes" -> cliente.estado == "Pendiente"
+            else -> true
         }
-    ) { padding ->
-
-        Column(
+    }
+          Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
-                .padding(padding)
                 .padding(8.dp)
         ) {
             HeaderClientes()
@@ -138,11 +137,7 @@ fun ClientesScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-
-            BuscadorClientes(
-                texto = textoBusqueda,
-                onTextoChange = { textoBusqueda = it }
-            )
+            BuscadorClientes()
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -180,7 +175,7 @@ fun ClientesScreen(
             )
             }
         }
-    }
+
 
 
 @Composable
@@ -318,46 +313,33 @@ fun ResumenClienteCard(
 }
 
 @Composable
-fun BuscadorClientes(
-    texto: String,
-    onTextoChange: (String) -> Unit
-) {
+fun BuscadorClientes() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = texto,
-            onValueChange = onTextoChange,
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp),
+            value = "",
+            onValueChange = {  },
             placeholder = {
                 Text("Buscar cliente...")
             },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null
-                )
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
             },
+            modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(10.dp),
             singleLine = true
         )
 
         OutlinedButton(
             onClick = { },
-            modifier = Modifier.height(52.dp),
-            shape = RoundedCornerShape(10.dp)
+            modifier = Modifier.height(56.dp),
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-
+            Icon(imageVector = Icons.Default.FilterList, contentDescription = null)
             Spacer(modifier = Modifier.width(4.dp))
-
             Text("Filtros")
         }
     }
@@ -401,7 +383,8 @@ fun FiltrosCategoriaClientes(
     val categorias = listOf(
         "Todos",
         "Activos",
-        "Inactivos"
+        "Inactivos",
+        "Pendientes"
     )
 
     LazyRow(
@@ -411,15 +394,15 @@ fun FiltrosCategoriaClientes(
     ) {
         items(categorias) { categoria ->
             CategoriaChip(
-                    texto = categoria,
-                    seleccionado = seleccionada == categoria,
-                    onClick = {
-                        onSeleccionar(categoria)
-                    }
-                )
-            }
+                texto = categoria,
+                seleccionado = seleccionada == categoria,
+                onClick = {
+                    onSeleccionar(categoria)
+                }
+            )
         }
     }
+}
 
 @Composable
 fun CategoriaChip(
@@ -451,59 +434,6 @@ fun CategoriaChip(
     )
 }
 
-@Composable
-fun FiltroClienteChip(
-    texto: String,
-    seleccionado: Boolean,
-    onClick: () -> Unit
-) {
-    AssistChip(
-        onClick = onClick,
-        label = {
-            Text(texto)
-        },
-        leadingIcon = {
-            if (seleccionado) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF2563EB) else Color.DarkGray
-        )
-    )
-}
-
-@Composable
-fun FiltroCategoriaChip(
-    texto: String,
-    seleccionado: Boolean,
-    onClick: () -> Unit
-) {
-    AssistChip(
-        onClick = onClick,
-        label = {
-            Text(texto)
-        },
-        leadingIcon = {
-            if (seleccionado) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF2563EB) else Color.DarkGray
-        )
-    )
-}
 
 @Composable
 fun ItemCliente(

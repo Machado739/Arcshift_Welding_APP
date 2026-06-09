@@ -53,18 +53,6 @@ fun DetalleProductoScreen(
                             contentDescription = "Regresar"
                         )
                     }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notificaciones"
-                        )
-                    }
-
-                    TextButton(onClick = { }) {
-                        Text("Log\nOut")
-                    }
                 }
             )
         }

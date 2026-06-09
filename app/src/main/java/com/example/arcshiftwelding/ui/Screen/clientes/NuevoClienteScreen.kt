@@ -29,7 +29,6 @@ fun NuevoClienteScreen(
     onGuardar: () -> Unit = {},
     onCancelar: () -> Unit = {},
     navController: NavController
-
 ) {
     var nombre by remember { mutableStateOf("") }
     var empresa by remember { mutableStateOf("") }
@@ -59,13 +58,18 @@ fun NuevoClienteScreen(
                         text = "Nuevo Cliente",
                         fontWeight = FontWeight.Bold
                     )
-                },navigationIcon = {
+                },
+                navigationIcon = {
                     IconButton(
-                        onClick = { navController.popBackStack() }
+                        onClick = {
+                            onBack()
+                            navController.popBackStack()
+                        }
                     ) {
                         Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Regresar")
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
                     }
                 }
             )
@@ -73,83 +77,72 @@ fun NuevoClienteScreen(
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
                 .padding(paddingValues)
-                .padding(horizontal = 12.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
+            SeccionInformacionPersonalCliente(
+                nombre = nombre,
+                onNombreChange = { nombre = it },
+                empresa = empresa,
+                onEmpresaChange = { empresa = it },
+                tipoCliente = tipoCliente,
+                onTipoClienteChange = { tipoCliente = it },
+                estatus = estatus,
+                onEstatusChange = { estatus = it }
+            )
 
-            item {
-                SeccionInformacionPersonalCliente(
-                    nombre = nombre,
-                    onNombreChange = { nombre = it },
-                    empresa = empresa,
-                    onEmpresaChange = { empresa = it },
-                    tipoCliente = tipoCliente,
-                    onTipoClienteChange = { tipoCliente = it },
-                    estatus = estatus,
-                    onEstatusChange = { estatus = it }
-                )
-            }
+            SeccionInformacionContactoCliente(
+                telefono = telefono,
+                onTelefonoChange = { telefono = it },
+                correo = correo,
+                onCorreoChange = { correo = it },
+                direccion = direccion,
+                onDireccionChange = { direccion = it }
+            )
 
-            item {
-                SeccionInformacionContactoCliente(
-                    telefono = telefono,
-                    onTelefonoChange = { telefono = it },
-                    correo = correo,
-                    onCorreoChange = { correo = it },
-                    direccion = direccion,
-                    onDireccionChange = { direccion = it }
-                )
-            }
+            SeccionInformacionAdicionalNuevoCliente(
+                rfc = rfc,
+                onRfcChange = { rfc = it },
+                personaContacto = personaContacto,
+                onPersonaContactoChange = { personaContacto = it },
+                cargo = cargo,
+                onCargoChange = { cargo = it },
+                notas = notas,
+                onNotasChange = { notas = it }
+            )
 
-            item {
-                SeccionInformacionAdicionalNuevoCliente(
-                    rfc = rfc,
-                    onRfcChange = { rfc = it },
-                    personaContacto = personaContacto,
-                    onPersonaContactoChange = { personaContacto = it },
-                    cargo = cargo,
-                    onCargoChange = { cargo = it },
-                    notas = notas,
-                    onNotasChange = { notas = it }
-                )
-            }
+            SeccionConfiguracionNuevoCliente(
+                clienteActivo = clienteActivo,
+                onClienteActivoChange = { clienteActivo = it },
+                recibeCotizaciones = recibeCotizaciones,
+                onRecibeCotizacionesChange = { recibeCotizaciones = it },
+                contactoWhatsapp = contactoWhatsapp,
+                onContactoWhatsappChange = { contactoWhatsapp = it },
+                contactoLlamadas = contactoLlamadas,
+                onContactoLlamadasChange = { contactoLlamadas = it },
+                contactoCorreo = contactoCorreo,
+                onContactoCorreoChange = { contactoCorreo = it }
+            )
 
-            item {
-                SeccionConfiguracionNuevoCliente(
-                    clienteActivo = clienteActivo,
-                    onClienteActivoChange = { clienteActivo = it },
-                    recibeCotizaciones = recibeCotizaciones,
-                    onRecibeCotizacionesChange = { recibeCotizaciones = it },
-                    contactoWhatsapp = contactoWhatsapp,
-                    onContactoWhatsappChange = { contactoWhatsapp = it },
-                    contactoLlamadas = contactoLlamadas,
-                    onContactoLlamadasChange = { contactoLlamadas = it },
-                    contactoCorreo = contactoCorreo,
-                    onContactoCorreoChange = { contactoCorreo = it }
-                )
-            }
+            BotonesFormularioCliente(
+                onCancelarClick = {
+                    onCancelar()
+                    navController.popBackStack()
+                },
+                onGuardarClick = {
+                    onGuardar()
+                    navController.popBackStack()
+                }
+            )
 
-            item {
-                BotonesFormularioCliente(
-                    onCancelarClick = {
-                        navController.popBackStack()
-                    },
-                    onGuardarClick = {
-                        // Aquí después conectas con ViewModel / Room
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(70.dp))
-            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

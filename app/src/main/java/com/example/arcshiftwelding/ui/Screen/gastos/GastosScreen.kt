@@ -51,17 +51,12 @@ fun GastosScreen(
     val gastosFiltrados = gastos.filter { gasto ->
         categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
     }
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController)
-        }
-    ) { padding ->
+
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
-                .padding(padding)
                 .padding(8.dp)
         ) {
             HeaderGastos()
@@ -110,7 +105,7 @@ fun GastosScreen(
             )
         }
     }
-}
+
 
 
 @Composable

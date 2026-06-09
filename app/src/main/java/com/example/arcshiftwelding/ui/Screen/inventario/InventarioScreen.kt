@@ -39,7 +39,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -88,17 +87,12 @@ fun InventarioScreen(
                 (categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada)
     }
 
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController)
-        }
-    ) { padding ->
+
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
-                .padding(padding)
                 .padding(8.dp)
         ) {
 
@@ -171,7 +165,7 @@ fun InventarioScreen(
             )
         }
     }
-}
+
 
 @Composable
 fun HeaderInventario() {

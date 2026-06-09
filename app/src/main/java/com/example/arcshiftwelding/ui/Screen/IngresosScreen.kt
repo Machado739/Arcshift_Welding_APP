@@ -13,18 +13,12 @@ import com.example.arcshiftwelding.navigation.BottomNavigationBar
 
 @Composable
 fun IngresosScreen(navController: NavController) {
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController)
-        }
-    ) { padding ->
+
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Text("Ingresos")
         }
     }
-}
