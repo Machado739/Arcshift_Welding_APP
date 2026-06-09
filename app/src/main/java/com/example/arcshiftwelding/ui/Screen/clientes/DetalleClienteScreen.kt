@@ -25,12 +25,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
-
+import androidx.compose.foundation.layout.WindowInsets
 data class ClienteDetalleUI(
     val id: Int,
     val nombre: String,
@@ -60,6 +61,7 @@ data class CotizacionClienteUI(
     val estado: String,
     val monto: Double
 )
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleClienteScreen(
     navController: NavController,
@@ -111,47 +113,65 @@ fun DetalleClienteScreen(
         )
     )
 
+
     Scaffold(
-        bottomBar = {
-        }
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Detalle Cliente",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
+                    }
+                },
+                actions = {
+
+                    IconButton(
+                        onClick = {
+                            navController.navigate(AppRoutes.editarCliente(cliente.id))
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar cliente"
+                        )
+                    }
+
+                },
+                windowInsets = WindowInsets(0)
+            )
+        },
+        containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
                 .padding(paddingValues)
-                .padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                HeaderDetalleCliente(
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
-                    onEditarClick = {
-                        navController.navigate(AppRoutes.editarCliente(cliente.id))
-                    }
-                )
-            }
 
-            item {
                 CardPrincipalCliente(cliente = cliente)
-            }
 
-            item {
                 CardsContactoCliente(cliente = cliente)
-            }
 
-            item {
                 SeccionInformacionGeneralCliente(cliente = cliente)
-            }
 
-            item {
                 SeccionHistorialCliente(cliente = cliente)
-            }
 
-            item {
                 SeccionCotizacionesCliente(
                     cotizaciones = cotizaciones,
                     onVerTodoClick = {
@@ -161,88 +181,29 @@ fun DetalleClienteScreen(
                         // navController.navigate("detalle_cotizacion/${cotizacion.folio}")
                     }
                 )
-            }
 
-            item {
                 SeccionNotasCliente(cliente = cliente)
-            }
 
-            item {
                 SeccionAccionesRapidasCliente(
-                    onEditarClick = {
-                        navController.navigate(AppRoutes.editarCliente(cliente.id))
-                    },
-                    onWhatsappClick = {
-                        // Abrir WhatsApp
-                    },
-                    onLlamarClick = {
-                        // Abrir llamada
-                    },
-                    onNuevaCotizacionClick = {
-                        // navController.navigate("nueva_cotizacion/${cliente.id}")
-                    },
-                    onEliminarClick = {
-                        navController.navigate(AppRoutes.eliminarCliente(cliente.id))
-                    }
-                )
-            }
+                onEditarClick = {
+                    navController.navigate(AppRoutes.editarCliente(cliente.id))
+                },
+                onWhatsappClick = { },
+                onLlamarClick = { },
+                onNuevaCotizacionClick = { },
+                onEliminarClick = {
+                    navController.navigate(AppRoutes.eliminarCliente(cliente.id))
+                }
+            )
 
-            item {
-                Spacer(modifier = Modifier.height(70.dp))
-            }
+
+
+                Spacer(modifier = Modifier.height(10.dp))
+
         }
     }
 }
 
-@Composable
-fun HeaderDetalleCliente(
-    onBackClick: () -> Unit,
-    onEditarClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .background(Color.White),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar"
-            )
-        }
-
-        Text(
-            text = "Detalle del Cliente",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
-
-        TextButton(onClick = { }) {
-            Text(
-                text = "Log\nOut",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Black
-            )
-        }
-
-        IconButton(onClick = onEditarClick) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Editar cliente"
-            )
-        }
-    }
-}
 @Composable
 fun SeccionNotasCliente(
     cliente: ClienteDetalleUI
