@@ -37,8 +37,6 @@ import com.example.arcshiftwelding.ui.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.DetalleGastoScreen
 import com.example.arcshiftwelding.ui.clientes.ClientesScreen
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.runtime.getValue
 
 @Composable
 fun AppNavigation() {
@@ -88,7 +86,7 @@ fun AppNavigation() {
             }
 
             composable(AppRoutes.DASHBOARD) {
-                DashboardScreen(navController)
+                DashboardScreen(navController = navController)
             }
 
             composable(AppRoutes.INVENTARIO) {

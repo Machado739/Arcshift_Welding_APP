@@ -87,8 +87,6 @@ fun InventarioScreen(
                 (categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada)
     }
 
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,7 +94,7 @@ fun InventarioScreen(
                 .padding(8.dp)
         ) {
 
-            HeaderInventario()
+            HeaderInventario(navController = navController)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -166,9 +164,10 @@ fun InventarioScreen(
         }
     }
 
-
 @Composable
-fun HeaderInventario() {
+fun HeaderInventario(
+    navController: NavController
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,7 +190,16 @@ fun HeaderInventario() {
             Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
         }
 
-        IconButton(onClick = { }) {
+        IconButton(
+            onClick = {
+                navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        ) {
             Icon(Icons.Default.ExitToApp, contentDescription = "Salir")
         }
     }
@@ -420,12 +428,6 @@ fun ListaProductosInventario(
                 }
             )
         }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            PaginacionInventario()
-            Spacer(modifier = Modifier.height(4.dp))
-        }
     }
 }
 
@@ -560,44 +562,6 @@ fun IconoCategoriaProducto(
             imageVector = icono,
             contentDescription = null,
             tint = color
-        )
-    }
-}
-
-@Composable
-fun PaginacionInventario() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Mostrando 1 a 4 de 45 productos",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
-            modifier = Modifier.weight(1f)
-        )
-
-        AssistChip(
-            onClick = { },
-            label = { Text("1") },
-            colors = AssistChipDefaults.assistChipColors(
-                containerColor = Color(0xFF1D4ED8),
-                labelColor = Color.White
-            )
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        AssistChip(
-            onClick = { },
-            label = { Text("2") }
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        AssistChip(
-            onClick = { },
-            label = { Text("3") }
         )
     }
 }

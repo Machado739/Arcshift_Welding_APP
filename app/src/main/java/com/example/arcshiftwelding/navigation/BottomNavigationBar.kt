@@ -3,12 +3,19 @@ package com.example.arcshiftwelding.navigation
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,11 +26,13 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(
+    navController: NavController
+) {
     val expandedMas = remember { mutableStateOf(false) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -49,7 +58,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             icon = {
                 Icon(
-                    Icons.Default.Dashboard,
+                    imageVector = Icons.Default.Dashboard,
                     contentDescription = "Dashboard",
                     modifier = Modifier.size(20.dp)
                 )
@@ -70,7 +79,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             icon = {
                 Icon(
-                    Icons.Default.Inventory,
+                    imageVector = Icons.Default.Inventory,
                     contentDescription = "Inventario",
                     modifier = Modifier.size(20.dp)
                 )
@@ -91,7 +100,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             icon = {
                 Icon(
-                    Icons.Default.AttachMoney,
+                    imageVector = Icons.Default.AttachMoney,
                     contentDescription = "Gastos",
                     modifier = Modifier.size(20.dp)
                 )
@@ -112,7 +121,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             icon = {
                 Icon(
-                    Icons.Default.People,
+                    imageVector = Icons.Default.People,
                     contentDescription = "Clientes",
                     modifier = Modifier.size(20.dp)
                 )
@@ -133,7 +142,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             icon = {
                 Icon(
-                    Icons.Default.MoreHoriz,
+                    imageVector = Icons.Default.MoreHoriz,
                     contentDescription = "Más",
                     modifier = Modifier.size(20.dp)
                 )
@@ -150,11 +159,15 @@ fun BottomNavigationBar(navController: NavController) {
 
     DropdownMenu(
         expanded = expandedMas.value,
-        onDismissRequest = { expandedMas.value = false },
+        onDismissRequest = {
+            expandedMas.value = false
+        },
         offset = DpOffset(x = 300.dp, y = -280.dp)
     ) {
         DropdownMenuItem(
-            text = { Text("Ingresos") },
+            text = {
+                Text("Ingresos")
+            },
             onClick = {
                 navController.navigateBottomBar(AppRoutes.INGRESOS)
                 expandedMas.value = false
@@ -162,7 +175,9 @@ fun BottomNavigationBar(navController: NavController) {
         )
 
         DropdownMenuItem(
-            text = { Text("Cotizaciones") },
+            text = {
+                Text("Cotizaciones")
+            },
             onClick = {
                 navController.navigateBottomBar(AppRoutes.COTIZACIONES)
                 expandedMas.value = false
@@ -170,7 +185,9 @@ fun BottomNavigationBar(navController: NavController) {
         )
 
         DropdownMenuItem(
-            text = { Text("Empleados") },
+            text = {
+                Text("Empleados")
+            },
             onClick = {
                 navController.navigateBottomBar(AppRoutes.EMPLEADOS)
                 expandedMas.value = false
@@ -178,7 +195,9 @@ fun BottomNavigationBar(navController: NavController) {
         )
 
         DropdownMenuItem(
-            text = { Text("Reportes") },
+            text = {
+                Text("Reportes")
+            },
             onClick = {
                 navController.navigateBottomBar(AppRoutes.REPORTES)
                 expandedMas.value = false
@@ -188,22 +207,24 @@ fun BottomNavigationBar(navController: NavController) {
 }
 
 @Composable
-fun bottomNavigationItemColors() = NavigationBarItemDefaults.colors(
-    selectedIconColor = Color(0xFF2563EB),
-    selectedTextColor = Color(0xFF2563EB),
-    unselectedIconColor = Color(0xFF64748B),
-    unselectedTextColor = Color(0xFF64748B),
-    indicatorColor = Color(0xFFE0ECFF)
-)
+fun bottomNavigationItemColors(): NavigationBarItemColors {
+    return NavigationBarItemDefaults.colors(
+        selectedIconColor = Color(0xFF2563EB),
+        selectedTextColor = Color(0xFF2563EB),
+        unselectedIconColor = Color(0xFF64748B),
+        unselectedTextColor = Color(0xFF64748B),
+        indicatorColor = Color(0xFFE0ECFF)
+    )
+}
 
 fun NavController.navigateBottomBar(route: String) {
     if (currentDestination?.route == route) return
 
     navigate(route) {
-        popUpTo(AppRoutes.DASHBOARD) {
-            inclusive = false
+        popUpTo(graph.findStartDestination().id) {
             saveState = true
         }
+
         launchSingleTop = true
         restoreState = true
     }

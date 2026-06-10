@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
-import com.example.arcshiftwelding.ui.Screen.inventario.HeaderInventario
 
 data class GastoUi(
     val id: Int,
@@ -59,7 +58,7 @@ fun GastosScreen(
                 .background(Color(0xFFF8FAFC))
                 .padding(8.dp)
         ) {
-            HeaderGastos()
+            HeaderGastos(navController = navController)
 
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -109,7 +108,9 @@ fun GastosScreen(
 
 
 @Composable
-fun HeaderGastos() {
+fun HeaderGastos(
+    navController: NavController
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,8 +132,20 @@ fun HeaderGastos() {
         IconButton(onClick = { }) {
             Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
         }
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.ExitToApp, contentDescription = "Salir")
+        IconButton(
+            onClick = {
+                navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "Salir"
+            )
         }
     }
 }
@@ -354,12 +367,6 @@ fun ListaGastos(
                 }
             )
         }
-
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            PaginacionGastos()
-            Spacer(modifier = Modifier.height(4.dp))
-        }
     }
 }
 
@@ -467,44 +474,6 @@ fun IconoCategoriaGasto(
             imageVector = icono,
             contentDescription = null,
             tint = color
-        )
-    }
-}
-
-@Composable
-fun PaginacionGastos() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Mostrando 1 a 7 de 45 gastos",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
-            modifier = Modifier.weight(1f)
-        )
-
-        AssistChip(
-            onClick = { },
-            label = { Text("1") },
-            colors = AssistChipDefaults.assistChipColors(
-                containerColor = Color(0xFF1D4ED8),
-                labelColor = Color.White
-            )
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        AssistChip(
-            onClick = { },
-            label = { Text("2") }
-        )
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        AssistChip(
-            onClick = { },
-            label = { Text("3") }
         )
     }
 }
