@@ -53,6 +53,9 @@ object AppRoutes {
 
 
     const val INGRESOS = "ingresos"
+
+    const val NUEVO_INGRESO = "nuevo_gasto"
+
     const val COTIZACIONES = "cotizaciones"
     const val CLIENTES = "clientes"
 

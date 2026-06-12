@@ -19,7 +19,7 @@ import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.EmpleadosScreen
-import com.example.arcshiftwelding.ui.Screen.IngresosScreen
+import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
 import com.example.arcshiftwelding.ui.Screen.ReportesScreen
@@ -227,7 +227,7 @@ fun AppNavigation() {
             }
 
             composable(AppRoutes.INGRESOS) {
-                IngresosScreen(navController)
+                IngresosScreen()
             }
 
             composable(AppRoutes.COTIZACIONES) {
