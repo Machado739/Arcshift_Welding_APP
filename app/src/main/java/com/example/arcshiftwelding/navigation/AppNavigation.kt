@@ -25,6 +25,7 @@ import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
 import com.example.arcshiftwelding.ui.Screen.ReportesScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.DetalleClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EditarClienteScreen
+import com.example.arcshiftwelding.ui.Screen.clientes.EliminarClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.NuevoClienteScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.NuevoGastoScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.EliminarGastoScreen
@@ -239,6 +240,18 @@ fun AppNavigation() {
 
             composable(AppRoutes.NUEVO_CLIENTE) {
                 NuevoClienteScreen(navController = navController)
+            }
+
+            composable(
+                route = AppRoutes.ELIMINAR_CLIENTE,
+                arguments = listOf(navArgument("clienteId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
+
+                EliminarClienteScreen(
+                    navController = navController,
+                    clienteId = clienteId
+                )
             }
 
             composable(

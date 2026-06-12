@@ -47,11 +47,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.rememberAsyncImagePainter
+import com.example.arcshiftwelding.navigation.AppRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,20 +90,40 @@ fun EditarProductoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Editar Producto") },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
-        }
+
+                Text(
+                    text = "Editar Producto",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+            }
+        },
+        containerColor = Color(0xFFF8FAFC),
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
         Column(
@@ -371,7 +394,6 @@ fun EditarProductoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }

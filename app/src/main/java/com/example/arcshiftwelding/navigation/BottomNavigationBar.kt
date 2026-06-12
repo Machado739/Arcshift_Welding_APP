@@ -163,7 +163,7 @@ fun BottomNavigationBar(
             expandedMas.value = false
         },
         offset = DpOffset(x = 300.dp, y = -280.dp)
-    ) {
+    ) {/*
         DropdownMenuItem(
             text = {
                 Text("Ingresos")
@@ -202,7 +202,7 @@ fun BottomNavigationBar(
                 navController.navigateBottomBar(AppRoutes.REPORTES)
                 expandedMas.value = false
             }
-        )
+        )*/
     }
 }
 

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,24 +83,41 @@ fun ReportarSalidaScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Reportar Salida")
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
-        }
+
+                Text(
+                    text = "Reportar Salida",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+
+            }
+        },
+        containerColor = Color(0xFFF8FAFC),
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
         Column(
@@ -190,7 +208,6 @@ fun ReportarSalidaScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }

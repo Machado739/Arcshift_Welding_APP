@@ -27,40 +27,51 @@ fun DetalleGastoScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Detalle de Gasto",
-                        fontWeight = FontWeight.Bold
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notificaciones"
-                        )
-                    }
-
-                    TextButton(onClick = { }) {
-                        Text("Log Out")
-                    }
                 }
-            )
-        },
 
+                Text(
+                    text = "Detalle de Gasto",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = {
+                        navController.navigate(AppRoutes.editarGasto(gastoId))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar Gasto"
+                    )
+                }
+
+            }
+
+        },
+        contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
@@ -117,7 +128,6 @@ fun DetalleGastoScreen(
 
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }

@@ -19,7 +19,7 @@ fun ReportesScreen(navController: NavController) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Reportes")
+            Text("PROXIMAENTE\nReportes")
         }
     }
 

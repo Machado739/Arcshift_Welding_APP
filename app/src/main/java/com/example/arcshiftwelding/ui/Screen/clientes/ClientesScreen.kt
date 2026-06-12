@@ -18,7 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
@@ -111,6 +113,160 @@ fun ClientesScreen(
             estado = "Pendiente",
             tipo = "Cliente desde: 20/05/2026",
             color = Color(0xFFEAB308)
+        ),
+        ClienteUI(
+            id = 7,
+            nombre = "Carlos Mendoza",
+            telefono = "614 321 7788",
+            ubicacion = "Chihuahua, Chihuahua",
+            correo = "cmendoza@gmail.com",
+            cotizaciones = 4,
+            estado = "Activo",
+            tipo = "Cliente desde: 22/05/2026",
+            color = Color(0xFF0EA5E9)
+        ),
+        ClienteUI(
+            id = 8,
+            nombre = "Taller Metalúrgico Ramírez",
+            telefono = "614 678 1122",
+            ubicacion = "Aldama, Chihuahua",
+            correo = "ventas@tmramirez.com",
+            cotizaciones = 6,
+            estado = "Activo",
+            tipo = "Cliente desde: 24/05/2026",
+            color = Color(0xFFDC2626)
+        ),
+        ClienteUI(
+            id = 9,
+            nombre = "Ana Torres",
+            telefono = "614 456 2233",
+            ubicacion = "Delicias, Chihuahua",
+            correo = "ana.torres@hotmail.com",
+            cotizaciones = 2,
+            estado = "Activo",
+            tipo = "Cliente desde: 25/05/2026",
+            color = Color(0xFF14B8A6)
+        ),
+        ClienteUI(
+            id = 10,
+            nombre = "Servicios Industriales Vega",
+            telefono = "614 852 3698",
+            ubicacion = "Chihuahua, Chihuahua",
+            correo = "contacto@vegaindustrial.com",
+            cotizaciones = 5,
+            estado = "Pendiente",
+            tipo = "Cliente desde: 26/05/2026",
+            color = Color(0xFF8B5CF6)
+        ),
+        ClienteUI(
+            id = 11,
+            nombre = "Roberto Salas",
+            telefono = "614 741 2589",
+            ubicacion = "Camargo, Chihuahua",
+            correo = "rsalas@gmail.com",
+            cotizaciones = 1,
+            estado = "Activo",
+            tipo = "Cliente desde: 27/05/2026",
+            color = Color(0xFF10B981)
+        ),
+        ClienteUI(
+            id = 12,
+            nombre = "Agropecuaria El Valle",
+            telefono = "614 963 1478",
+            ubicacion = "Cuauhtémoc, Chihuahua",
+            correo = "administracion@elvalle.com",
+            cotizaciones = 3,
+            estado = "Activo",
+            tipo = "Cliente desde: 28/05/2026",
+            color = Color(0xFFF59E0B)
+        ),
+        ClienteUI(
+            id = 13,
+            nombre = "Miguel Herrera",
+            telefono = "614 147 8523",
+            ubicacion = "Juárez, Chihuahua",
+            correo = "miguelh@gmail.com",
+            cotizaciones = 0,
+            estado = "Inactivo",
+            tipo = "Cliente desde: 29/05/2026",
+            color = Color(0xFF6B7280)
+        ),
+        ClienteUI(
+            id = 14,
+            nombre = "Transportes del Norte",
+            telefono = "614 852 7410",
+            ubicacion = "Juárez, Chihuahua",
+            correo = "logistica@tdn.com",
+            cotizaciones = 7,
+            estado = "Activo",
+            tipo = "Cliente desde: 30/05/2026",
+            color = Color(0xFFEF4444)
+        ),
+        ClienteUI(
+            id = 15,
+            nombre = "Laura Sánchez",
+            telefono = "614 555 8899",
+            ubicacion = "Parral, Chihuahua",
+            correo = "laurasanchez@gmail.com",
+            cotizaciones = 2,
+            estado = "Pendiente",
+            tipo = "Cliente desde: 01/06/2026",
+            color = Color(0xFFEC4899)
+        ),
+        ClienteUI(
+            id = 16,
+            nombre = "Constructora Horizonte",
+            telefono = "614 777 4411",
+            ubicacion = "Chihuahua, Chihuahua",
+            correo = "proyectos@horizonte.com",
+            cotizaciones = 8,
+            estado = "Activo",
+            tipo = "Cliente desde: 02/06/2026",
+            color = Color(0xFF3B82F6)
+        ),
+        ClienteUI(
+            id = 17,
+            nombre = "Ricardo Chávez",
+            telefono = "614 333 7788",
+            ubicacion = "Delicias, Chihuahua",
+            correo = "rchavez@gmail.com",
+            cotizaciones = 1,
+            estado = "Activo",
+            tipo = "Cliente desde: 03/06/2026",
+            color = Color(0xFF22C55E)
+        ),
+        ClienteUI(
+            id = 18,
+            nombre = "Soldaduras Industriales García",
+            telefono = "614 888 9900",
+            ubicacion = "Chihuahua, Chihuahua",
+            correo = "ventas@sigarcia.com",
+            cotizaciones = 9,
+            estado = "Activo",
+            tipo = "Cliente desde: 04/06/2026",
+            color = Color(0xFF7C3AED)
+        ),
+        ClienteUI(
+            id = 19,
+            nombre = "Patricia Moreno",
+            telefono = "614 123 9876",
+            ubicacion = "Aldama, Chihuahua",
+            correo = "paty.moreno@gmail.com",
+            cotizaciones = 3,
+            estado = "Activo",
+            tipo = "Cliente desde: 05/06/2026",
+            color = Color(0xFF06B6D4)
+        ),
+        ClienteUI(
+            id = 20,
+            nombre = "Grupo Constructor Alfa",
+            telefono = "614 456 7890",
+            ubicacion = "Chihuahua, Chihuahua",
+            correo = "contacto@grupoalfa.com",
+            cotizaciones = 12,
+            estado = "Activo",
+            tipo = "Cliente desde: 06/06/2026",
+            color = Color(0xFF2563EB)
         )
     )
     val clientesFiltrados = clientes.filter { cliente ->
@@ -126,7 +282,12 @@ fun ClientesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
-                .padding(8.dp)
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
+                )
         ) {
             HeaderClientes(navController = navController)
 
@@ -448,7 +609,6 @@ fun CategoriaChip(
     )
 }
 
-
 @Composable
 fun ItemCliente(
     cliente: ClienteUI,
@@ -459,9 +619,7 @@ fun ItemCliente(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -494,31 +652,27 @@ fun ItemCliente(
                     text = cliente.nombre,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                            maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                InfoClienteLinea(
-                    icono = Icons.Default.Phone,
-                    texto = cliente.telefono
-
-                )
-
-                InfoClienteLinea(
-                    icono = Icons.Default.LocationOn,
-                    texto = cliente.ubicacion,
-
-                )
+                InfoClienteLinea(Icons.Default.Phone, cliente.telefono)
+                InfoClienteLinea(Icons.Default.LocationOn, cliente.ubicacion)
 
                 Text(
                     text = cliente.tipo,
                     style = MaterialTheme.typography.labelSmall,
                     color = cliente.color,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
+            Spacer(modifier = Modifier.width(8.dp))
+
             Column(
+                modifier = Modifier.width(120.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 EstadoClienteBadge(cliente.estado)
@@ -535,7 +689,6 @@ fun ItemCliente(
                     texto = "${cliente.cotizaciones} cotizaciones"
                 )
             }
-            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 }
@@ -548,6 +701,7 @@ fun ListaClientes(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
+
     ) {
         items(clientes) { cliente ->
             ItemCliente(
@@ -563,13 +717,15 @@ fun ListaClientes(
     }
 }
 
+
 @Composable
 fun InfoClienteLinea(
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
+    icono: ImageVector,
     texto: String
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Icon(
             imageVector = icono,
@@ -583,11 +739,12 @@ fun InfoClienteLinea(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray
+            color = Color.DarkGray,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
-
 @Composable
 fun EstadoClienteBadge(
     estado: String

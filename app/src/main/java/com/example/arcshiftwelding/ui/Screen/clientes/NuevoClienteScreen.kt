@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.ui.Screen.clientes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,29 +53,42 @@ fun NuevoClienteScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Nuevo Cliente",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            onBack()
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        onBack()
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
+
+                Text(
+                    text = "Nuevo Cliente",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+            }
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
+
     ) { paddingValues ->
 
         Column(
@@ -141,8 +155,6 @@ fun NuevoClienteScreen(
                     navController.popBackStack()
                 }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

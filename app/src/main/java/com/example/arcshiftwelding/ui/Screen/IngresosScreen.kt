@@ -19,6 +19,6 @@ fun IngresosScreen(navController: NavController) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Ingresos")
+            Text("PROXIMAENTE\nIngresos")
         }
     }

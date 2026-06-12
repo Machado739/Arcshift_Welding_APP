@@ -19,7 +19,7 @@ fun CotizacionesScreen(navController: NavController) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Cotizaciones")
+            Text("PROXIMAENTE\nCotizaciones")
         }
     }
 

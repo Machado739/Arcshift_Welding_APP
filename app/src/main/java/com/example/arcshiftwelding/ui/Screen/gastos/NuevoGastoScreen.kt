@@ -46,25 +46,41 @@ fun NuevoGastoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Nuevo Gasto",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Regresar")
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
+
+                Text(
+                    text = "Nuevo Gasto",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+            }
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         Column(
@@ -328,7 +344,6 @@ fun NuevoGastoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }

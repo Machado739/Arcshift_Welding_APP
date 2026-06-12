@@ -45,7 +45,26 @@ fun GastosScreen(
         GastoUi(3, "Mantenimiento de equipo", "Taller Mecánico JR", "Servicios", 1500.00, "10/5/2026", "Transferencia"),
         GastoUi(4, "Pago de servicio eléctrico", "CFE", "Servicios", 2100.00, "18/5/2026", "Efectivo"),
         GastoUi(5, "Pago a empleado", "Jaime Lozano", "Nómina", 980.00, "17/5/2026", "Efectivo"),
-        GastoUi(6, "Compra de insumos", "Ferretería Industrial", "Materiales", 1250.00, "17/5/2026", "Tarjeta")
+        GastoUi(6, "Compra de insumos", "Ferretería Industrial", "Materiales", 1250.00, "17/5/2026", "Tarjeta"),
+
+        GastoUi(7, "Compra de soldadura 7018", "Distribuidora de Soldadura", "Materiales", 1850.00, "19/5/2026", "Transferencia"),
+        GastoUi(8, "Gas para soldar", "Infra", "Materiales", 940.00, "20/5/2026", "Efectivo"),
+        GastoUi(9, "Compra de discos de corte", "Ferretería La Sierra", "Herramientas", 620.00, "21/5/2026", "Tarjeta"),
+        GastoUi(10, "Cambio de aceite camioneta", "Servicio Automotriz Ríos", "Transporte", 780.00, "22/5/2026", "Efectivo"),
+        GastoUi(11, "Pago de internet", "Telmex", "Servicios", 599.00, "23/5/2026", "Transferencia"),
+        GastoUi(12, "Compra de guantes de carnaza", "Seguridad Industrial MX", "Seguridad", 460.00, "24/5/2026", "Tarjeta"),
+        GastoUi(13, "Pago a ayudante", "Carlos Mendoza", "Nómina", 1200.00, "25/5/2026", "Efectivo"),
+        GastoUi(14, "Compra de pintura anticorrosiva", "Pinturas del Norte", "Materiales", 1350.00, "26/5/2026", "Transferencia"),
+        GastoUi(15, "Renta de herramienta", "RentaTools Chihuahua", "Herramientas", 900.00, "27/5/2026", "Efectivo"),
+        GastoUi(16, "Reparación de máquina de soldar", "Electro Servicio Industrial", "Servicios", 2450.00, "28/5/2026", "Transferencia"),
+        GastoUi(17, "Compra de careta electrónica", "Ferretería Industrial", "Seguridad", 1750.00, "29/5/2026", "Tarjeta"),
+        GastoUi(18, "Diesel para traslado", "Gasolinera Rendichicas", "Transporte", 1100.00, "30/5/2026", "Tarjeta"),
+        GastoUi(19, "Pago de agua", "JMAS", "Servicios", 430.00, "31/5/2026", "Efectivo"),
+        GastoUi(20, "Compra de brocas para metal", "Aceros y Herramientas del Norte", "Herramientas", 690.00, "01/6/2026", "Efectivo"),
+        GastoUi(21, "Pago a soldador", "Miguel Torres", "Nómina", 1800.00, "02/6/2026", "Transferencia"),
+        GastoUi(22, "Compra de PTR", "Aceros del Norte", "Materiales", 4100.00, "03/6/2026", "Transferencia"),
+        GastoUi(23, "Servicio de grúa", "Grúas Chihuahua", "Servicios", 2200.00, "04/6/2026", "Tarjeta"),
+        GastoUi(24, "Compra de lentes de seguridad", "Protección Industrial", "Seguridad", 380.00, "05/6/2026", "Efectivo")
     )
     val gastosFiltrados = gastos.filter { gasto ->
         categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
@@ -56,7 +75,12 @@ fun GastosScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
-                .padding(8.dp)
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
+                )
         ) {
             HeaderGastos(navController = navController)
 
@@ -358,6 +382,12 @@ fun ListaGastos(
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxSize()
+            .padding(
+                start = 0.dp,
+                top = 0.dp,
+                end = 0.dp,
+                bottom = 8.dp
+            )
     ) {
         items(gastos) { gasto ->
             ItemGasto(

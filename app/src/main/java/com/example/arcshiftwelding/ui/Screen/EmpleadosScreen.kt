@@ -18,7 +18,7 @@ fun EmpleadosScreen(navController: NavController) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Empleados")
+            Text("PROXIMAENTE\nEmpleados")
         }
     }
 

@@ -116,43 +116,52 @@ fun DetalleClienteScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Detalle Cliente",
-                        fontWeight = FontWeight.Bold
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
-                actions = {
+                }
 
-                    IconButton(
-                        onClick = {
-                            navController.navigate(AppRoutes.editarCliente(cliente.id))
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar cliente"
-                        )
-                    }
+                Text(
+                    text = "Detalle Cliente",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
 
-                },
-                windowInsets = WindowInsets(0)
-            )
+                IconButton(
+                    onClick = {
+                        navController.navigate(AppRoutes.editarCliente(cliente.id))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar cliente"
+                    )
+                }
+
+            }
         },
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         Column(
@@ -195,11 +204,6 @@ fun DetalleClienteScreen(
                     navController.navigate(AppRoutes.eliminarCliente(cliente.id))
                 }
             )
-
-
-
-                Spacer(modifier = Modifier.height(10.dp))
-
         }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.TextoAutoAjustable
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
@@ -30,6 +31,8 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.arcshiftwelding.navigation.AppRoutes
 import kotlin.collections.take
 import com.example.arcshiftwelding.navigation.navigateBottomBar
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 
 
 data class ProductoBajoStockDashboard(
@@ -46,97 +49,104 @@ data class ClienteDashboard(
 fun DashboardScreen(
     navController: NavController
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-            .background(Color(0xFFF8FAFC))
-        ) {
-        HeaderDashboard(navController = navController)
+    Scaffold(
+        contentWindowInsets = WindowInsets(0),
+        containerColor = Color(0xFFF8FAFC)
+    ) { paddingValues ->
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TarjetaBienvenida()
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                TituloSeccion(
-                    titulo = "Resumen general",
-                    accion = "19 May - 26 May 2026"
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
                 )
-            }
+                .background(Color(0xFFF8FAFC))
+        ) {
+            HeaderDashboard(navController = navController)
 
-            item {
-                ResumenGeneral()
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
-            item {
-                Text(
-                    text = "Acciones rápidas",
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            TarjetaBienvenida()
 
-            item {
-                AccionesRapidas(
-                    onNuevoIngreso = {
-                        navController.navigateBottomBar(AppRoutes.INGRESOS)
-                    },
-                    onNuevoGasto = {
-                        navController.navigateBottomBar(AppRoutes.NUEVO_GASTO)
-                    },
-                    onNuevaCotizacion = {
-                        navController.navigateBottomBar(AppRoutes.COTIZACIONES)
-                    },
-                    onNuevoCliente = {
-                        navController.navigateBottomBar(AppRoutes.NUEVO_CLIENTE)
-                    },
-                    onVerInventario = {
-                        navController.navigateBottomBar(AppRoutes.INVENTARIO)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item {
+                    TituloSeccion(
+                        titulo = "Resumen general",
+                        accion = "19 May - 26 May 2026"
+                    )
+                }
+
+                item {
+                    ResumenGeneral()
+                }
+
+                item {
+                    Text(
+                        text = "Acciones rápidas",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                item {
+                    AccionesRapidas(
+                        onNuevoIngreso = {
+                            navController.navigateBottomBar(AppRoutes.INGRESOS)
+                        },
+                        onNuevoGasto = {
+                            navController.navigateBottomBar(AppRoutes.NUEVO_GASTO)
+                        },
+                        onNuevaCotizacion = {
+                            navController.navigateBottomBar(AppRoutes.COTIZACIONES)
+                        },
+                        onNuevoCliente = {
+                            navController.navigateBottomBar(AppRoutes.NUEVO_CLIENTE)
+                        },
+                        onVerInventario = {
+                            navController.navigateBottomBar(AppRoutes.INVENTARIO)
+                        }
+                    )
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        GraficaIngresosGastos(
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        CotizacionesEstado(
+                            modifier = Modifier.weight(1f)
+                        )
                     }
-                )
-            }
+                }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    GraficaIngresosGastos(
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    CotizacionesEstado(
-                        modifier = Modifier.weight(1f)
+                item {
+                    SeccionClientesInventarioDashboard(
+                        onVerClientes = {
+                            navController.navigateBottomBar(AppRoutes.CLIENTES)
+                        },
+                        onVerInventario = {
+                            navController.navigateBottomBar(AppRoutes.SELECCIONAR_PRODUCTO_REPONER)
+                        }
                     )
                 }
-            }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    ClientesRecientes(
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    InventarioBajoStock(
-                        modifier = Modifier.weight(1f)
-                    )
+                item {
+                    ProximosCobros()
                 }
-            }
-
-            item {
-                ProximosCobros()
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -855,7 +865,7 @@ fun ClientesRecientes(
     onVerTodos: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier.height(230.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -868,7 +878,8 @@ fun ClientesRecientes(
                 .padding(12.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Clientes recientes",
@@ -879,43 +890,25 @@ fun ClientesRecientes(
                 Text(
                     text = "Ver todos",
                     color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.clickable {
+                        onVerTodos()
+                    }
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            clientes.take(3).forEach { cliente ->
+            clientes.take(4).forEach { cliente ->
                 ClienteItem(
                     nombre = cliente.nombre,
                     detalle = cliente.detalle,
                     color = cliente.color
                 )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = onVerTodos,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(38.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFEAF2FF),
-                    contentColor = Color(0xFF2563EB)
-                )
-            ) {
-                Text(
-                    text = "Ver todos los clientes",
-                    fontSize = 11.sp,
-                    maxLines = 1
-                )
-            }
         }
     }
 }
-
 @Composable
 fun ClienteItem(
     nombre: String,
@@ -953,6 +946,7 @@ fun ClienteItem(
     }
 }
 
+
 @Composable
 fun InventarioBajoStock(
     modifier: Modifier = Modifier,
@@ -965,7 +959,7 @@ fun InventarioBajoStock(
     onVerInventario: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier.height(230.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -977,55 +971,34 @@ fun InventarioBajoStock(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
-
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(34.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
                 Text(
                     text = "Inventario con bajo stock",
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
-                    minLines = 2,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
                     text = "Ver todos",
                     color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.clickable {
+                        onVerInventario()
+                    }
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            productos.take(3).forEach { producto ->
+            productos.take(4).forEach { producto ->
                 ProductoStockItem(
                     nombre = producto.nombre,
                     stock = producto.stock,
                     estado = producto.estado
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = onVerInventario,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(38.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFEAF2FF),
-                    contentColor = Color(0xFF2563EB)
-                )
-            ) {
-                Text(
-                    text = "Ver inventario completo",
-                    fontSize = 10.sp,
-                    maxLines = 1
                 )
             }
         }
@@ -1168,3 +1141,56 @@ fun TituloSeccion(
     }
 }
 
+@Composable
+fun SeccionClientesInventarioDashboard(
+    clientes: List<ClienteDashboard> = listOf(
+        ClienteDashboard("Eduardo Barrios", "2 cotizaciones", Color(0xFF16A34A)),
+        ClienteDashboard("José Vera", "1 cotización", Color(0xFF2563EB)),
+        ClienteDashboard("María López", "1 cotización", Color(0xFF7C3AED)),
+        ClienteDashboard("Carlos Ruiz", "3 cotizaciones", Color(0xFFF59E0B))
+    ),
+    productos: List<ProductoBajoStockDashboard> = listOf(
+        ProductoBajoStockDashboard("PTR 2\" x 2\"", "Stock: 10", "Bajo"),
+        ProductoBajoStockDashboard("Tubo 1 1/2\"", "Stock: 8", "Bajo"),
+        ProductoBajoStockDashboard("Placa 1/4\"", "Stock: 5", "Bajo"),
+        ProductoBajoStockDashboard("Soldadura 6013", "Stock: 3", "Bajo")
+    ),
+    onVerClientes: () -> Unit = {},
+    onVerInventario: () -> Unit = {}
+) {
+    val cantidadVisible = maxOf(
+        clientes.size.coerceAtMost(4),
+        productos.size.coerceAtMost(4)
+    )
+
+    val alturaTarjetas = when (cantidadVisible) {
+        0 -> 100.dp
+        1 -> 120.dp
+        2 -> 150.dp
+        3 -> 185.dp
+        else -> 230.dp
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(alturaTarjetas),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        ClientesRecientes(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            clientes = clientes,
+            onVerTodos = onVerClientes
+        )
+
+        InventarioBajoStock(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            productos = productos,
+            onVerInventario = onVerInventario
+        )
+    }
+}

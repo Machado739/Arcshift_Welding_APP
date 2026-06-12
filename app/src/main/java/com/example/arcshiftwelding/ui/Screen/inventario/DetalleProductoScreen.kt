@@ -40,23 +40,50 @@ fun DetalleProductoScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Detalle del Producto")
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
-        }
 
+                Text(
+                    text = "Detalle del Producto",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = {
+                        navController.navigate(AppRoutes.editarProducto(productoId))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar Producto"
+                    )
+                }
+            }
+        },
+        containerColor = Color(0xFFF8FAFC),
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
         Column(
@@ -94,7 +121,6 @@ fun DetalleProductoScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }

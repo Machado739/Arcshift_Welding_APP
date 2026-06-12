@@ -92,24 +92,42 @@ fun EditarClienteScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Nuevo Gasto",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Regresar")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
+
+                Text(
+                    text = "Editar Cliente",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+
+
+            }
+
         },
+        contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
@@ -204,9 +222,6 @@ fun EditarClienteScreen(
                 )
             }
 
-            item {
-                Spacer(modifier = Modifier.height(70.dp))
-            }
         }
     }
 }
