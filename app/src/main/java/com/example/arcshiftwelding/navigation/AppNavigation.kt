@@ -227,7 +227,7 @@ fun AppNavigation() {
             }
 
             composable(AppRoutes.INGRESOS) {
-                IngresosScreen()
+                IngresosScreen(navController = navController)
             }
 
             composable(AppRoutes.COTIZACIONES) {

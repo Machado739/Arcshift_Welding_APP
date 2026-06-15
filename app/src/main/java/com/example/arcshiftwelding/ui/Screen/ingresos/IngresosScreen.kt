@@ -1,8 +1,10 @@
 package com.example.arcshiftwelding.ui.Screen.ingresos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,8 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.gastos.CategoriaChip
 
 data class IngresoUI(
+    val id: Int,
     val cliente: String,
     val trabajo: String,
     val folio: String,
@@ -49,6 +53,7 @@ fun IngresosScreen(
 
     val ingresos = listOf(
         IngresoUI(
+            id = 1,
             cliente = "Eduardo Barrios",
             trabajo = "Tejaban 6x4m",
             folio = "001",
@@ -60,6 +65,7 @@ fun IngresosScreen(
             color = Color(0xFF2563EB)
         ),
         IngresoUI(
+            id = 2,
             cliente = "Jose Vera",
             trabajo = "Portón 123\"x85\"",
             folio = "002",
@@ -71,6 +77,7 @@ fun IngresosScreen(
             color = Color(0xFF16A34A)
         ),
         IngresoUI(
+            id = 3,
             cliente = "Maria Lopez",
             trabajo = "Escalera metálica",
             folio = "003",
@@ -82,6 +89,7 @@ fun IngresosScreen(
             color = Color(0xFFF97316)
         ),
         IngresoUI(
+            id = 4,
             cliente = "Constructora Del Norte",
             trabajo = "Estructura metálica",
             folio = "004",
@@ -93,6 +101,7 @@ fun IngresosScreen(
             color = Color(0xFF7C3AED)
         ),
         IngresoUI(
+            id = 5,
             cliente = "Alberto Ruiz",
             trabajo = "Reja perimetral",
             folio = "005",
@@ -119,18 +128,18 @@ fun IngresosScreen(
                 bottom = 8.dp
             )
     ) {
-        HeaderIngresos(navController = NavController)
+        HeaderIngresos(navController = navController)
         
         Spacer(modifier = Modifier.height(8.dp))
         
    
         ResumenIngresos()
-            
 
-          
+        Spacer(modifier = Modifier.height(12.dp))
+
         BarraBusquedaIngresos()
 
-
+        Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = {
@@ -146,28 +155,33 @@ fun IngresosScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Nuevo Ingreso")
         }
-            
 
-           
-        FiltrosIngresos()
+        Spacer(modifier = Modifier.height(10.dp))
+
+        FiltrosCategoriaIngresos(
+            seleccionada= categoriaSeleccionada,
+            onSeleccionar = {
+                categoriaSeleccionada = it
             }
+        )
 
-        
-                ItemIngreso(
-                    ingreso = ingreso,
-                    onClick = {
-                        onIngresoClick(ingreso)
-                    }
-                )
-            
-        
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ListadoIngresos(
+            ingresos = ingresosFiltrados,
+            onClickIngreso = { ingreso ->
+                navController.navigate(AppRoutes.detalleIngreso(ingreso.id))
+            }
+        )
+
     }
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeaderIngresos(
-    onLogoutClick: () -> Unit
+    navController: NavController
 ) {
     Row(
         modifier = Modifier
@@ -176,47 +190,37 @@ fun HeaderIngresos(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ){
+        IconButton(onClick = { }) {
+            Icon(Icons.Default.Menu, contentDescription = "Menú")
+        }
+
+        Text(
+            text = "Ingreso",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
+        )
+
+        IconButton(onClick = { }) {
+            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+        }
+        IconButton(
+            onClick = {
+                navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.ExitToApp,
+                contentDescription = "Salir"
+            )
+        }
 
     }
-
-
-    TopAppBar(
-        title = {
-            Text(
-                text = "Ingresos",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = "Menú"
-                )
-            }
-        },
-        actions = {
-            TextButton(onClick = onLogoutClick) {
-                Text(
-                    text = "Log Out",
-                    fontSize = 12.sp,
-                    color = Color.Black
-                )
-            }
-
-            IconButton(onClick = onLogoutClick) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Salir"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.White,
-            titleContentColor = Color.Black
-        )
-    )
 }
 
 @Composable
@@ -385,6 +389,66 @@ fun BarraBusquedaIngresos() {
     }
 }
 
+
+@Composable
+fun FiltrosCategoriaIngresos(
+    seleccionada: String,
+    onSeleccionar: (String) -> Unit
+) {
+    val categorias = listOf(
+        "Todos",
+        "Anticipos",
+        "Pendientes",
+        "Pagados",
+        "Más"
+    )
+
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp)
+    ) {
+        items(categorias){ categoria ->
+            CategoriaChip(
+                texto = categoria,
+                seleccionado = seleccionada == categoria,
+                onClick = {
+                 onSeleccionar(categoria)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun ListadoIngresos(
+    ingresos: List<IngresoUI>,
+    onClickIngreso: (IngresoUI) -> Unit
+){
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxSize()
+            .padding(
+                start = 0.dp,
+                top = 0.dp,
+                end = 0.dp,
+                bottom = 8.dp
+            )
+    ) {
+        items(ingresos) { ingreso ->
+            ItemIngreso(
+                ingreso = ingreso,
+                onClick = {
+                    onClickIngreso(ingreso)
+                }
+            )
+
+        }
+    }
+
+}
+
+
 @Composable
 fun FiltrosIngresos() {
     Row(
@@ -435,20 +499,19 @@ fun ItemIngreso(
     onClick: () -> Unit
 ) {
     Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
-        )
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(9.dp),
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
