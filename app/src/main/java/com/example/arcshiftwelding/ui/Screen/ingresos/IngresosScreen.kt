@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
-import com.example.arcshiftwelding.ui.gastos.CategoriaChip
 
 data class IngresoUI(
     val id: Int,
@@ -36,8 +35,7 @@ data class IngresoUI(
     val anticipo: String,
     val pendiente: String,
     val categoria: String,
-    val fecha: String,
-    val color: Color
+    val fecha: String
 )
 
 @Composable
@@ -52,70 +50,68 @@ fun IngresosScreen(
 
 
     val ingresos = listOf(
+        IngresoUI(1, "Eduardo Barrios",
+            "Tejaban 6x4m",
+            "001",
+            "$12,000",
+             "$7,000",
+            "$5,000",
+            "Pagados",
+            "19/05/2026"),
         IngresoUI(
-            id = 1,
-            cliente = "Eduardo Barrios",
-            trabajo = "Tejaban 6x4m",
-            folio = "001",
-            total = "$12,000",
-            anticipo = "$7,000",
-            pendiente = "$5,000",
-            categoria = "Pagado",
-            fecha = "19/05/2026",
-            color = Color(0xFF2563EB)
-        ),
+            2,
+            "Jose Vera",
+             "Portón 123\"x85\"",
+            "002",
+             "$12,000",
+             "$6,000",
+             "$6,000",
+            "Pendientes",
+           "26/05/2026"),
         IngresoUI(
-            id = 2,
-            cliente = "Jose Vera",
-            trabajo = "Portón 123\"x85\"",
-            folio = "002",
-            total = "$12,000",
-            anticipo = "$6,000",
-            pendiente = "$6,000",
-            categoria = "Pendiente",
-            fecha = "26/05/2026",
-            color = Color(0xFF16A34A)
-        ),
+            3,
+             "Maria Lopez",
+             "Escalera metálica",
+            "003",
+            "$8,500",
+             "$4,000",
+         "$4,500",
+             "Folio",
+         "20/05/2026"),
         IngresoUI(
-            id = 3,
-            cliente = "Maria Lopez",
-            trabajo = "Escalera metálica",
-            folio = "003",
-            total = "$8,500",
-            anticipo = "$4,000",
-            pendiente = "$4,500",
-            categoria = "Folio",
-            fecha = "20/05/2026",
-            color = Color(0xFFF97316)
-        ),
+         4,
+            "Constructora Del Norte",
+             "Estructura metálica",
+             "004",
+             "$15,000",
+             "$8,000",
+            "$7,000",
+             "Pendientes",
+           "22/05/2026"),
         IngresoUI(
-            id = 4,
-            cliente = "Constructora Del Norte",
-            trabajo = "Estructura metálica",
-            folio = "004",
-            total = "$15,000",
-            anticipo = "$8,000",
-            pendiente = "$7,000",
-            categoria = "Pendiente",
-            fecha = "22/05/2026",
-            color = Color(0xFF7C3AED)
-        ),
+            5,
+            "Alberto Ruiz",
+            "Reja perimetral",
+             "005",
+         "$9,000",
+             "$5,000",
+           "$4,000",
+             "Pagados",
+          "16/05/2026"),
         IngresoUI(
-            id = 5,
-            cliente = "Alberto Ruiz",
-            trabajo = "Reja perimetral",
-            folio = "005",
-            total = "$9,000",
-            anticipo = "$5,000",
-            pendiente = "$4,000",
-            categoria = "Pagado",
-            fecha = "16/05/2026",
-            color = Color(0xFF0891B2)
-        )
+            5,
+            "Alberto Ruiz",
+            "Reja perimetral",
+             "005",
+         "$9,000",
+             "$5,000",
+           "$4,000",
+             "Anticipos",
+          "16/05/2026")
     )
     
     val ingresosFiltrados = ingresos.filter { ingreso -> 
-        categoriaSeleccionada == "Totos"|| ingreso.categoria == categoriaSeleccionada }
+        categoriaSeleccionada == "Todos"|| ingreso.categoria == categoriaSeleccionada }
     
     Column(
         modifier = Modifier
@@ -421,6 +417,36 @@ fun FiltrosCategoriaIngresos(
 }
 
 @Composable
+fun CategoriaChip(
+    texto: String,
+    seleccionado: Boolean,
+    onClick: () -> Unit
+) {
+    AssistChip(
+        onClick = onClick,
+        label = {
+            Text(
+                text = texto,
+                maxLines = 1
+            )
+        },
+        leadingIcon = {
+            if (seleccionado) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        },
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
+            labelColor = if (seleccionado) Color(0xFF1D4ED8) else Color.DarkGray
+        )
+    )
+}
+
+@Composable
 fun ListadoIngresos(
     ingresos: List<IngresoUI>,
     onClickIngreso: (IngresoUI) -> Unit
@@ -448,51 +474,6 @@ fun ListadoIngresos(
 
 }
 
-
-@Composable
-fun FiltrosIngresos() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        ChipIngreso("Todos", true, Color(0xFF2563EB))
-        ChipIngreso("Anticipos", false, Color(0xFF16A34A))
-        ChipIngreso("Pendientes", false, Color(0xFFF59E0B))
-        ChipIngreso("Pagados", false, Color(0xFF15803D))
-        ChipIngreso("Más", false, Color.DarkGray)
-    }
-}
-
-@Composable
-fun ChipIngreso(
-    texto: String,
-    seleccionado: Boolean,
-    color: Color
-) {
-    AssistChip(
-        onClick = { },
-        label = {
-            Text(
-                text = texto,
-                fontSize = 10.sp
-            )
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = if (seleccionado) Icons.Default.GridView else Icons.Default.Circle,
-                contentDescription = null,
-                modifier = Modifier.size(12.dp),
-                tint = color
-            )
-        },
-        shape = RoundedCornerShape(8.dp),
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFEFF6FF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF2563EB) else Color.DarkGray
-        )
-    )
-}
-
 @Composable
 fun ItemIngreso(
     ingreso: IngresoUI,
@@ -514,28 +495,16 @@ fun ItemIngreso(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconoCategoriaIngreso(ingreso.categoria)
 
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .background(
-                        color = ingreso.color.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = ingreso.color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(10.dp))
+
+
+
 
             Column(
-                modifier = Modifier.weight(1.25f)
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = ingreso.cliente,
@@ -616,19 +585,62 @@ fun ItemIngreso(
                     color = Color.Gray
                 )
             }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Opciones",
-                    modifier = Modifier.size(18.dp),
-                    tint = Color.DarkGray
-                )
-            }
         }
+    }
+}
+
+@Composable
+fun IconoCategoriaIngreso(
+    categoria: String
+) {
+    val icono = when (categoria) {
+        "Anticipos" -> Icons.Default.Savings
+        "Pendientes" -> Icons.Default.Schedule
+        "Pagados" -> Icons.Default.CheckCircle
+        "Cobros" -> Icons.Default.AttachMoney
+        "Transferencias" -> Icons.Default.AccountBalance
+        "Efectivos" -> Icons.Default.Payments
+        "Tarjetas" -> Icons.Default.CreditCard
+        else -> Icons.Default.ReceiptLong
+    }
+
+    val color = when (categoria) {
+        "Anticipos" -> Color(0xFF16A34A)
+        "Pendientes" -> Color(0xFFF59E0B)
+        "Pagados" -> Color(0xFF15803D)
+        "Cobros" -> Color(0xFF2563EB)
+        "Transferencias" -> Color(0xFF7C3AED)
+        "Efectivos" -> Color(0xFF0891B2)
+        "Tarjetas" -> Color(0xFFDB2777)
+        else -> Color(0xFF64748B)
+    }
+
+    val fondo = when (categoria) {
+        "Anticipos" -> Color(0xFFDCFCE7)
+        "Pendientes" -> Color(0xFFFEF3C7)
+        "Pagados" -> Color(0xFFD1FAE5)
+        "Cobros" -> Color(0xFFDBEAFE)
+        "Transferencias" -> Color(0xFFEDE9FE)
+        "Efectivos" -> Color(0xFFCFFAFE)
+        "Tarjetas" -> Color(0xFFFCE7F3)
+        else -> Color(0xFFF1F5F9)
+    }
+
+    Box(
+        modifier = Modifier
+            .size(38.dp)
+            .background(
+                color = fondo,
+                shape = RoundedCornerShape(8.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icono,
+            contentDescription = categoria,
+            tint = color,
+            modifier = Modifier.size(23.dp)
+        )
     }
 }
 

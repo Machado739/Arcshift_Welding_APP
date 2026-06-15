@@ -37,6 +37,7 @@ import com.example.arcshiftwelding.ui.Screen.inventario.SeleccionarProductoRepon
 import com.example.arcshiftwelding.ui.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.DetalleGastoScreen
+import com.example.arcshiftwelding.ui.Screen.ingresos.DetalleIngresoScreen
 import com.example.arcshiftwelding.ui.clientes.ClientesScreen
 
 @Composable
@@ -228,6 +229,12 @@ fun AppNavigation() {
 
             composable(AppRoutes.INGRESOS) {
                 IngresosScreen(navController = navController)
+            }
+
+            composable(AppRoutes.DETALLE_INGRESO){backStackEntry ->
+                val gastoId = backStackEntry.arguments
+                    ?.getString()
+                DetalleIngresoScreen(N)
             }
 
             composable(AppRoutes.COTIZACIONES) {

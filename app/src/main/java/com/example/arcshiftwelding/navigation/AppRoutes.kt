@@ -56,6 +56,7 @@ object AppRoutes {
 
     const val NUEVO_INGRESO = "nuevo_ingreso"
 
+    const val DETALLE_INGRESO = "detalle_gasto"
     fun detalleIngreso(ingresoId: Int): String {
         return "detalle_ingreso/$ingresoId"
     }
