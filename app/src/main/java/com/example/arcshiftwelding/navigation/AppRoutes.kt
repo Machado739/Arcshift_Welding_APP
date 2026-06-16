@@ -56,11 +56,22 @@ object AppRoutes {
 
     const val NUEVO_INGRESO = "nuevo_ingreso"
 
-    const val DETALLE_INGRESO = "detalle_gasto"
+    const val DETALLE_INGRESO = "detalle_ingreso/{ingresoId}"
     fun detalleIngreso(ingresoId: Int): String {
         return "detalle_ingreso/$ingresoId"
     }
 
+    const val EDITAR_INGRESO = "editar_ingreso/{ingresoId}"
+
+    fun editarIngreso(ingresoId: Int): String {
+        return "editar_ingreso/$ingresoId"
+    }
+
+    const val ELIMINAR_INGRESO = "eliminar_ingreso/{ingresoId}"
+
+    fun eliminarIngreso(ingresoId: Int): String {
+        return "eliminar_ingreso/$ingresoId"
+    }
 
     const val COTIZACIONES = "cotizaciones"
     const val CLIENTES = "clientes"
@@ -81,6 +92,15 @@ object AppRoutes {
     fun eliminarCliente(clienteId: Int): String {
         return "eliminar_cliente/$clienteId"
     }
+
+    const val NUEVA_COTIZACION = "nueva_cotizacion"
+    const val DETALLE_COTIZACION = "detalle_cotizacion/{cotizacionId}"
+    const val EDITAR_COTIZACION = "editar_cotizacion/{cotizacionId}"
+    const val ELIMINAR_COTIZACION = "eliminar_cotizacion/{cotizacionId}"
+
+    fun detalleCotizacion(cotizacionId: Int) = "detalle_cotizacion/$cotizacionId"
+    fun editarCotizacion(cotizacionId: Int) = "editar_cotizacion/$cotizacionId"
+    fun eliminarCotizacion(cotizacionId: Int) = "eliminar_cotizacion/$cotizacionId"
 
     const val EMPLEADOS = "empleados"
     const val REPORTES = "reportes"

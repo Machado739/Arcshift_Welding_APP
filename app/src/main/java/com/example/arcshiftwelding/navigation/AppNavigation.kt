@@ -14,7 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.arcshiftwelding.ui.Screen.CotizacionesScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
@@ -38,6 +38,9 @@ import com.example.arcshiftwelding.ui.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.DetalleGastoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.DetalleIngresoScreen
+import com.example.arcshiftwelding.ui.Screen.ingresos.EditarIngresoScreen
+import com.example.arcshiftwelding.ui.Screen.ingresos.EliminarIngresoScreen
+import com.example.arcshiftwelding.ui.Screen.ingresos.NuevoIngresoScreen
 import com.example.arcshiftwelding.ui.clientes.ClientesScreen
 
 @Composable
@@ -90,6 +93,11 @@ fun AppNavigation() {
             composable(AppRoutes.DASHBOARD) {
                 DashboardScreen(navController = navController)
             }
+
+
+///                     INVENTARIO
+///                     INVENTARIO
+///                     INVENTARIO
 
             composable(AppRoutes.INVENTARIO) {
                 InventarioScreen(
@@ -179,6 +187,11 @@ fun AppNavigation() {
             composable(AppRoutes.SELECCIONAR_PRODUCTO_REPONER) {
                 SeleccionarProductoReponerScreen(navController)
             }
+
+///                     GASTOS
+///                     GASTOS
+///                     GASTOS
+
             composable(AppRoutes.GASTOS) {
                 GastosScreen(navController)
             }
@@ -226,20 +239,90 @@ fun AppNavigation() {
                     gastoId = gastoId ?: 0
                 )
             }
+///                     INGRESOS
+///                     INGRESOS
+///                     INGRESOS
 
             composable(AppRoutes.INGRESOS) {
                 IngresosScreen(navController = navController)
             }
 
-            composable(AppRoutes.DETALLE_INGRESO){backStackEntry ->
-                val gastoId = backStackEntry.arguments
-                    ?.getString()
-                DetalleIngresoScreen(N)
+            composable(AppRoutes.NUEVO_INGRESO) {
+                NuevoIngresoScreen(navController = navController)
             }
 
-            composable(AppRoutes.COTIZACIONES) {
-                CotizacionesScreen(navController)
+            composable(AppRoutes.DETALLE_INGRESO){backStackEntry ->
+                val ingresoId = backStackEntry.arguments
+                    ?.getString("ingresoId")
+                    ?.toIntOrNull()
+                DetalleIngresoScreen(
+                    navController = navController,
+                    ingresoId = ingresoId ?:0
+                )
             }
+
+            composable(
+                route = AppRoutes.EDITAR_INGRESO,
+                arguments = listOf(
+                    navArgument("ingresoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val ingresoId = backStackEntry.arguments?.getInt("ingresoId") ?: 0
+
+                EditarIngresoScreen(
+                    navController = navController,
+                    ingresoId = ingresoId
+                )
+            }
+
+            composable(
+                route = AppRoutes.ELIMINAR_INGRESO,
+                arguments = listOf(
+                    navArgument("ingresoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val ingresoId = backStackEntry.arguments?.getInt("ingresoId") ?: 0
+
+                EliminarIngresoScreen(
+                    navController = navController,
+                    ingresoId = ingresoId
+                )
+            }
+
+///                 COTIZACIONES
+///                 COTIZACIONES
+///                 COTIZACIONES
+
+            composable(AppRoutes.COTIZACIONES) {
+                CotizacionesScreen(navController = navController)
+            }
+
+            composable(AppRoutes.NUEVA_COTIZACION) {
+             //   NuevaCotizacionScreen(navController = navController)
+            }
+
+            composable(
+                route = AppRoutes.DETALLE_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) {
+        //        DetalleCotizacionScreen(navController = navController)
+            }
+
+
+///                 CLIENTES
+///                 CLIENTES
+///                 CLIENTES
+
 
             composable(AppRoutes.CLIENTES) {
                 ClientesScreen(navController = navController)
@@ -293,13 +376,27 @@ fun AppNavigation() {
                 )
             }
 
+
+///                     EMPLEADOS
+///                     EMPLEADOS
+///                     EMPLEADOS
+
             composable(AppRoutes.EMPLEADOS) {
                 EmpleadosScreen(navController)
             }
 
+
+///                     REPORTES
+///                     REPORTES
+///                     REPORTES
+
             composable(AppRoutes.REPORTES) {
                 ReportesScreen(navController)
             }
+
+///                     MAS
+///                     MAS
+///                     MAS
 
             composable(AppRoutes.MAS) {
                 MasScreen(navController)

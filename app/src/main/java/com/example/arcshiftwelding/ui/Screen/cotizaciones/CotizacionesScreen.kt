@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.Screen.ingresos
+package com.example.arcshiftwelding.ui.Screen.cotizaciones
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,89 +26,89 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 
-data class IngresoUI(
+data class CotizacionUI(
     val id: Int,
     val cliente: String,
     val trabajo: String,
     val folio: String,
     val total: String,
-    val anticipo: String,
-    val pendiente: String,
-    val categoria: String,
-    val fecha: String
+    val estado: String,
+    val fecha: String,
+    val vence: String
 )
 
 @Composable
-fun IngresosScreen(
+fun CotizacionesScreen(
     navController: NavController
 ) {
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
 
-
-
-    val ingresos = listOf(
-        IngresoUI(1, "Eduardo Barrios",
-            "Tejaban 6x4m",
-            "001",
-            "$12,000",
-             "$7,000",
-            "$5,000",
-            "Pagados",
-            "19/05/2026"),
-        IngresoUI(
-            2,
-            "Jose Vera",
-             "Portón 123\"x85\"",
-            "002",
-             "$12,000",
-             "$6,000",
-             "$6,000",
-            "Pendientes",
-           "26/05/2026"),
-        IngresoUI(
-            3,
-             "Maria Lopez",
-             "Escalera metálica",
-            "003",
-            "$8,500",
-             "$4,000",
-         "$4,500",
-             "Folio",
-         "20/05/2026"),
-        IngresoUI(
-         4,
-            "Constructora Del Norte",
-             "Estructura metálica",
-             "004",
-             "$15,000",
-             "$8,000",
-            "$7,000",
-             "Pendientes",
-           "22/05/2026"),
-        IngresoUI(
-            5,
-            "Alberto Ruiz",
-            "Reja perimetral",
-             "005",
-         "$9,000",
-             "$5,000",
-           "$4,000",
-             "Pagados",
-          "16/05/2026"),
-        IngresoUI(
-            5,
-            "Alberto Ruiz",
-            "Reja perimetral",
-             "005",
-         "$9,000",
-             "$5,000",
-           "$4,000",
-             "Anticipos",
-          "16/05/2026")
+    val cotizaciones = listOf(
+        CotizacionUI(
+            id = 1,
+            cliente = "Eduardo Barrios",
+            trabajo = "Tejaban 6x4m",
+            folio = "COT-001",
+            total = "$12,000",
+            estado = "Pendientes",
+            fecha = "19/05/2026",
+            vence = "25/05/2026"
+        ),
+        CotizacionUI(
+            id = 2,
+            cliente = "Jose Vera",
+            trabajo = "Portón 123x95",
+            folio = "COT-002",
+            total = "$12,000",
+            estado = "Pendientes",
+            fecha = "18/05/2026",
+            vence = "10/06/2026"
+        ),
+        CotizacionUI(
+            id = 3,
+            cliente = "Constructora Del Norte",
+            trabajo = "Estructura metálica",
+            folio = "COT-003",
+            total = "$15,000",
+            estado = "Aceptadas",
+            fecha = "16/05/2026",
+            vence = "16/05/2026"
+        ),
+        CotizacionUI(
+            id = 4,
+            cliente = "María López",
+            trabajo = "Escalera metálica",
+            folio = "COT-004",
+            total = "$8,500",
+            estado = "Rechazadas",
+            fecha = "15/05/2026",
+            vence = "15/05/2026"
+        ),
+        CotizacionUI(
+            id = 5,
+            cliente = "Alberto Ruiz",
+            trabajo = "Reja perimetral",
+            folio = "COT-005",
+            total = "$9,000",
+            estado = "Aceptadas",
+            fecha = "14/05/2026",
+            vence = "14/05/2026"
+        ),
+        CotizacionUI(
+            id = 6,
+            cliente = "Cliente General",
+            trabajo = "Barandal para escalera",
+            folio = "COT-006",
+            total = "$4,200",
+            estado = "Pendientes",
+            fecha = "12/05/2026",
+            vence = "19/05/2026"
+        )
     )
 
-    val ingresosFiltrados = ingresos.filter { ingreso ->
-        categoriaSeleccionada == "Todos"|| ingreso.categoria == categoriaSeleccionada }
+    val cotizacionesFiltradas = cotizaciones.filter { cotizacion ->
+        categoriaSeleccionada == "Todos" || cotizacion.estado == categoriaSeleccionada
+    }
 
     Column(
         modifier = Modifier
@@ -121,22 +121,21 @@ fun IngresosScreen(
                 bottom = 8.dp
             )
     ) {
-        HeaderIngresos(navController = navController)
+        HeaderCotizaciones(navController = navController)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-
-        ResumenIngresos()
+        ResumenCotizaciones()
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        BarraBusquedaIngresos()
+        BarraBusquedaCotizaciones()
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = {
-                navController.navigate(AppRoutes.NUEVO_INGRESO)
+                navController.navigate(AppRoutes.NUEVA_COTIZACION)
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
@@ -146,13 +145,13 @@ fun IngresosScreen(
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Nuevo Ingreso")
+            Text("Nueva Cotización")
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        FiltrosCategoriaIngresos(
-            seleccionada= categoriaSeleccionada,
+        FiltrosCategoriaCotizaciones(
+            seleccionada = categoriaSeleccionada,
             onSeleccionar = {
                 categoriaSeleccionada = it
             }
@@ -160,20 +159,17 @@ fun IngresosScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        ListadoIngresos(
-            ingresos = ingresosFiltrados,
-            onClickIngreso = { ingreso ->
-                navController.navigate(AppRoutes.detalleIngreso(ingreso.id))
+        ListadoCotizaciones(
+            cotizaciones = cotizacionesFiltradas,
+            onClickCotizacion = { cotizacion ->
+                navController.navigate(AppRoutes.detalleCotizacion(cotizacion.id))
             }
         )
-
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HeaderIngresos(
+fun HeaderCotizaciones(
     navController: NavController
 ) {
     Row(
@@ -182,13 +178,13 @@ fun HeaderIngresos(
             .background(Color.White)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         IconButton(onClick = { }) {
             Icon(Icons.Default.Menu, contentDescription = "Menú")
         }
 
         Text(
-            text = "Ingreso",
+            text = "Cotizaciones",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
@@ -197,6 +193,7 @@ fun HeaderIngresos(
         IconButton(onClick = { }) {
             Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
         }
+
         IconButton(
             onClick = {
                 navController.navigate(AppRoutes.LOGIN) {
@@ -212,60 +209,59 @@ fun HeaderIngresos(
                 contentDescription = "Salir"
             )
         }
-
     }
 }
 
 @Composable
-fun ResumenIngresos() {
+fun ResumenCotizaciones() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(7.dp)
     ) {
-        CardResumenIngreso(
+        CardResumenCotizacion(
             modifier = Modifier.weight(1f),
-            titulo = "Total ingresos",
-            monto = "$24,000",
+            titulo = "Total cotizaciones",
+            monto = "15",
             subtitulo = "Este mes",
-            icono = Icons.Default.AttachMoney,
+            icono = Icons.Default.Description,
             color = Color(0xFF2563EB),
             fondo = Color(0xFFEFF6FF)
         )
 
-        CardResumenIngreso(
+        CardResumenCotizacion(
             modifier = Modifier.weight(1f),
-            titulo = "Anticipos",
-            monto = "$13,000",
-            subtitulo = "Este mes",
-            icono = Icons.Default.ArrowDownward,
-            color = Color(0xFF16A34A),
-            fondo = Color(0xFFF0FDF4)
-        )
-
-        CardResumenIngreso(
-            modifier = Modifier.weight(1f),
-            titulo = "Pendiente",
-            monto = "$11,000",
+            titulo = "Pendientes",
+            monto = "7",
             subtitulo = "Este mes",
             icono = Icons.Default.Schedule,
             color = Color(0xFFF59E0B),
             fondo = Color(0xFFFFFBEB)
         )
 
-        CardResumenIngreso(
+        CardResumenCotizacion(
             modifier = Modifier.weight(1f),
-            titulo = "Cobros realizados",
-            monto = "$13,000",
+            titulo = "Aceptadas",
+            monto = "5",
             subtitulo = "Este mes",
-            icono = Icons.Default.ReceiptLong,
-            color = Color(0xFF7C3AED),
-            fondo = Color(0xFFF5F3FF)
+            icono = Icons.Default.CheckCircle,
+            color = Color(0xFF16A34A),
+            fondo = Color(0xFFF0FDF4)
+        )
+
+        CardResumenCotizacion(
+            modifier = Modifier.weight(1f),
+            titulo = "Rechazadas",
+            monto = "3",
+            subtitulo = "Este mes",
+            icono = Icons.Default.Cancel,
+            color = Color(0xFFDC2626),
+            fondo = Color(0xFFFEF2F2)
         )
     }
 }
 
 @Composable
-fun CardResumenIngreso(
+fun CardResumenCotizacion(
     modifier: Modifier = Modifier,
     titulo: String,
     monto: String,
@@ -331,7 +327,7 @@ fun CardResumenIngreso(
 }
 
 @Composable
-fun BarraBusquedaIngresos() {
+fun BarraBusquedaCotizaciones() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -345,7 +341,7 @@ fun BarraBusquedaIngresos() {
                 .height(48.dp),
             placeholder = {
                 Text(
-                    text = "Buscar ingreso...",
+                    text = "Buscar cotización...",
                     fontSize = 12.sp
                 )
             },
@@ -382,17 +378,16 @@ fun BarraBusquedaIngresos() {
     }
 }
 
-
 @Composable
-fun FiltrosCategoriaIngresos(
+fun FiltrosCategoriaCotizaciones(
     seleccionada: String,
     onSeleccionar: (String) -> Unit
 ) {
     val categorias = listOf(
         "Todos",
-        "Anticipos",
         "Pendientes",
-        "Pagados",
+        "Aceptadas",
+        "Rechazadas",
         "Más"
     )
 
@@ -401,12 +396,12 @@ fun FiltrosCategoriaIngresos(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         contentPadding = PaddingValues(horizontal = 2.dp)
     ) {
-        items(categorias){ categoria ->
-            CategoriaChip(
+        items(categorias) { categoria ->
+            CategoriaChipCotizacion(
                 texto = categoria,
                 seleccionado = seleccionada == categoria,
                 onClick = {
-                 onSeleccionar(categoria)
+                    onSeleccionar(categoria)
                 }
             )
         }
@@ -414,7 +409,7 @@ fun FiltrosCategoriaIngresos(
 }
 
 @Composable
-fun CategoriaChip(
+fun CategoriaChipCotizacion(
     texto: String,
     seleccionado: Boolean,
     onClick: () -> Unit
@@ -444,13 +439,14 @@ fun CategoriaChip(
 }
 
 @Composable
-fun ListadoIngresos(
-    ingresos: List<IngresoUI>,
-    onClickIngreso: (IngresoUI) -> Unit
-){
+fun ListadoCotizaciones(
+    cotizaciones: List<CotizacionUI>,
+    onClickCotizacion: (CotizacionUI) -> Unit
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(
                 start = 0.dp,
                 top = 0.dp,
@@ -458,22 +454,20 @@ fun ListadoIngresos(
                 bottom = 8.dp
             )
     ) {
-        items(ingresos) { ingreso ->
-            ItemIngreso(
-                ingreso = ingreso,
+        items(cotizaciones) { cotizacion ->
+            ItemCotizacion(
+                cotizacion = cotizacion,
                 onClick = {
-                    onClickIngreso(ingreso)
+                    onClickCotizacion(cotizacion)
                 }
             )
-
         }
     }
-
 }
 
 @Composable
-fun ItemIngreso(
-    ingreso: IngresoUI,
+fun ItemCotizacion(
+    cotizacion: CotizacionUI,
     onClick: () -> Unit
 ) {
     Card(
@@ -492,19 +486,15 @@ fun ItemIngreso(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconoCategoriaIngreso(ingreso.categoria)
-
+            IconoEstadoCotizacion(cotizacion.estado)
 
             Spacer(modifier = Modifier.width(10.dp))
-
-
-
 
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = ingreso.cliente,
+                    text = cotizacion.cliente,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -512,7 +502,7 @@ fun ItemIngreso(
                 )
 
                 Text(
-                    text = "Trabajo: ${ingreso.trabajo}",
+                    text = cotizacion.trabajo,
                     fontSize = 9.sp,
                     color = Color.DarkGray,
                     maxLines = 1
@@ -521,7 +511,7 @@ fun ItemIngreso(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Folio: ${ingreso.folio}",
+                    text = "Folio: ${cotizacion.folio}",
                     fontSize = 8.sp,
                     color = Color(0xFF2563EB),
                     modifier = Modifier
@@ -533,94 +523,100 @@ fun ItemIngreso(
                 )
             }
 
-            DatosIngreso(
-                titulo = "Total",
-                valor = ingreso.total,
-                color = Color(0xFF2563EB)
+            DatosCotizacion(
+                titulo = "Fecha",
+                valor = cotizacion.fecha,
+                color = Color.Black
             )
 
-            DatosIngreso(
-                titulo = "Anticipo",
-                valor = ingreso.anticipo,
-                color = Color(0xFF16A34A)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(68.dp)
+            ) {
+                Text(
+                    text = "Estado",
+                    fontSize = 8.sp,
+                    color = Color.Gray
+                )
+
+                Text(
+                    text = cotizacion.estado,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorEstadoCotizacion(cotizacion.estado),
+                    modifier = Modifier
+                        .background(
+                            color = FondoEstadoCotizacion(cotizacion.estado),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 5.dp, vertical = 2.dp)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Vence: ${cotizacion.vence}",
+                    fontSize = 7.sp,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
+            }
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(58.dp)
             ) {
                 Text(
-                    text = "Pendiente",
+                    text = "Total",
                     fontSize = 8.sp,
                     color = Color.Gray
                 )
 
                 Text(
-                    text = ingreso.pendiente,
+                    text = cotizacion.total,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF97316)
+                    color = Color(0xFF2563EB)
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = ingreso.categoria,
-                    fontSize = 8.sp,
-                    color = if (ingreso.categoria == "Pagado") Color(0xFF16A34A) else Color(0xFFF59E0B),
-                    modifier = Modifier
-                        .background(
-                            color = if (ingreso.categoria == "Pagado") Color(0xFFEAF7EE) else Color(0xFFFFF7E6),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 5.dp, vertical = 2.dp)
-                )
-
-                Text(
-                    text = ingreso.fecha,
-                    fontSize = 7.sp,
-                    color = Color.Gray
-                )
+                IconButton(
+                    onClick = { },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Opciones",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun IconoCategoriaIngreso(
-    categoria: String
+fun IconoEstadoCotizacion(
+    estado: String
 ) {
-    val icono = when (categoria) {
-        "Anticipos" -> Icons.Default.Savings
+    val icono = when (estado) {
         "Pendientes" -> Icons.Default.Schedule
-        "Pagados" -> Icons.Default.CheckCircle
-        "Cobros" -> Icons.Default.AttachMoney
-        "Transferencias" -> Icons.Default.AccountBalance
-        "Efectivos" -> Icons.Default.Payments
-        "Tarjetas" -> Icons.Default.CreditCard
-        else -> Icons.Default.ReceiptLong
+        "Aceptadas" -> Icons.Default.CheckCircle
+        "Rechazadas" -> Icons.Default.Cancel
+        else -> Icons.Default.Description
     }
 
-    val color = when (categoria) {
-        "Anticipos" -> Color(0xFF16A34A)
+    val color = when (estado) {
         "Pendientes" -> Color(0xFFF59E0B)
-        "Pagados" -> Color(0xFF15803D)
-        "Cobros" -> Color(0xFF2563EB)
-        "Transferencias" -> Color(0xFF7C3AED)
-        "Efectivos" -> Color(0xFF0891B2)
-        "Tarjetas" -> Color(0xFFDB2777)
-        else -> Color(0xFF64748B)
+        "Aceptadas" -> Color(0xFF16A34A)
+        "Rechazadas" -> Color(0xFFDC2626)
+        else -> Color(0xFF2563EB)
     }
 
-    val fondo = when (categoria) {
-        "Anticipos" -> Color(0xFFDCFCE7)
+    val fondo = when (estado) {
         "Pendientes" -> Color(0xFFFEF3C7)
-        "Pagados" -> Color(0xFFD1FAE5)
-        "Cobros" -> Color(0xFFDBEAFE)
-        "Transferencias" -> Color(0xFFEDE9FE)
-        "Efectivos" -> Color(0xFFCFFAFE)
-        "Tarjetas" -> Color(0xFFFCE7F3)
-        else -> Color(0xFFF1F5F9)
+        "Aceptadas" -> Color(0xFFDCFCE7)
+        "Rechazadas" -> Color(0xFFFEE2E2)
+        else -> Color(0xFFEFF6FF)
     }
 
     Box(
@@ -634,7 +630,7 @@ fun IconoCategoriaIngreso(
     ) {
         Icon(
             imageVector = icono,
-            contentDescription = categoria,
+            contentDescription = estado,
             tint = color,
             modifier = Modifier.size(23.dp)
         )
@@ -642,14 +638,14 @@ fun IconoCategoriaIngreso(
 }
 
 @Composable
-fun DatosIngreso(
+fun DatosCotizacion(
     titulo: String,
     valor: String,
     color: Color
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(50.dp)
+        modifier = Modifier.width(58.dp)
     ) {
         Text(
             text = titulo,
@@ -659,9 +655,28 @@ fun DatosIngreso(
 
         Text(
             text = valor,
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
-            color = color
+            color = color,
+            maxLines = 1
         )
+    }
+}
+
+fun ColorEstadoCotizacion(estado: String): Color {
+    return when (estado) {
+        "Pendientes" -> Color(0xFFF59E0B)
+        "Aceptadas" -> Color(0xFF16A34A)
+        "Rechazadas" -> Color(0xFFDC2626)
+        else -> Color(0xFF2563EB)
+    }
+}
+
+fun FondoEstadoCotizacion(estado: String): Color {
+    return when (estado) {
+        "Pendientes" -> Color(0xFFFFF7E6)
+        "Aceptadas" -> Color(0xFFEAF7EE)
+        "Rechazadas" -> Color(0xFFFFEEEE)
+        else -> Color(0xFFEFF6FF)
     }
 }

@@ -58,7 +58,7 @@ fun DetalleIngresoScreen(
 
                 IconButton(
                     onClick = {
-                      //  navController.navigate(AppRoutes.editarIngreso(ingresoId))
+                       navController.navigate(AppRoutes.editarIngreso(ingresoId))
                     }
                 ) {
                     Icon(
@@ -98,7 +98,7 @@ fun DetalleIngresoScreen(
 
             SeccionAccionesRapidasIngreso(
                 onEditar = {
-                  //  navController.navigate(AppRoutes.editarIngreso(ingresoId = ingresoId))
+                    navController.navigate(AppRoutes.editarIngreso(ingresoId = ingresoId))
                 },
                 onEnviarFactura = {
                     // Pendiente: enviar factura
@@ -107,7 +107,7 @@ fun DetalleIngresoScreen(
                     // Pendiente: descargar PDF
                 },
                 onEliminar = {
-                 //   navController.navigate(AppRoutes.eliminarIngreso(ingresoId = ingresoId))
+                    navController.navigate(AppRoutes.eliminarIngreso(ingresoId = ingresoId))
                 }
             )
         }
