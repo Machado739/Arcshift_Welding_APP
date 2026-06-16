@@ -18,7 +18,7 @@ import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
-import com.example.arcshiftwelding.ui.Screen.EmpleadosScreen
+import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
@@ -27,6 +27,14 @@ import com.example.arcshiftwelding.ui.Screen.clientes.DetalleClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EditarClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EliminarClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.NuevoClienteScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.DetalleCotizacionScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.EditarCotizacionScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.EliminarCotizacionScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.NuevaCotizacionScreen
+import com.example.arcshiftwelding.ui.Screen.empleados.DetalleEmpleadoScreen
+import com.example.arcshiftwelding.ui.Screen.empleados.EditarEmpleadoScreen
+import com.example.arcshiftwelding.ui.Screen.empleados.EliminarEmpleadoScreen
+import com.example.arcshiftwelding.ui.Screen.empleados.NuevoEmpleadoScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.NuevoGastoScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.EliminarGastoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.ReportarSalidaScreen
@@ -304,7 +312,7 @@ fun AppNavigation() {
             }
 
             composable(AppRoutes.NUEVA_COTIZACION) {
-             //   NuevaCotizacionScreen(navController = navController)
+               NuevaCotizacionScreen(navController = navController)
             }
 
             composable(
@@ -315,10 +323,42 @@ fun AppNavigation() {
                     }
                 )
             ) {
-        //        DetalleCotizacionScreen(navController = navController)
+                DetalleCotizacionScreen(navController = navController)
             }
 
+            composable(
+                route = AppRoutes.EDITAR_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
 
+                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
+
+                EditarCotizacionScreen(
+                    navController = navController,
+                    cotizacionId = cotizacionId
+                )
+            }
+
+            composable(
+                route = AppRoutes.ELIMINAR_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
+
+                EliminarCotizacionScreen(
+                    navController = navController,
+                    cotizacionId = cotizacionId
+                )
+            }
 ///                 CLIENTES
 ///                 CLIENTES
 ///                 CLIENTES
@@ -385,7 +425,53 @@ fun AppNavigation() {
                 EmpleadosScreen(navController)
             }
 
+            composable(AppRoutes.NUEVO_EMPLEADO ) {
+                NuevoEmpleadoScreen(navController = navController)
+            }
 
+            composable(
+                route = AppRoutes.DETALLE_EMPLEADO,
+                arguments = listOf(
+                    navArgument("empleadoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) {
+                val empleadoId = it.arguments?.getInt("empleadoId") ?: 0
+
+                DetalleEmpleadoScreen(
+                    navController = navController,
+                    empleadoId = empleadoId
+                )
+            }
+
+            composable(
+                route = AppRoutes.EDITAR_EMPLEADO,
+                arguments = listOf(
+                    navArgument("empleadoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) {
+                val empleadoId = it.arguments?.getInt("empleadoId") ?: 0
+
+                EditarEmpleadoScreen(
+                    navController = navController,
+                    empleadoId = empleadoId
+                )
+            }
+
+            composable(
+                route = AppRoutes.ELIMINAR_EMPLEADO,
+                arguments = listOf(navArgument("empleadoId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val empleadoId = backStackEntry.arguments?.getInt("empleadoId") ?: 0
+
+                EliminarEmpleadoScreen(
+                    navController = navController,
+                    empleadoId = empleadoId
+                )
+            }
 ///                     REPORTES
 ///                     REPORTES
 ///                     REPORTES

@@ -184,10 +184,10 @@ fun DetalleClienteScreen(
                 SeccionCotizacionesCliente(
                     cotizaciones = cotizaciones,
                     onVerTodoClick = {
-                        // navController.navigate("cotizaciones_cliente/${cliente.id}")
+                        navController.navigate("cotizaciones_cliente/${cliente.id}")
                     },
                     onCotizacionClick = { cotizacion ->
-                        // navController.navigate("detalle_cotizacion/${cotizacion.folio}")
+                         navController.navigate("detalle_cotizacion/${cotizacion.folio}")
                     }
                 )
 
