@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.data.local.entities
+package com.example.arcshiftwelding.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

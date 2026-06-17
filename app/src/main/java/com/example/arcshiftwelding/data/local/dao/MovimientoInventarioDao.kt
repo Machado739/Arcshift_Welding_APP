@@ -1,7 +1,7 @@
 package com.example.arcshiftwelding.data.local.dao
 
 import androidx.room.*
-import com.example.arcshiftwelding.data.local.entities.MovimientoInventarioEntity
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
+import com.example.arcshiftwelding.ui.Screen.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
@@ -479,6 +480,23 @@ fun AppNavigation() {
             composable(AppRoutes.REPORTES) {
                 ReportesScreen(
                     navController = navController
+                )
+            }
+
+            composable(
+                route = AppRoutes.DETALLE_REPORTE,
+                arguments = listOf(
+                    navArgument("tipoReporte") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val tipoReporte = backStackEntry.arguments?.getString("tipoReporte") ?: ""
+
+                DetalleReporteScreen(
+                    navController = navController,
+                    tipoReporte = tipoReporte
                 )
             }
 

@@ -44,6 +44,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,6 +71,10 @@ data class ReporteUI(
 fun ReportesScreen(
     navController: NavController
 ) {
+    var periodoSeleccionado by remember {
+        mutableStateOf("Mes")
+    }
+
     val reportes = listOf(
         ReporteUI(
             titulo = "Ingresos",
@@ -135,19 +143,39 @@ fun ReportesScreen(
                 }
 
                 item {
-                    Text(
-                        text = "Periodo de consulta",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Periodo de consulta",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Text(
+                            text = obtenerTextoPeriodo(periodoSeleccionado),
+                            color = Color.Gray,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+
+                item {
+                    FiltrosRapidosReportes(
+                        periodoSeleccionado = periodoSeleccionado,
+                        onPeriodoClick = { nuevoPeriodo ->
+                            periodoSeleccionado = nuevoPeriodo
+                        }
                     )
                 }
 
                 item {
-                    FiltrosRapidosReportes()
-                }
-
-                item {
-                    ResumenReportesCompacto()
+                    ResumenReportesCompacto(
+                        periodoSeleccionado = periodoSeleccionado
+                    )
                 }
 
                 item {
@@ -161,7 +189,11 @@ fun ReportesScreen(
                 items(reportes.size) { index ->
                     ItemReporte(
                         reporte = reportes[index],
-                        onClick = { }
+                        onClick = {
+                            navController.navigate(
+                                AppRoutes.detalleReporte(reportes[index].titulo)
+                            )
+                        }
                     )
                 }
 
@@ -176,6 +208,7 @@ fun ReportesScreen(
         }
     }
 }
+
 
 @Composable
 fun HeaderReportes(
@@ -277,47 +310,42 @@ fun EncabezadoModuloReportes() {
         }
     }
 }
-
 @Composable
-fun FiltrosRapidosReportes() {
+fun FiltrosRapidosReportes(
+    periodoSeleccionado: String,
+    onPeriodoClick: (String) -> Unit
+) {
+    val periodos = listOf("Hoy", "Semana", "Mes", "Año")
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        FiltroReporte(
-            texto = "Hoy",
-            seleccionado = false,
-            modifier = Modifier.weight(1f)
-        )
-
-        FiltroReporte(
-            texto = "Semana",
-            seleccionado = false,
-            modifier = Modifier.weight(1f)
-        )
-
-        FiltroReporte(
-            texto = "Mes",
-            seleccionado = true,
-            modifier = Modifier.weight(1f)
-        )
-
-        FiltroReporte(
-            texto = "Año",
-            seleccionado = false,
-            modifier = Modifier.weight(1f)
-        )
+        periodos.forEach { periodo ->
+            FiltroReporte(
+                texto = periodo,
+                seleccionado = periodoSeleccionado == periodo,
+                onClick = {
+                    onPeriodoClick(periodo)
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
-
 @Composable
 fun FiltroReporte(
     texto: String,
     seleccionado: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(42.dp),
+        modifier = modifier
+            .height(38.dp)
+            .clickable {
+                onClick()
+            },
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (seleccionado) {
@@ -341,16 +369,19 @@ fun FiltroReporte(
         }
     }
 }
-
 @Composable
-fun ResumenReportesCompacto() {
+fun ResumenReportesCompacto(
+    periodoSeleccionado: String
+) {
+    val datos = obtenerResumenPorPeriodo(periodoSeleccionado)
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TarjetaDatoReporte(
             titulo = "Generados",
-            valor = "8",
+            valor = datos.generados.toString(),
             icono = Icons.Default.Description,
             color = Color(0xFF2563EB),
             modifier = Modifier.weight(1f)
@@ -358,7 +389,7 @@ fun ResumenReportesCompacto() {
 
         TarjetaDatoReporte(
             titulo = "Pendientes",
-            valor = "3",
+            valor = datos.pendientes.toString(),
             icono = Icons.Default.CalendarMonth,
             color = Color(0xFFF59E0B),
             modifier = Modifier.weight(1f)
@@ -366,11 +397,60 @@ fun ResumenReportesCompacto() {
 
         TarjetaDatoReporte(
             titulo = "Exportados",
-            valor = "5",
+            valor = datos.exportados.toString(),
             icono = Icons.Default.Download,
             color = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
         )
+    }
+}
+data class ResumenPeriodoReporte(
+    val generados: Int,
+    val pendientes: Int,
+    val exportados: Int
+)
+
+fun obtenerResumenPorPeriodo(periodo: String): ResumenPeriodoReporte {
+    return when (periodo) {
+        "Hoy" -> ResumenPeriodoReporte(
+            generados = 2,
+            pendientes = 1,
+            exportados = 1
+        )
+
+        "Semana" -> ResumenPeriodoReporte(
+            generados = 5,
+            pendientes = 2,
+            exportados = 3
+        )
+
+        "Mes" -> ResumenPeriodoReporte(
+            generados = 8,
+            pendientes = 3,
+            exportados = 5
+        )
+
+        "Año" -> ResumenPeriodoReporte(
+            generados = 36,
+            pendientes = 9,
+            exportados = 24
+        )
+
+        else -> ResumenPeriodoReporte(
+            generados = 0,
+            pendientes = 0,
+            exportados = 0
+        )
+    }
+}
+
+fun obtenerTextoPeriodo(periodo: String): String {
+    return when (periodo) {
+        "Hoy" -> "Información de hoy"
+        "Semana" -> "Últimos 7 días"
+        "Mes" -> "Mes actual"
+        "Año" -> "Año actual"
+        else -> "Sin periodo"
     }
 }
 
@@ -383,31 +463,42 @@ fun TarjetaDatoReporte(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(92.dp),
+        modifier = modifier.height(68.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(9.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 9.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .background(
+                        color = color.copy(alpha = 0.13f),
+                        shape = RoundedCornerShape(9.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(17.dp)
                 )
+            }
 
-                Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(7.dp))
 
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = titulo,
                     color = Color.Gray,
@@ -415,14 +506,18 @@ fun TarjetaDatoReporte(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
 
-            Text(
-                text = valor,
-                color = color,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp
-            )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = valor,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 19.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

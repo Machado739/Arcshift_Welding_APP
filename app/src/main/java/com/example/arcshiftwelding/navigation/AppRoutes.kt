@@ -138,11 +138,14 @@ object AppRoutes {
 ///                     REPORTES
 ///                     REPORTES
     const val REPORTES = "reportes"
+    const val DETALLE_REPORTE = "detalle_reporte/{tipoReporte}"
 
+    fun detalleReporte(tipoReporte: String): String {
+        return "detalle_reporte/$tipoReporte"
+    }
 
 ///                     MAS
 ///                     MAS
 ///                     MAS
-
     const val MAS = "mas"
 }

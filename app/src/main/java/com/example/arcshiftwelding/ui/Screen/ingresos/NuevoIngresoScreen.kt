@@ -59,14 +59,6 @@ fun NuevoIngresoScreen(
                         contentDescription = "Notificaciones"
                     )
                 }
-
-                TextButton(onClick = { }) {
-                    Text(
-                        text = "Log\nOut",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Black
-                    )
-                }
             }
         },
         contentWindowInsets = WindowInsets(0),
