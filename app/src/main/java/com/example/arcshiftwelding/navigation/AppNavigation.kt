@@ -14,15 +14,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
-import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
 import com.example.arcshiftwelding.ui.Screen.ReportesScreen
+import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.DetalleClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EditarClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EliminarClienteScreen
@@ -477,7 +477,9 @@ fun AppNavigation() {
 ///                     REPORTES
 
             composable(AppRoutes.REPORTES) {
-                ReportesScreen(navController)
+                ReportesScreen(
+                    navController = navController
+                )
             }
 
 ///                     MAS
