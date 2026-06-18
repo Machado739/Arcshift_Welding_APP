@@ -15,14 +15,22 @@ data class ProductoEntity(
 
     val stock: Int,
     val unidad: String,
-
     val stockMinimo: Int = 0,
+    val stockMaximo: Int = 0,
+
+    val estado: String = "En Stock",
+
     val precioCompra: Double = 0.0,
     val precioVenta: Double = 0.0,
 
     val descripcion: String = "",
     val proveedor: String = "",
+    val notas: String = "",
 
-    val fechaRegistro: String = "",
-    val activo: Boolean = true
+    val imagenUri: String = "",
+
+    val permitirStockNegativo: Boolean = false,
+    val activo: Boolean = true,
+
+    val fechaRegistro: String = ""
 )

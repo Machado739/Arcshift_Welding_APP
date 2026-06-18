@@ -54,6 +54,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+
 
 data class ProductoUI(
     val id: Int,
@@ -62,9 +71,29 @@ data class ProductoUI(
     val codigo: String,
     val ubicacion: String,
     val stock: Int,
-    val unidad: String
+    val unidad: String,
+    val stockMinimo: Int,
+    val stockMaximo: Int,
+    val estado: String,
+    val imagenUri: String
 )
 
+
+fun ProductoEntity.toProductoUI(): ProductoUI {
+    return ProductoUI(
+        id = id,
+        nombre = nombre,
+        categoria = categoria,
+        codigo = codigo,
+        ubicacion = ubicacion,
+        stock = stock,
+        unidad = unidad,
+        stockMinimo = stockMinimo,
+        stockMaximo = stockMaximo,
+        estado = estado,
+        imagenUri = imagenUri
+    )
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventarioScreen(
@@ -72,9 +101,35 @@ fun InventarioScreen(
     onDetalleProducto: (ProductoUI) -> Unit = {},
     navController: NavController
 ) {
+
+
+
+    //      BASE DE DATOS
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val repository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(repository)
+    )
+
+    val productosEntity by productoViewModel.productos.collectAsState()
+
+    val productos = productosEntity.map { producto ->
+        producto.toProductoUI()
+    }
+
+    //
     var busqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
 
+/*
     val productos = listOf(
         ProductoUI(1, "PRT 2\"x2\" Cal. 14", "Materiales", "MAT-001", "Almacén A", 10, "Piezas"),
         ProductoUI(2, "Soldadura 6013 1/8", "Consumibles", "CON-001", "Almacén B", 25, "Cajas"),
@@ -105,10 +160,18 @@ fun InventarioScreen(
         ProductoUI(23, "Mangas de carnaza", "Seguridad", "SEG-005", "Almacén C", 6, "Pares"),
         ProductoUI(24, "Botas de seguridad", "Seguridad", "SEG-006", "Almacén C", 2, "Pares")
     )
+*/
 
     val productosFiltrados = productos.filter { producto ->
-        producto.nombre.contains(busqueda, ignoreCase = true) &&
-                (categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada)
+        val coincideBusqueda =
+            producto.nombre.contains(busqueda, ignoreCase = true) ||
+                    producto.codigo.contains(busqueda, ignoreCase = true) ||
+                    producto.categoria.contains(busqueda, ignoreCase = true)
+
+        val coincideCategoria =
+            categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada
+
+        coincideBusqueda && coincideCategoria
     }
 
         Column(
@@ -187,7 +250,7 @@ fun InventarioScreen(
             ListaProductosInventario(
                 productos = productosFiltrados,
                 onClickProducto = { producto ->
-                    onDetalleProducto(producto)
+                    navController.navigate(AppRoutes.detalleProducto(producto.id))
                 }
             )
 
@@ -472,15 +535,15 @@ fun ItemProductoInventario(
     producto: ProductoUI,
     onClick: () -> Unit
 ) {
-    val estadoTexto = when {
-        producto.stock == 0 -> "Sin stock"
-        producto.stock <= 5 -> "Stock bajo"
+    val estadoTexto = when (producto.estado) {
+        "Agotado" -> "Sin stock"
+        "Bajo Stock" -> "Stock bajo"
         else -> "En stock"
     }
 
-    val estadoColor = when {
-        producto.stock == 0 -> Color(0xFFDC2626)
-        producto.stock <= 5 -> Color(0xFFF59E0B)
+    val estadoColor = when (producto.estado) {
+        "Agotado" -> Color(0xFFDC2626)
+        "Bajo Stock" -> Color(0xFFF59E0B)
         else -> Color(0xFF16A34A)
     }
 

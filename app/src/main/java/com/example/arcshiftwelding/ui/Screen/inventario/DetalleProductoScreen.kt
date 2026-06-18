@@ -30,7 +30,25 @@ import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.arcshiftwelding.navigation.AppRoutes
-
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import com.example.arcshiftwelding.data.repository.MovimientoInventarioRepository
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModel
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFactory
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +56,41 @@ fun DetalleProductoScreen(
     navController: NavController,
     productoId: Int
 ) {
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val repository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(repository)
+    )
+
+    val producto by productoViewModel.productoSeleccionado.collectAsState()
+
+    LaunchedEffect(productoId) {
+        productoViewModel.cargarProductoPorId(productoId)
+    }
+
+    val movimientoRepository = remember {
+        MovimientoInventarioRepository(database.movimientoInventarioDao())
+    }
+
+    val movimientoViewModel: MovimientoInventarioViewModel = viewModel(
+        factory = MovimientoInventarioViewModelFactory(movimientoRepository)
+    )
+
+    val movimientosRecientes by movimientoViewModel.movimientosRecientes.collectAsState()
+
+    LaunchedEffect(productoId) {
+        productoViewModel.cargarProductoPorId(productoId)
+        movimientoViewModel.cargarMovimientosRecientes(productoId)
+    }
+
     Scaffold(
         topBar = {
             Row(
@@ -86,47 +139,96 @@ fun DetalleProductoScreen(
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F6FA))
-                .padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            EncabezadoProductoDetalle()
-
-            SeccionDetalleInformacionGeneral()
-
-
-            SeccionDetalleInventario()
-            SeccionDetalleCostos()
-
-            SeccionMovimientosRecientes()
-
-            SeccionAccionesRapidas(
-                onEditar = {
-                    navController.navigate(AppRoutes.editarProducto(productoId = 1))
-                },
-                onAgregarStock = {
-                    navController.navigate(AppRoutes.reponerStock(productoId = 1))
-                },
-                onReportarSalida = {
-                    navController.navigate(AppRoutes.reportarSalida(productoId = 1))
-                },
-                onEliminar = {
-                    navController.navigate(AppRoutes.eliminarProducto(productoId = 1))
+        when {
+            producto == null -> {
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                        .background(Color(0xFFF5F6FA)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Cargando producto...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
                 }
-            )
+            }
 
+            else -> {
+                val productoActual = producto!!
+
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .background(Color(0xFFF5F6FA))
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    EncabezadoProductoDetalle(
+                        producto = productoActual
+                    )
+
+                    SeccionDetalleInformacionGeneral(
+                        producto = productoActual
+                    )
+
+                    SeccionDetalleInventario(
+                        producto = productoActual
+                    )
+
+                    SeccionDetalleCostos(
+                        producto = productoActual
+                    )
+
+                    SeccionDetalleAdicional(
+                        producto = productoActual
+                    )
+
+                    SeccionMovimientosRecientes(
+                        movimientos = movimientosRecientes
+                    )
+
+                    SeccionAccionesRapidas(
+                        onEditar = {
+                            navController.navigate(AppRoutes.editarProducto(productoId))
+                        },
+                        onAgregarStock = {
+                            navController.navigate(AppRoutes.reponerStock(productoId))
+                        },
+                        onReportarSalida = {
+                            navController.navigate(AppRoutes.reportarSalida(productoId))
+                        },
+                        onEliminar = {
+                            navController.navigate(AppRoutes.eliminarProducto(productoId))
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-fun EncabezadoProductoDetalle() {
+fun EncabezadoProductoDetalle(
+    producto: ProductoEntity
+) {
+    val estadoTexto = when (producto.estado) {
+        "Agotado" -> "Sin stock"
+        "Bajo Stock" -> "Stock bajo"
+        else -> "En stock"
+    }
+
+    val estadoColor = when (producto.estado) {
+        "Agotado" -> Color(0xFFDC2626)
+        "Bajo Stock" -> Color(0xFFF59E0B)
+        else -> Color(0xFF16A34A)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
@@ -151,12 +253,21 @@ fun EncabezadoProductoDetalle() {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Inventory2,
-                    contentDescription = null,
-                    modifier = Modifier.size(42.dp),
-                    tint = Color.Gray
-                )
+                if (producto.imagenUri.isNotBlank()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(File(producto.imagenUri)),
+                        contentDescription = "Imagen del producto",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Inventory2,
+                        contentDescription = null,
+                        modifier = Modifier.size(42.dp),
+                        tint = Color.Gray
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -165,7 +276,7 @@ fun EncabezadoProductoDetalle() {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "PTR 2\"x2\" Cal. 14",
+                    text = producto.nombre,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -173,12 +284,12 @@ fun EncabezadoProductoDetalle() {
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Código: MAT-001",
+                    text = "Código: ${producto.codigo}",
                     style = MaterialTheme.typography.bodySmall
                 )
 
                 Text(
-                    text = "Ubicación: MAT-001",
+                    text = "Ubicación: ${producto.ubicacion}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -189,7 +300,7 @@ fun EncabezadoProductoDetalle() {
                 AssistChip(
                     onClick = { },
                     label = {
-                        Text("En Stock")
+                        Text(estadoTexto)
                     },
                     leadingIcon = {
                         Icon(
@@ -199,8 +310,8 @@ fun EncabezadoProductoDetalle() {
                         )
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        labelColor = Color(0xFF1B7F3A),
-                        leadingIconContentColor = Color(0xFF1B7F3A)
+                        labelColor = estadoColor,
+                        leadingIconContentColor = estadoColor
                     )
                 )
 
@@ -220,13 +331,13 @@ fun EncabezadoProductoDetalle() {
                         )
 
                         Text(
-                            text = "10",
+                            text = producto.stock.toString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
-                            text = "Piezas",
+                            text = producto.unidad,
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -235,6 +346,9 @@ fun EncabezadoProductoDetalle() {
         }
     }
 }
+
+
+
 @Composable
 fun DetalleCard(
     titulo: String,
@@ -290,53 +404,64 @@ fun DetalleCard(
         }
     }
 }
+
+
 @Composable
-fun SeccionDetalleInformacionGeneral() {
+fun SeccionDetalleInformacionGeneral(
+    producto: ProductoEntity
+) {
     DetalleCard(
         titulo = "Información general",
         icono = Icons.Default.Info
     ) {
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                CampoDetalle(
-                    titulo = "Nombre del producto",
-                    valor = "PTR 2\"x2\" Cal. 14"
-                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CampoDetalle(
+                        titulo = "Nombre del producto",
+                        valor = producto.nombre
+                    )
 
-                CampoDetalle(
-                    titulo = "Categoría",
-                    valor = "Materiales"
-                )
+                    CampoDetalle(
+                        titulo = "Categoría",
+                        valor = producto.categoria
+                    )
 
-                CampoDetalle(
-                    titulo = "Código / SKU",
-                    valor = "MAT-001"
-                )
-            }
+                    CampoDetalle(
+                        titulo = "Código / SKU",
+                        valor = producto.codigo
+                    )
+                }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                CampoDetalle(
-                    titulo = "Descripción",
-                    valor = "Tubo cuadrado estructural de acero al carbón."
-                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CampoDetalle(
+                        titulo = "Descripción",
+                        valor = producto.descripcion.ifBlank { "Sin descripción" }
+                    )
 
-                CampoDetalle(
-                    titulo = "Unidad de medida",
-                    valor = "Pieza"
-                )
+                    CampoDetalle(
+                        titulo = "Unidad de medida",
+                        valor = producto.unidad
+                    )
+                }
             }
         }
     }
 }
+
+
 
 @Composable
 fun CampoDetalle(
@@ -360,7 +485,21 @@ fun CampoDetalle(
 }
 
 @Composable
-fun SeccionDetalleInventario() {
+fun SeccionDetalleInventario(
+    producto: ProductoEntity
+) {
+    val estadoTexto = when (producto.estado) {
+        "Agotado" -> "Sin stock"
+        "Bajo Stock" -> "Stock bajo"
+        else -> "En stock"
+    }
+
+    val estadoColor = when (producto.estado) {
+        "Agotado" -> Color(0xFFDC2626)
+        "Bajo Stock" -> Color(0xFFF59E0B)
+        else -> Color(0xFF16A34A)
+    }
+
     DetalleCard(
         titulo = "Inventario",
         icono = Icons.Default.Inventory2
@@ -371,8 +510,8 @@ fun SeccionDetalleInventario() {
         ) {
             ItemInventarioDetalle(
                 titulo = "Stock actual",
-                valor = "10",
-                subtitulo = "Piezas",
+                valor = producto.stock.toString(),
+                subtitulo = producto.unidad,
                 modifier = Modifier.weight(1f)
             )
 
@@ -380,17 +519,17 @@ fun SeccionDetalleInventario() {
 
             ItemInventarioDetalle(
                 titulo = "Stock mínimo",
-                valor = "5",
-                subtitulo = "Piezas",
+                valor = producto.stockMinimo.toString(),
+                subtitulo = producto.unidad,
                 modifier = Modifier.weight(1f)
             )
 
             SeparadorVertical()
 
             ItemInventarioDetalle(
-                titulo = "Ubicación",
-                valor = "MAT-001",
-                subtitulo = "",
+                titulo = "Stock máximo",
+                valor = producto.stockMaximo.toString(),
+                subtitulo = producto.unidad,
                 modifier = Modifier.weight(1f)
             )
 
@@ -398,21 +537,32 @@ fun SeccionDetalleInventario() {
 
             ItemInventarioDetalle(
                 titulo = "Estado",
-                valor = "En Stock",
+                valor = estadoTexto,
                 subtitulo = "",
                 modifier = Modifier.weight(1f),
-                mostrarIconoEstado = true
+                mostrarIconoEstado = true,
+                colorEstado = estadoColor
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoDetalle(
+            titulo = "Ubicación",
+            valor = producto.ubicacion
+        )
     }
 }
+
+
 @Composable
 fun ItemInventarioDetalle(
     titulo: String,
     valor: String,
     subtitulo: String,
     modifier: Modifier = Modifier,
-    mostrarIconoEstado: Boolean = false
+    mostrarIconoEstado: Boolean = false,
+    colorEstado: Color = Color(0xFF16A34A)
 ) {
     Column(
         modifier = modifier,
@@ -434,7 +584,7 @@ fun ItemInventarioDetalle(
                     imageVector = Icons.Default.CheckCircleOutline,
                     contentDescription = null,
                     modifier = Modifier.size(14.dp),
-                    tint = Color(0xFF1B7F3A)
+                    tint = colorEstado
                 )
 
                 Spacer(modifier = Modifier.width(4.dp))
@@ -444,7 +594,7 @@ fun ItemInventarioDetalle(
                 text = valor,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                color = if (mostrarIconoEstado) Color(0xFF1B7F3A) else Color(0xFF111827)
+                color = if (mostrarIconoEstado) colorEstado else Color(0xFF111827)
             )
         }
 
@@ -469,7 +619,11 @@ fun SeparadorVertical() {
 }
 
 @Composable
-fun SeccionDetalleCostos() {
+fun SeccionDetalleCostos(
+    producto: ProductoEntity
+) {
+    val costoTotal = producto.stock * producto.precioCompra
+
     DetalleCard(
         titulo = "Costos",
         icono = Icons.Default.AttachMoney
@@ -480,14 +634,14 @@ fun SeccionDetalleCostos() {
         ) {
             CampoDetalle(
                 titulo = "Costo unitario",
-                valor = "$ 120.00"
+                valor = "$ ${String.format("%.2f", producto.precioCompra)}"
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             CampoDetalle(
                 titulo = "Costo total en inventario",
-                valor = "$ 1,200.00"
+                valor = "$ ${String.format("%.2f", costoTotal)}"
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -496,7 +650,9 @@ fun SeccionDetalleCostos() {
 }
 
 @Composable
-fun SeccionMovimientosRecientes() {
+fun SeccionMovimientosRecientes(
+    movimientos: List<MovimientoInventarioEntity>
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
@@ -530,7 +686,7 @@ fun SeccionMovimientosRecientes() {
 
                 TextButton(
                     onClick = {
-                        // navController.navigate(Routes.MOVIMIENTOS_PRODUCTO)
+                        // Aquí después puedes navegar a historial completo
                     }
                 ) {
                     Text(
@@ -551,37 +707,69 @@ fun SeccionMovimientosRecientes() {
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            EncabezadoTablaMovimientos()
+            if (movimientos.isEmpty()) {
+                Text(
+                    text = "Sin movimientos registrados",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                EncabezadoTablaMovimientos()
 
-            MovimientoItem(
-                fecha = "25/05/26",
-                hora = "11:30",
-                tipo = "Entrada",
-                cantidad = "+ 5 piezas",
-                usuario = "Admin",
-                referencia = "OC-015",
-                esEntrada = true
-            )
+                movimientos.take(5).forEach { movimiento ->
 
-            MovimientoItem(
-                fecha = "24/05/26",
-                hora = "16:45",
-                tipo = "Salida",
-                cantidad = "- 2 piezas",
-                usuario = "Juan P.",
-                referencia = "SAL-008",
-                esEntrada = false
-            )
+                    val cantidadTexto = when {
+                        movimiento.tipo == "Salida" -> {
+                            "- ${movimiento.cantidad} ${movimiento.unidad}"
+                        }
 
-            MovimientoItem(
-                fecha = "20/05/26",
-                hora = "09:10",
-                tipo = "Entrada",
-                cantidad = "+ 10 piezas",
-                usuario = "Admin",
-                referencia = "OC-012",
-                esEntrada = true
-            )
+                        movimiento.tipo == "Entrada" -> {
+                            "+ ${movimiento.cantidad} ${movimiento.unidad}"
+                        }
+
+                        movimiento.tipo == "Registro inicial" -> {
+                            "+ ${movimiento.cantidad} ${movimiento.unidad}"
+                        }
+
+                        movimiento.tipo == "Ajuste" && movimiento.stockNuevo > movimiento.stockAnterior -> {
+                            "+ ${movimiento.cantidad} ${movimiento.unidad}"
+                        }
+
+                        movimiento.tipo == "Ajuste" && movimiento.stockNuevo < movimiento.stockAnterior -> {
+                            "- ${movimiento.cantidad} ${movimiento.unidad}"
+                        }
+
+                        else -> {
+                            "${movimiento.cantidad} ${movimiento.unidad}"
+                        }
+                    }
+
+                    val esEntrada = when {
+                        movimiento.tipo == "Salida" -> false
+
+                        movimiento.tipo == "Entrada" -> true
+
+                        movimiento.tipo == "Registro inicial" -> true
+
+                        movimiento.tipo == "Ajuste" -> {
+                            movimiento.stockNuevo > movimiento.stockAnterior
+                        }
+
+                        else -> true
+                    }
+
+                    MovimientoItem(
+                        fecha = movimiento.fecha,
+                        hora = movimiento.hora,
+                        tipo = movimiento.tipo,
+                        cantidad = cantidadTexto,
+                        usuario = movimiento.usuario,
+                        referencia = movimiento.referencia.ifBlank { "-" },
+                        esEntrada = esEntrada
+                    )
+                }
+            }
         }
     }
 }
@@ -663,6 +851,8 @@ fun TextoTabla(
         fontWeight = if (esHeader) FontWeight.Bold else FontWeight.Normal
     )
 }
+
+
 @Composable
 fun SeccionAccionesRapidas(
     onEditar: () -> Unit,
@@ -775,6 +965,46 @@ fun BotonAccionRapida(
                 text = texto,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+fun SeccionDetalleAdicional(
+    producto: ProductoEntity
+) {
+    DetalleCard(
+        titulo = "Información adicional",
+        icono = Icons.Default.LocalOffer
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CampoDetalle(
+                titulo = "Proveedor",
+                valor = producto.proveedor.ifBlank { "Sin proveedor" }
+            )
+
+            CampoDetalle(
+                titulo = "Notas",
+                valor = producto.notas.ifBlank { "Sin notas" }
+            )
+
+            CampoDetalle(
+                titulo = "Fecha de registro",
+                valor = producto.fechaRegistro.ifBlank { "Sin fecha" }
+            )
+
+            CampoDetalle(
+                titulo = "Permite stock negativo",
+                valor = if (producto.permitirStockNegativo) "Sí" else "No"
+            )
+
+            CampoDetalle(
+                titulo = "Producto activo",
+                valor = if (producto.activo) "Sí" else "No"
             )
         }
     }

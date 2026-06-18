@@ -24,8 +24,8 @@ class ProductoRepository(
         return productoDao.obtenerProductoPorId(productoId)
     }
 
-    suspend fun insertarProducto(producto: ProductoEntity) {
-        productoDao.insertarProducto(producto)
+    suspend fun insertarProducto(producto: ProductoEntity): Long {
+        return productoDao.insertarProducto(producto)
     }
 
     suspend fun actualizarProducto(producto: ProductoEntity) {

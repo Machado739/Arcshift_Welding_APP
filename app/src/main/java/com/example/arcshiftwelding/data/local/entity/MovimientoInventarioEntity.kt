@@ -7,9 +7,22 @@ import androidx.room.PrimaryKey
 data class MovimientoInventarioEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+
     val productoId: Int,
-    val tipo: String, // Entrada o Salida
+
+    val tipo: String, // "Entrada", "Salida", "Registro inicial", "Ajuste"
+
     val cantidad: Int,
+
+    val stockAnterior: Int,
+    val stockNuevo: Int,
+
+    val unidad: String,
+
     val fecha: String,
-    val observacion: String = ""
+    val hora: String,
+
+    val usuario: String = "Admin",
+    val referencia: String = "",
+    val observaciones: String = ""
 )

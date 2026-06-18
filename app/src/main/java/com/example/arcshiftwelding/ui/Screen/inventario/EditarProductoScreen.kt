@@ -55,6 +55,25 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.rememberAsyncImagePainter
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.repository.MovimientoInventarioRepository
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModel
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import kotlin.math.abs
+import com.example.arcshiftwelding.utils.guardarImagenProductoEnInterno
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +81,29 @@ fun EditarProductoScreen(
     navController: NavController,
     productoId: Int
 ) {
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val repository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(repository)
+    )
+    val movimientoRepository = remember {
+        MovimientoInventarioRepository(database.movimientoInventarioDao())
+    }
+
+    val movimientoViewModel: MovimientoInventarioViewModel = viewModel(
+        factory = MovimientoInventarioViewModelFactory(movimientoRepository)
+    )
+
+    val productoSeleccionado by productoViewModel.productoSeleccionado.collectAsState()
+
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val seleccionarImagenLauncher = rememberLauncherForActivityResult(
@@ -69,25 +111,65 @@ fun EditarProductoScreen(
     ) { uri: Uri? ->
         imagenUri = uri
     }
-    var nombre by remember { mutableStateOf("PTR 2\"x2\" Cal. 14") }
-    var categoria by remember { mutableStateOf("Materiales") }
-    var unidad by remember { mutableStateOf("Pieza") }
-    var codigo by remember { mutableStateOf("MAT-001") }
-    var ubicacion by remember { mutableStateOf("Estante A-01") }
-    var descripcion by remember { mutableStateOf("Tubo cuadrado estructural de acero al carbón.") }
 
-    var stockActual by remember { mutableStateOf("10") }
-    var stockMinimo by remember { mutableStateOf("5") }
-    var stockMaximo by remember { mutableStateOf("100") }
+    var nombre by remember { mutableStateOf("") }
+    var categoria by remember { mutableStateOf("") }
+    var unidad by remember { mutableStateOf("") }
+    var codigo by remember { mutableStateOf("") }
+    var ubicacion by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+
+    var stockActual by remember { mutableStateOf("") }
+    var stockMinimo by remember { mutableStateOf("") }
+    var stockMaximo by remember { mutableStateOf("") }
     var estado by remember { mutableStateOf("En Stock") }
 
-    var costoUnitario by remember { mutableStateOf("120.00") }
-    var proveedor by remember { mutableStateOf("Proveedor 1") }
+    var costoUnitario by remember { mutableStateOf("") }
+    var proveedor by remember { mutableStateOf("") }
     var notas by remember { mutableStateOf("") }
 
-    var permitirStockNegativo by remember { mutableStateOf(true) }
+    var permitirStockNegativo by remember { mutableStateOf(false) }
     var productoActivo by remember { mutableStateOf(true) }
 
+    var mensajeError by remember { mutableStateOf("") }
+    var datosCargados by remember { mutableStateOf(false) }
+
+    LaunchedEffect(productoId) {
+        productoViewModel.cargarProductoPorId(productoId)
+    }
+
+    LaunchedEffect(productoSeleccionado) {
+        val producto = productoSeleccionado
+
+        if (producto != null && !datosCargados) {
+            nombre = producto.nombre
+            categoria = producto.categoria
+            unidad = producto.unidad
+            codigo = producto.codigo
+            ubicacion = producto.ubicacion
+            descripcion = producto.descripcion
+
+            stockActual = producto.stock.toString()
+            stockMinimo = producto.stockMinimo.toString()
+            stockMaximo = producto.stockMaximo.toString()
+            estado = producto.estado
+
+            costoUnitario = producto.precioCompra.toString()
+            proveedor = producto.proveedor
+            notas = producto.notas
+
+            permitirStockNegativo = producto.permitirStockNegativo
+            productoActivo = producto.activo
+
+            imagenUri = if (producto.imagenUri.isNotBlank()) {
+                Uri.fromFile(File(producto.imagenUri))
+            } else {
+                null
+            }
+
+            datosCargados = true
+        }
+    }
     Scaffold(
         topBar = {
             Row(
@@ -125,7 +207,23 @@ fun EditarProductoScreen(
         containerColor = Color(0xFFF8FAFC),
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
+        if (productoSeleccionado == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F6FA)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Cargando producto...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
 
+            return@Scaffold
+        }
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -164,7 +262,7 @@ fun EditarProductoScreen(
                     MenuDesplegable(
                         label = "Categoría *",
                         placeholder = "Seleccionar categoría",
-                        opciones = listOf("Materiales", "Herramientas", "Consumibles"),
+                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad"),
                         valorSeleccionado = categoria,
                         onSeleccionar = { categoria = it },
                         modifier = Modifier.fillMaxWidth()
@@ -173,7 +271,7 @@ fun EditarProductoScreen(
                     MenuDesplegable(
                         label = "Unidad de medida *",
                         placeholder = "Seleccionar unidad",
-                        opciones = listOf("Pieza", "Metro", "Kg", "Caja"),
+                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros"),
                         valorSeleccionado = unidad,
                         onSeleccionar = { unidad = it },
                         modifier = Modifier.fillMaxWidth()
@@ -358,7 +456,14 @@ fun EditarProductoScreen(
                     }
                 }
             }
-
+            if (mensajeError.isNotBlank()) {
+                Text(
+                    text = mensajeError,
+                    color = Color(0xFFDC2626),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -376,7 +481,149 @@ fun EditarProductoScreen(
 
                 Button(
                     onClick = {
-                        // Aquí después harás el UPDATE en Room
+                        val productoOriginal = productoSeleccionado
+
+                        if (productoOriginal == null) {
+                            mensajeError = "No se pudo cargar el producto"
+                            return@Button
+                        }
+
+                        if (nombre.isBlank()) {
+                            mensajeError = "El nombre del producto es obligatorio"
+                            return@Button
+                        }
+
+                        if (categoria.isBlank()) {
+                            mensajeError = "Selecciona una categoría"
+                            return@Button
+                        }
+
+                        if (unidad.isBlank()) {
+                            mensajeError = "Selecciona una unidad de medida"
+                            return@Button
+                        }
+
+                        if (codigo.isBlank()) {
+                            mensajeError = "El código del producto es obligatorio"
+                            return@Button
+                        }
+
+                        if (ubicacion.isBlank()) {
+                            mensajeError = "La ubicación es obligatoria"
+                            return@Button
+                        }
+
+                        val stock = stockActual.toIntOrNull()
+                        if (stock == null) {
+                            mensajeError = "El stock actual debe ser un número válido"
+                            return@Button
+                        }
+
+                        val minimo = stockMinimo.toIntOrNull()
+                        if (minimo == null) {
+                            mensajeError = "El stock mínimo debe ser un número válido"
+                            return@Button
+                        }
+
+                        val maximo = stockMaximo.toIntOrNull() ?: 0
+
+                        val costo = costoUnitario.toDoubleOrNull()
+                        if (costo == null) {
+                            mensajeError = "El costo unitario debe ser un número válido"
+                            return@Button
+                        }
+
+                        val estadoCalculado = when {
+                            stock <= 0 -> "Agotado"
+                            stock <= minimo -> "Bajo Stock"
+                            else -> "En Stock"
+                        }
+
+                        val rutaImagenInterna = when {
+                            imagenUri == null -> {
+                                ""
+                            }
+
+                            imagenUri.toString().startsWith("/") -> {
+                                imagenUri.toString()
+                            }
+
+                            imagenUri.toString().startsWith("content://") -> {
+                                guardarImagenProductoEnInterno(
+                                    context = context,
+                                    imagenUri = imagenUri
+                                )
+                            }
+
+                            else -> {
+                                productoOriginal.imagenUri
+                            }
+                        }
+
+                        val productoEditado = ProductoEntity(
+                            id = productoOriginal.id,
+
+                            nombre = nombre.trim(),
+                            categoria = categoria,
+                            codigo = codigo.trim(),
+                            ubicacion = ubicacion.trim(),
+
+                            stock = stock,
+                            unidad = unidad,
+                            stockMinimo = minimo,
+                            stockMaximo = maximo,
+
+                            estado = estadoCalculado,
+
+                            precioCompra = costo,
+                            precioVenta = productoOriginal.precioVenta,
+
+                            descripcion = descripcion.trim(),
+                            proveedor = proveedor,
+                            notas = notas.trim(),
+
+                            imagenUri = rutaImagenInterna,
+
+                            permitirStockNegativo = permitirStockNegativo,
+                            activo = productoActivo,
+
+                            fechaRegistro = productoOriginal.fechaRegistro
+                        )
+
+                        val stockAnterior = productoOriginal.stock
+                        val stockNuevo = stock
+                        val diferenciaStock = stockNuevo - stockAnterior
+
+                        productoViewModel.actualizarProducto(productoEditado)
+
+                        if (diferenciaStock != 0) {
+                            val fechaActual = LocalDate.now()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+                            val horaActual = LocalTime.now()
+                                .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+                            val movimientoAjuste = MovimientoInventarioEntity(
+                                productoId = productoOriginal.id,
+                                tipo = "Ajuste",
+                                cantidad = abs(diferenciaStock),
+                                stockAnterior = stockAnterior,
+                                stockNuevo = stockNuevo,
+                                unidad = unidad,
+                                fecha = fechaActual,
+                                hora = horaActual,
+                                usuario = "Admin",
+                                referencia = "AJ-${productoOriginal.id}",
+                                observaciones = if (diferenciaStock > 0) {
+                                    "Ajuste manual: aumento de stock desde edición de producto"
+                                } else {
+                                    "Ajuste manual: disminución de stock desde edición de producto"
+                                }
+                            )
+
+                            movimientoViewModel.insertarMovimiento(movimientoAjuste)
+                        }
+
                         navController.popBackStack()
                     },
                     modifier = Modifier

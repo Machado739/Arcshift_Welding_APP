@@ -125,12 +125,14 @@ fun AppNavigation() {
             }
 
             composable(
-                route = AppRoutes.DETALLE_PRODUCTO
+                route = AppRoutes.DETALLE_PRODUCTO,
+                arguments = listOf(
+                    navArgument("productoId") {
+                        type = NavType.IntType
+                    }
+                )
             ) { backStackEntry ->
-
-                val productoId = backStackEntry.arguments
-                    ?.getString("productoId")
-                    ?.toIntOrNull() ?: 0
+                val productoId = backStackEntry.arguments?.getInt("productoId") ?: 0
 
                 DetalleProductoScreen(
                     navController = navController,

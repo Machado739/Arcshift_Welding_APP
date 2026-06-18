@@ -8,26 +8,22 @@ import kotlinx.coroutines.flow.Flow
 interface MovimientoInventarioDao {
 
     @Query("""
-        SELECT * 
-        FROM movimientos_inventario
-        ORDER BY fecha DESC
+        SELECT * FROM movimientos_inventario
+        WHERE productoId = :productoId
+        ORDER BY id DESC
+        LIMIT 5
     """)
-    fun obtenerMovimientos(): Flow<List<MovimientoInventarioEntity>>
+    fun obtenerMovimientosRecientes(productoId: Int): Flow<List<MovimientoInventarioEntity>>
 
     @Query("""
-        SELECT *
-        FROM movimientos_inventario
+        SELECT * FROM movimientos_inventario
         WHERE productoId = :productoId
-        ORDER BY fecha DESC
+        ORDER BY id DESC
     """)
-    fun obtenerMovimientosProducto(
-        productoId: Int
-    ): Flow<List<MovimientoInventarioEntity>>
+    fun obtenerMovimientosPorProducto(productoId: Int): Flow<List<MovimientoInventarioEntity>>
 
-    @Insert
-    suspend fun insertarMovimiento(
-        movimiento: MovimientoInventarioEntity
-    )
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarMovimiento(movimiento: MovimientoInventarioEntity)
 
     @Delete
     suspend fun eliminarMovimiento(

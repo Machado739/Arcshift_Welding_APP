@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.room.Room
-import com.example.arcshiftwelding.data.local.database.AppDatabase
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.navigation.AppNavigation
 import com.example.arcshiftwelding.ui.theme.ArcshiftWeldingTheme
 import kotlin.jvm.java
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         }
         val db = Room.databaseBuilder(
             applicationContext,
-            AppDatabase::class.java,
+            ArcshiftWeldingDatabase::class.java,
             "arcshift_welding_db"
         ).build()
     }

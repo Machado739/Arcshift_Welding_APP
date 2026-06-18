@@ -25,6 +25,8 @@ interface ProductoDao {
             nombre LIKE '%' || :texto || '%' 
             OR codigo LIKE '%' || :texto || '%' 
             OR categoria LIKE '%' || :texto || '%'
+            OR ubicacion LIKE '%' || :texto || '%'
+            OR proveedor LIKE '%' || :texto || '%'
         )
         ORDER BY nombre ASC
     """)
@@ -47,7 +49,7 @@ interface ProductoDao {
     fun obtenerProductosBajoStock(): Flow<List<ProductoEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertarProducto(producto: ProductoEntity)
+    suspend fun insertarProducto(producto: ProductoEntity): Long
 
     @Update
     suspend fun actualizarProducto(producto: ProductoEntity)
@@ -58,9 +60,31 @@ interface ProductoDao {
     @Query("UPDATE productos SET activo = 0 WHERE id = :productoId")
     suspend fun desactivarProducto(productoId: Int)
 
-    @Query("UPDATE productos SET stock = stock + :cantidad WHERE id = :productoId")
+    @Query("""
+        UPDATE productos 
+        SET stock = stock + :cantidad,
+            estado = CASE 
+                WHEN stock + :cantidad = 0 THEN 'Agotado'
+                WHEN stock + :cantidad <= stockMinimo THEN 'Bajo Stock'
+                ELSE 'En Stock'
+            END
+        WHERE id = :productoId
+    """)
     suspend fun reponerStock(productoId: Int, cantidad: Int)
 
-    @Query("UPDATE productos SET stock = stock - :cantidad WHERE id = :productoId AND stock >= :cantidad")
+    @Query("""
+        UPDATE productos 
+        SET stock = stock - :cantidad,
+            estado = CASE 
+                WHEN stock - :cantidad = 0 THEN 'Agotado'
+                WHEN stock - :cantidad <= stockMinimo THEN 'Bajo Stock'
+                ELSE 'En Stock'
+            END
+        WHERE id = :productoId
+        AND (
+            permitirStockNegativo = 1 
+            OR stock >= :cantidad
+        )
+    """)
     suspend fun reportarSalida(productoId: Int, cantidad: Int)
 }

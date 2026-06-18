@@ -51,9 +51,13 @@ class ProductoViewModel(
         }
     }
 
-    fun insertarProducto(producto: ProductoEntity) {
+    fun insertarProducto(
+        producto: ProductoEntity,
+        onProductoInsertado: (Long) -> Unit
+    ) {
         viewModelScope.launch {
-            repository.insertarProducto(producto)
+            val id = repository.insertarProducto(producto)
+            onProductoInsertado(id)
         }
     }
 
@@ -90,4 +94,6 @@ class ProductoViewModel(
             repository.reportarSalida(productoId, cantidad)
         }
     }
+
+
 }

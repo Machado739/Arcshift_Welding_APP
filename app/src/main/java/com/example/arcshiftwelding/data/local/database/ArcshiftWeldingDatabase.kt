@@ -4,19 +4,23 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.arcshiftwelding.data.local.dao.MovimientoInventarioDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 
 @Database(
     entities = [
-        ProductoEntity::class
+        ProductoEntity::class,
+        MovimientoInventarioEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
 
     abstract fun productoDao(): ProductoDao
+    abstract fun movimientoInventarioDao(): MovimientoInventarioDao
 
     companion object {
         @Volatile

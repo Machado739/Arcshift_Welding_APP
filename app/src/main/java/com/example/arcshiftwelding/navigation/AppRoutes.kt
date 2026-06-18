@@ -16,21 +16,11 @@ object AppRoutes {
     const val REPORTAR_SALIDA = "reportar_salida/{productoId}"
     const val ELIMINAR_PRODUCTO = "eliminar_producto/{productoId}"
 
-    fun detalleProducto(productoId: Int): String {
-        return "detalle_producto/$productoId"
-    }
-    fun editarProducto(productoId: Int): String {
-        return "editar_producto/$productoId"
-    }
-    fun reponerStock(productoId: Int): String {
-        return "reponer_stock/$productoId"
-    }
-    fun reportarSalida(productoId: Int): String {
-        return "reportar_salida/$productoId"
-    }
-    fun eliminarProducto(productoId: Int): String {
-        return "eliminar_producto/$productoId"
-    }
+    fun detalleProducto(productoId: Int) = "detalle_producto/$productoId"
+    fun editarProducto(productoId: Int) = "editar_producto/$productoId"
+    fun reponerStock(productoId: Int) = "reponer_stock/$productoId"
+    fun reportarSalida(productoId: Int) = "reportar_salida/$productoId"
+    fun eliminarProducto(productoId: Int) = "eliminar_producto/$productoId"
     const val SELECCIONAR_PRODUCTO_REPONER = "seleccionar_producto_reponer"
 
 ///                     GASTOS
