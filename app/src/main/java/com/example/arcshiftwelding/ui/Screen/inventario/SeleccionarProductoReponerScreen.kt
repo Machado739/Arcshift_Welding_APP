@@ -45,53 +45,42 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
-
-data class ProductoPrueba(
-    val id: Int,
-    val nombre: String,
-    val categoria: String,
-    val codigo: String,
-    val stockActual: Int,
-    val unidad: String
-)
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
 
 @Composable
 fun SeleccionarProductoReponerScreen(
     navController: NavController
 ) {
-    var busqueda by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
-    val productos = listOf(
-        ProductoPrueba(
-            id = 1,
-            nombre = "PTR 2x2 Cal. 14",
-            categoria = "Materiales",
-            codigo = "MAT-001",
-            stockActual = 10,
-            unidad = "Piezas"
-        ),
-        ProductoPrueba(
-            id = 2,
-            nombre = "Soldadura 7018",
-            categoria = "Consumibles",
-            codigo = "CON-001",
-            stockActual = 25,
-            unidad = "Cajas"
-        ),
-        ProductoPrueba(
-            id = 3,
-            nombre = "Disco de corte",
-            categoria = "Herramientas",
-            codigo = "HER-001",
-            stockActual = 40,
-            unidad = "Piezas"
-        )
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val productoRepository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(productoRepository)
     )
+
+    val productos by productoViewModel.productos.collectAsState()
+
+    var busqueda by remember { mutableStateOf("") }
 
     val productosFiltrados = productos.filter { producto ->
         producto.nombre.contains(busqueda, ignoreCase = true) ||
                 producto.codigo.contains(busqueda, ignoreCase = true) ||
-                producto.categoria.contains(busqueda, ignoreCase = true)
+                producto.categoria.contains(busqueda, ignoreCase = true) ||
+                producto.ubicacion.contains(busqueda, ignoreCase = true)
     }
 
     Column(
@@ -131,19 +120,34 @@ fun SeleccionarProductoReponerScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(productosFiltrados) { producto ->
-                ItemProductoReponer(
-                    producto = producto,
-                    onClick = {
-                        navController.navigate(
-                            AppRoutes.reponerStock(producto.id)
-                        )
-                    }
+        if (productosFiltrados.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 30.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = "No se encontraron productos",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(productosFiltrados) { producto ->
+                    ItemProductoReponer(
+                        producto = producto,
+                        onClick = {
+                            navController.navigate(
+                                AppRoutes.reponerStock(producto.id)
+                            )
+                        }
+                    )
+                }
             }
         }
     }
@@ -276,18 +280,18 @@ fun BarraBusquedaProductoReponer(
 
 @Composable
 fun ItemProductoReponer(
-    producto: ProductoPrueba,
+    producto: ProductoEntity,
     onClick: () -> Unit
 ) {
     val stockColor = when {
-        producto.stockActual == 0 -> Color(0xFFDC2626)
-        producto.stockActual <= 5 -> Color(0xFFF59E0B)
+        producto.stock == 0 -> Color(0xFFDC2626)
+        producto.stock <= producto.stockMinimo -> Color(0xFFF59E0B)
         else -> Color(0xFF16A34A)
     }
 
     val stockTexto = when {
-        producto.stockActual == 0 -> "Sin stock"
-        producto.stockActual <= 5 -> "Stock bajo"
+        producto.stock == 0 -> "Sin stock"
+        producto.stock <= producto.stockMinimo -> "Stock bajo"
         else -> "Disponible"
     }
 
@@ -336,6 +340,12 @@ fun ItemProductoReponer(
                     color = Color(0xFF2563EB),
                     style = MaterialTheme.typography.labelSmall
                 )
+
+                Text(
+                    text = "Ubicación: ${producto.ubicacion}",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
 
             Column(
@@ -355,7 +365,7 @@ fun ItemProductoReponer(
                 )
 
                 Text(
-                    text = producto.stockActual.toString(),
+                    text = producto.stock.toString(),
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )

@@ -12,6 +12,9 @@ class ProductoRepository(
 
     val productosBajoStock: Flow<List<ProductoEntity>> = productoDao.obtenerProductosBajoStock()
 
+    val productosInactivos: Flow<List<ProductoEntity>> = productoDao.obtenerProductosInactivos()
+
+
     fun buscarProductos(texto: String): Flow<List<ProductoEntity>> {
         return productoDao.buscarProductos(texto)
     }
@@ -46,5 +49,9 @@ class ProductoRepository(
 
     suspend fun reportarSalida(productoId: Int, cantidad: Int) {
         productoDao.reportarSalida(productoId, cantidad)
+    }
+
+    suspend fun activarProducto(productoId: Int) {
+        productoDao.activarProducto(productoId)
     }
 }

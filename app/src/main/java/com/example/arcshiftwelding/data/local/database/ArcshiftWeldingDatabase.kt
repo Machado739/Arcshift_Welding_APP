@@ -22,6 +22,7 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
     abstract fun productoDao(): ProductoDao
     abstract fun movimientoInventarioDao(): MovimientoInventarioDao
 
+
     companion object {
         @Volatile
         private var INSTANCE: ArcshiftWeldingDatabase? = null

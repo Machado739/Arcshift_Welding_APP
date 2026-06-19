@@ -15,13 +15,13 @@ object AppRoutes {
     const val REPONER_STOCK = "reponer_stock/{productoId}"
     const val REPORTAR_SALIDA = "reportar_salida/{productoId}"
     const val ELIMINAR_PRODUCTO = "eliminar_producto/{productoId}"
+    const val SELECCIONAR_PRODUCTO_REPONER = "seleccionar_producto_reponer"
 
     fun detalleProducto(productoId: Int) = "detalle_producto/$productoId"
     fun editarProducto(productoId: Int) = "editar_producto/$productoId"
     fun reponerStock(productoId: Int) = "reponer_stock/$productoId"
     fun reportarSalida(productoId: Int) = "reportar_salida/$productoId"
     fun eliminarProducto(productoId: Int) = "eliminar_producto/$productoId"
-    const val SELECCIONAR_PRODUCTO_REPONER = "seleccionar_producto_reponer"
 
 ///                     GASTOS
 ///                     GASTOS

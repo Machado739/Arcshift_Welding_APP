@@ -60,6 +60,12 @@ interface ProductoDao {
     @Query("UPDATE productos SET activo = 0 WHERE id = :productoId")
     suspend fun desactivarProducto(productoId: Int)
 
+    @Query("UPDATE productos SET activo = 1 WHERE id = :productoId")
+    suspend fun activarProducto(productoId: Int)
+
+    @Query("SELECT * FROM productos WHERE activo = 0 ORDER BY nombre ASC")
+    fun obtenerProductosInactivos(): Flow<List<ProductoEntity>>
+
     @Query("""
         UPDATE productos 
         SET stock = stock + :cantidad,

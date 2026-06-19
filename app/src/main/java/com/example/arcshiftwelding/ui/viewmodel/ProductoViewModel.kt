@@ -95,5 +95,18 @@ class ProductoViewModel(
         }
     }
 
+    val productosInactivos: StateFlow<List<ProductoEntity>> =
+        repository.productosInactivos.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun activarProducto(productoId: Int) {
+        viewModelScope.launch {
+            repository.activarProducto(productoId)
+        }
+    }
+
 
 }

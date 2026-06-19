@@ -48,6 +48,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,19 +64,25 @@ fun EliminarProductoScreen(
     navController: NavController,
     productoId: Int
 ) {
-    /*
-        Datos de prueba.
-        Después estos datos vendrán desde Room usando productoId.
-    */
-    val nombreProducto = "PTR 2\"x2\" Cal. 14"
-    val codigoProducto = "MAT-001"
-    val categoria = "Materiales"
-    val ubicacion = "Estante A-01"
-    val stockActual = 10
-    val unidadMedida = "Piezas"
-    val costoUnitario = 120.00
-    val valorInventario = stockActual * costoUnitario
-    val tieneMovimientos = true
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val productoRepository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(productoRepository)
+    )
+
+    val productoSeleccionado by productoViewModel.productoSeleccionado.collectAsState()
+
+    LaunchedEffect(productoId) {
+        productoViewModel.cargarProductoPorId(productoId)
+    }
 
     var confirmarEliminacion by remember { mutableStateOf(false) }
 
@@ -102,12 +117,40 @@ fun EliminarProductoScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
             }
         },
         containerColor = Color(0xFFF8FAFC),
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
+
+        val producto = productoSeleccionado
+
+        if (producto == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F6FA)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Cargando producto...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+
+            return@Scaffold
+        }
+
+        val valorInventario = producto.stock * producto.precioCompra
+
+        /*
+            Por ahora lo dejamos en true para advertir que puede tener historial.
+            Si después quieres hacerlo más exacto, agregamos una consulta count()
+            en MovimientoInventarioDao.
+        */
+        val tieneMovimientos = true
 
         Column(
             modifier = Modifier
@@ -122,19 +165,19 @@ fun EliminarProductoScreen(
             CardAdvertenciaEliminar()
 
             CardProductoEliminar(
-                nombreProducto = nombreProducto,
-                codigoProducto = codigoProducto,
-                categoria = categoria,
-                ubicacion = ubicacion,
-                stockActual = stockActual,
-                unidadMedida = unidadMedida,
+                nombreProducto = producto.nombre,
+                codigoProducto = producto.codigo,
+                categoria = producto.categoria,
+                ubicacion = producto.ubicacion,
+                stockActual = producto.stock,
+                unidadMedida = producto.unidad,
                 valorInventario = valorInventario
             )
 
             CardImpactoEliminacion(
                 tieneMovimientos = tieneMovimientos,
-                stockActual = stockActual,
-                unidadMedida = unidadMedida
+                stockActual = producto.stock,
+                unidadMedida = producto.unidad
             )
 
             CardConfirmacionEliminar(
@@ -161,12 +204,8 @@ fun EliminarProductoScreen(
 
                 Button(
                     onClick = {
-                        /*
-                            Aquí después harás:
-                            viewModel.eliminarProducto(productoId)
+                        productoViewModel.desactivarProducto(producto.id)
 
-                            Luego regresas al inventario:
-                        */
                         navController.navigate(AppRoutes.INVENTARIO) {
                             popUpTo(AppRoutes.INVENTARIO) {
                                 inclusive = false
@@ -195,10 +234,10 @@ fun EliminarProductoScreen(
                     Text("Eliminar")
                 }
             }
-
         }
     }
 }
+
 
 @Composable
 fun CardAdvertenciaEliminar() {

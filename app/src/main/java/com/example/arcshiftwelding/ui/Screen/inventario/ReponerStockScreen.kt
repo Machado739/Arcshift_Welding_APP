@@ -49,6 +49,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.repository.MovimientoInventarioRepository
+import com.example.arcshiftwelding.data.repository.ProductoRepository
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModel
+import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,24 +72,39 @@ fun ReponerStockScreen(
     navController: NavController,
     productoId: Int
 ) {
-    /*
-        Estos datos son de ejemplo.
-        Después los cargarás desde Room usando el productoId.
-    */
-    val nombreProducto = "PTR 2\"x2\" Cal. 14"
-    val codigoProducto = "MAT-001"
-    val unidadMedida = "Piezas"
-    val stockActual = 10
-    val costoUnitario = 120.00
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val productoRepository = remember {
+        ProductoRepository(database.productoDao())
+    }
+
+    val productoViewModel: ProductoViewModel = viewModel(
+        factory = ProductoViewModelFactory(productoRepository)
+    )
+
+    val movimientoRepository = remember {
+        MovimientoInventarioRepository(database.movimientoInventarioDao())
+    }
+
+    val movimientoViewModel: MovimientoInventarioViewModel = viewModel(
+        factory = MovimientoInventarioViewModelFactory(movimientoRepository)
+    )
+
+    val productoSeleccionado by productoViewModel.productoSeleccionado.collectAsState()
+
+    LaunchedEffect(productoId) {
+        productoViewModel.cargarProductoPorId(productoId)
+    }
 
     var cantidadAgregar by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
     var proveedor by remember { mutableStateOf("") }
     var notas by remember { mutableStateOf("") }
-
-    val cantidad = cantidadAgregar.toIntOrNull() ?: 0
-    val nuevoStock = stockActual + cantidad
-    val costoMovimiento = cantidad * costoUnitario
+    var mensajeError by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -106,13 +137,41 @@ fun ReponerStockScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-
             }
         },
         containerColor = Color(0xFFF8FAFC),
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
+
+        val producto = productoSeleccionado
+
+        if (producto == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F6FA)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Cargando producto...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+
+            return@Scaffold
+        }
+
+        val stockActual = producto.stock
+        val unidadMedida = producto.unidad
+        val costoUnitario = producto.precioCompra
+
+        val cantidad = cantidadAgregar.toIntOrNull() ?: 0
+        val nuevoStock = stockActual + cantidad
+        val costoMovimiento = cantidad * costoUnitario
+
+        val puedeGuardar = cantidad > 0
 
         Column(
             modifier = Modifier
@@ -125,15 +184,18 @@ fun ReponerStockScreen(
         ) {
 
             CardProductoReponerStock(
-                nombreProducto = nombreProducto,
-                codigoProducto = codigoProducto,
+                nombreProducto = producto.nombre,
+                codigoProducto = producto.codigo,
                 stockActual = stockActual,
                 unidadMedida = unidadMedida
             )
 
             CardCantidadReponer(
                 cantidadAgregar = cantidadAgregar,
-                onCantidadChange = { cantidadAgregar = it },
+                onCantidadChange = {
+                    cantidadAgregar = it
+                    mensajeError = ""
+                },
                 stockActual = stockActual,
                 nuevoStock = nuevoStock,
                 unidadMedida = unidadMedida
@@ -154,6 +216,15 @@ fun ReponerStockScreen(
                 costoMovimiento = costoMovimiento
             )
 
+            if (mensajeError.isNotBlank()) {
+                Text(
+                    text = mensajeError,
+                    color = Color(0xFFDC2626),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -171,17 +242,87 @@ fun ReponerStockScreen(
 
                 Button(
                     onClick = {
-                        /*
-                            Aquí después harás:
-                            1. Buscar producto por productoId.
-                            2. Sumar cantidad al stock actual.
-                            3. Actualizar producto en Room.
-                            4. Registrar movimiento tipo "Entrada".
-                        */
+                        if (cantidad <= 0) {
+                            mensajeError = "Ingresa una cantidad válida"
+                            return@Button
+                        }
+
+                        val estadoCalculado = when {
+                            nuevoStock <= 0 -> "Agotado"
+                            nuevoStock <= producto.stockMinimo -> "Bajo Stock"
+                            else -> "En Stock"
+                        }
+
+                        val productoActualizado = ProductoEntity(
+                            id = producto.id,
+
+                            nombre = producto.nombre,
+                            categoria = producto.categoria,
+                            codigo = producto.codigo,
+                            ubicacion = producto.ubicacion,
+
+                            stock = nuevoStock,
+                            unidad = producto.unidad,
+                            stockMinimo = producto.stockMinimo,
+                            stockMaximo = producto.stockMaximo,
+
+                            estado = estadoCalculado,
+
+                            precioCompra = producto.precioCompra,
+                            precioVenta = producto.precioVenta,
+
+                            descripcion = producto.descripcion,
+                            proveedor = producto.proveedor,
+                            notas = producto.notas,
+
+                            imagenUri = producto.imagenUri,
+
+                            permitirStockNegativo = producto.permitirStockNegativo,
+                            activo = producto.activo,
+
+                            fechaRegistro = producto.fechaRegistro
+                        )
+
+                        productoViewModel.actualizarProducto(productoActualizado)
+
+                        val fechaActual = LocalDate.now()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+                        val horaActual = LocalTime.now()
+                            .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+                        val movimientoEntrada = MovimientoInventarioEntity(
+                            productoId = producto.id,
+                            tipo = "Entrada",
+                            cantidad = cantidad,
+                            stockAnterior = stockActual,
+                            stockNuevo = nuevoStock,
+                            unidad = unidadMedida,
+                            fecha = fechaActual,
+                            hora = horaActual,
+                            usuario = "Admin",
+                            referencia = referencia.ifBlank { "ENT-${producto.id}-${System.currentTimeMillis()}" },
+                            observaciones = buildString {
+                                if (proveedor.isNotBlank()) {
+                                    append("Proveedor: ${proveedor.trim()}")
+                                }
+
+                                if (notas.isNotBlank()) {
+                                    if (isNotBlank()) append(". ")
+                                    append("Notas: ${notas.trim()}")
+                                }
+
+                                if (isBlank()) {
+                                    append("Reposición de stock")
+                                }
+                            }
+                        )
+
+                        movimientoViewModel.insertarMovimiento(movimientoEntrada)
 
                         navController.popBackStack()
                     },
-                    enabled = cantidad > 0,
+                    enabled = puedeGuardar,
                     modifier = Modifier
                         .weight(1f)
                         .height(52.dp)
@@ -191,16 +332,14 @@ fun ReponerStockScreen(
                         contentDescription = null
                     )
 
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Text("Guardar")
                 }
             }
-
-
         }
     }
 }
-
 @Composable
 fun CardProductoReponerStock(
     nombreProducto: String,
