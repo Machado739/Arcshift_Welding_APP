@@ -9,11 +9,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
@@ -51,6 +54,8 @@ import com.example.arcshiftwelding.ui.Screen.ingresos.EditarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.EliminarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.NuevoIngresoScreen
 import com.example.arcshiftwelding.ui.clientes.ClientesScreen
+import com.example.arcshiftwelding.ui.gastos.GastosViewModel
+import com.example.arcshiftwelding.ui.gastos.GastosViewModelFactory
 
 @Composable
 fun AppNavigation() {
@@ -204,14 +209,36 @@ fun AppNavigation() {
 ///                     GASTOS
 
             composable(AppRoutes.GASTOS) {
-                GastosScreen(navController)
+                val context = LocalContext.current
+
+                val database = ArcshiftWeldingDatabase.getDatabase(context)
+
+                val viewModel: GastosViewModel = viewModel(
+                    factory = GastosViewModelFactory(
+                        gastoDao = database.gastoDao()
+                    )
+                )
+
+                GastosScreen(
+                    navController = navController,
+                    viewModel = viewModel
+                )
             }
 
             composable(AppRoutes.NUEVO_GASTO) {
+                val context = LocalContext.current
+
+                val database = ArcshiftWeldingDatabase.getDatabase(context)
+
+                val viewModel: GastosViewModel = viewModel(
+                    factory = GastosViewModelFactory(
+                        gastoDao = database.gastoDao()
+                    )
+                )
+
                 NuevoGastoScreen(
-                    onGuardar = { navController.popBackStack() },
-                    onCancelar = { navController.popBackStack() },
-                    navController
+                    navController = navController,
+                    viewModel = viewModel
                 )
             }
 
@@ -229,14 +256,27 @@ fun AppNavigation() {
                 )
             }
 
-            composable(AppRoutes.DETALLE_GASTO) { backStackEntry ->
+            composable(
+                route = AppRoutes.DETALLE_GASTO
+            ) { backStackEntry ->
+
+                val context = LocalContext.current
+                val database = ArcshiftWeldingDatabase.getDatabase(context)
+
+                val viewModel: GastosViewModel = viewModel(
+                    factory = GastosViewModelFactory(
+                        gastoDao = database.gastoDao()
+                    )
+                )
+
                 val gastoId = backStackEntry.arguments
                     ?.getString("gastoId")
-                    ?.toIntOrNull()
+                    ?.toIntOrNull() ?: 0
 
                 DetalleGastoScreen(
                     navController = navController,
-                    gastoId = gastoId ?: 0
+                    gastoId = gastoId,
+                    viewModel = viewModel
                 )
             }
 

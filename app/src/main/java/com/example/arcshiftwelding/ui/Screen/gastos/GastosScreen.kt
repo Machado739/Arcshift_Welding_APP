@@ -28,98 +28,108 @@ data class GastoUi(
     val categoria: String,
     val monto: Double,
     val fecha: String,
-    val metodoPago: String
+    val metodoPago: String,
+    val formaPago: String = "",
+    val descripcion: String = "",
+    val proyecto: String = "",
+    val cotizacion: String = "",
+    val cliente: String = ""
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastosScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: GastosViewModel
 ) {
-
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var textoBusqueda by remember { mutableStateOf("") }
 
-    val gastos = listOf(
-        GastoUi(1, "Compra de material", "Aceros del Norte", "Materiales", 3200.00, "10/5/2026", "Efectivo"),
-        GastoUi(2, "Combustible", "Gasolinera PEMEX", "Transporte", 850.00, "08/5/2026", "Tarjeta"),
-        GastoUi(3, "Mantenimiento de equipo", "Taller Mecánico JR", "Servicios", 1500.00, "10/5/2026", "Transferencia"),
-        GastoUi(4, "Pago de servicio eléctrico", "CFE", "Servicios", 2100.00, "18/5/2026", "Efectivo"),
-        GastoUi(5, "Pago a empleado", "Jaime Lozano", "Nómina", 980.00, "17/5/2026", "Efectivo"),
-        GastoUi(6, "Compra de insumos", "Ferretería Industrial", "Materiales", 1250.00, "17/5/2026", "Tarjeta"),
+    val gastos by viewModel.gastos.collectAsState()
 
-        GastoUi(7, "Compra de soldadura 7018", "Distribuidora de Soldadura", "Materiales", 1850.00, "19/5/2026", "Transferencia"),
-        GastoUi(8, "Gas para soldar", "Infra", "Materiales", 940.00, "20/5/2026", "Efectivo"),
-        GastoUi(9, "Compra de discos de corte", "Ferretería La Sierra", "Herramientas", 620.00, "21/5/2026", "Tarjeta"),
-        GastoUi(10, "Cambio de aceite camioneta", "Servicio Automotriz Ríos", "Transporte", 780.00, "22/5/2026", "Efectivo"),
-        GastoUi(11, "Pago de internet", "Telmex", "Servicios", 599.00, "23/5/2026", "Transferencia"),
-        GastoUi(12, "Compra de guantes de carnaza", "Seguridad Industrial MX", "Seguridad", 460.00, "24/5/2026", "Tarjeta"),
-        GastoUi(13, "Pago a ayudante", "Carlos Mendoza", "Nómina", 1200.00, "25/5/2026", "Efectivo"),
-        GastoUi(14, "Compra de pintura anticorrosiva", "Pinturas del Norte", "Materiales", 1350.00, "26/5/2026", "Transferencia"),
-        GastoUi(15, "Renta de herramienta", "RentaTools Chihuahua", "Herramientas", 900.00, "27/5/2026", "Efectivo"),
-        GastoUi(16, "Reparación de máquina de soldar", "Electro Servicio Industrial", "Servicios", 2450.00, "28/5/2026", "Transferencia"),
-        GastoUi(17, "Compra de careta electrónica", "Ferretería Industrial", "Seguridad", 1750.00, "29/5/2026", "Tarjeta"),
-        GastoUi(18, "Diesel para traslado", "Gasolinera Rendichicas", "Transporte", 1100.00, "30/5/2026", "Tarjeta"),
-        GastoUi(19, "Pago de agua", "JMAS", "Servicios", 430.00, "31/5/2026", "Efectivo"),
-        GastoUi(20, "Compra de brocas para metal", "Aceros y Herramientas del Norte", "Herramientas", 690.00, "01/6/2026", "Efectivo"),
-        GastoUi(21, "Pago a soldador", "Miguel Torres", "Nómina", 1800.00, "02/6/2026", "Transferencia"),
-        GastoUi(22, "Compra de PTR", "Aceros del Norte", "Materiales", 4100.00, "03/6/2026", "Transferencia"),
-        GastoUi(23, "Servicio de grúa", "Grúas Chihuahua", "Servicios", 2200.00, "04/6/2026", "Tarjeta"),
-        GastoUi(24, "Compra de lentes de seguridad", "Protección Industrial", "Seguridad", 380.00, "05/6/2026", "Efectivo")
-    )
     val gastosFiltrados = gastos.filter { gasto ->
-        categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
+        val coincideCategoria =
+            categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
+
+        val coincideBusqueda =
+            textoBusqueda.isBlank() ||
+                    gasto.titulo.contains(textoBusqueda, ignoreCase = true) ||
+                    gasto.proveedor.contains(textoBusqueda, ignoreCase = true) ||
+                    gasto.categoria.contains(textoBusqueda, ignoreCase = true)
+
+        coincideCategoria && coincideBusqueda
     }
 
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
-                .padding(
-                    start = 8.dp,
-                    top = 0.dp,
-                    end = 8.dp,
-                    bottom = 8.dp
-                )
-        ) {
-            HeaderGastos(navController = navController)
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TarjetasResumenGastos()
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            BarraBusquedaFiltros()
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Button(
-                onClick = {
-                    navController.navigate(AppRoutes.NUEVO_GASTO)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1D4ED8)
-                )
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Nuevo gasto")
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            FiltrosCategoriaGastos(
-                seleccionada = categoriaSeleccionada,
-                onSeleccionar = {
-                    categoriaSeleccionada = it
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+            .padding(
+                start = 8.dp,
+                top = 0.dp,
+                end = 8.dp,
+                bottom = 8.dp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+    ) {
+        HeaderGastos(navController = navController)
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TarjetasResumenGastos(
+            gastos = gastos
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        BarraBusquedaFiltros(
+            textoBusqueda = textoBusqueda,
+            onTextoBusquedaChange = {
+                textoBusqueda = it
+            }
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Button(
+            onClick = {
+                navController.navigate(AppRoutes.NUEVO_GASTO)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1D4ED8)
+            )
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Nuevo gasto")
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        FiltrosCategoriaGastos(
+            seleccionada = categoriaSeleccionada,
+            onSeleccionar = {
+                categoriaSeleccionada = it
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (gastosFiltrados.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 40.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = "No hay gastos registrados",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
             ListaGastos(
                 gastos = gastosFiltrados,
                 onClickGasto = { gasto ->
@@ -128,6 +138,7 @@ fun GastosScreen(
             )
         }
     }
+}
 
 
 
@@ -175,15 +186,29 @@ fun HeaderGastos(
 }
 
 @Composable
-fun TarjetasResumenGastos() {
+fun TarjetasResumenGastos(
+    gastos: List<GastoUi>
+) {
+    val totalGastos = gastos.sumOf { it.monto }
+    val totalCategorias = gastos.map { it.categoria }.distinct().size
+    val promedio = if (gastos.isNotEmpty()) {
+        totalGastos / gastos.size
+    } else {
+        0.0
+    }
+
+    val gastosHoy = gastos
+        .filter { it.fecha == "19/5/2026" }
+        .sumOf { it.monto }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         TarjetaResumenGasto(
             titulo = "Total gastos",
-            valor = "$13,500",
-            subtitulo = "Este mes",
+            valor = "$${String.format("%.2f", totalGastos)}",
+            subtitulo = "Registrados",
             icono = Icons.Default.AttachMoney,
             colorIcono = Color(0xFF2563EB),
             modifier = Modifier.weight(1f)
@@ -191,8 +216,8 @@ fun TarjetasResumenGastos() {
 
         TarjetaResumenGasto(
             titulo = "Gastos hoy",
-            valor = "$1,250",
-            subtitulo = "19/5/2026",
+            valor = "$${String.format("%.2f", gastosHoy)}",
+            subtitulo = "Hoy",
             icono = Icons.Default.ArrowDownward,
             colorIcono = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
@@ -200,7 +225,7 @@ fun TarjetasResumenGastos() {
 
         TarjetaResumenGasto(
             titulo = "Categorías",
-            valor = "6",
+            valor = totalCategorias.toString(),
             subtitulo = "Registradas",
             icono = Icons.Default.Category,
             colorIcono = Color(0xFF7C3AED),
@@ -208,9 +233,9 @@ fun TarjetasResumenGastos() {
         )
 
         TarjetaResumenGasto(
-            titulo = "Promedio diario",
-            valor = "$450",
-            subtitulo = "Este mes",
+            titulo = "Promedio",
+            valor = "$${String.format("%.2f", promedio)}",
+            subtitulo = "Por gasto",
             icono = Icons.Default.Analytics,
             colorIcono = Color(0xFFF59E0B),
             modifier = Modifier.weight(1f)
@@ -280,15 +305,18 @@ fun TarjetaResumenGasto(
 }
 
 @Composable
-fun BarraBusquedaFiltros() {
+fun BarraBusquedaFiltros(
+    textoBusqueda: String,
+    onTextoBusquedaChange: (String) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = "",
-            onValueChange = { },
+            value = textoBusqueda,
+            onValueChange = onTextoBusquedaChange,
             placeholder = {
                 Text("Buscar gasto...")
             },

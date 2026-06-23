@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.ui.Screen.gastos
 
+import GastosViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,13 +21,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.inventario.BotonAccionRapida
+import com.example.arcshiftwelding.ui.gastos.GastoUi
+import com.example.arcshiftwelding.ui.gastos.GastosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleGastoScreen(
     navController: NavController,
-    gastoId: Int = 0
+    gastoId: Int,
+    viewModel: GastosViewModel
 ) {
+    val gasto by viewModel.obtenerDetalleGasto(gastoId).collectAsState()
+
     Scaffold(
         topBar = {
             Row(
@@ -67,73 +75,94 @@ fun DetalleGastoScreen(
                         contentDescription = "Editar Gasto"
                     )
                 }
-
             }
-
         },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF5F5F5)
     ) { paddingValues ->
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            TarjetaPrincipalGasto()
-
-            SeccionDetalleInformacionGeneral()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+        if (gasto == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                SeccionDetalleInformacionFinanciera(
-                    modifier = Modifier.weight(1f)
-                )
-
-                SeccionDetalleProveedor(
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = "No se encontró el gasto",
+                    color = Color.Gray
                 )
             }
+        } else {
+            val gastoActual = gasto!!
 
-            SeccionDetalleEvidencia()
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                SeccionDetalleObservaciones(
-                    modifier = Modifier.weight(1f)
+                TarjetaPrincipalGasto(
+                    gasto = gastoActual
                 )
 
-                SeccionDetalleRelacionado(
-                    modifier = Modifier.weight(1f)
+                SeccionDetalleInformacionGeneral(
+                    gasto = gastoActual
                 )
-            }
 
-            SeccionAccionesRapidasGasto(
-                onEditar = {
-                    navController.navigate(AppRoutes.editarGasto(gastoId = gastoId))
-                           },
-                onDescargarPDF = {
-                  //  navController.navigate(AppRoutes.w(productoId = 1))
-                },
-                onEliminar = {
-                    navController.navigate(AppRoutes.eliminarGasto(gastoId = gastoId))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    SeccionDetalleInformacionFinanciera(
+                        gasto = gastoActual,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    SeccionDetalleProveedor(
+                        gasto = gastoActual,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
 
-            )
+                SeccionDetalleEvidencia()
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    SeccionDetalleObservaciones(
+                        gasto = gastoActual,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    SeccionDetalleRelacionado(
+                        gasto = gastoActual,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                SeccionAccionesRapidasGasto(
+                    onEditar = {
+                        navController.navigate(AppRoutes.editarGasto(gastoId = gastoId))
+                    },
+                    onDescargarPDF = {
+                        // Pendiente generar PDF
+                    },
+                    onEliminar = {
+                        navController.navigate(AppRoutes.eliminarGasto(gastoId = gastoId))
+                    }
+                )
+            }
         }
     }
 }
-
 @Composable
-fun TarjetaPrincipalGasto() {
+fun TarjetaPrincipalGasto(
+    gasto: GastoUi
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -155,7 +184,7 @@ fun TarjetaPrincipalGasto() {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.ShoppingCart,
+                    imageVector = iconoPorCategoriaGasto(gasto.categoria),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(38.dp)
@@ -168,19 +197,19 @@ fun TarjetaPrincipalGasto() {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Compra de material",
+                    text = gasto.titulo,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "$ 3,200.00",
+                    text = "$ ${String.format("%.2f", gasto.monto)}",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "Proveedor: Aceros del Norte",
+                    text = "Proveedor: ${gasto.proveedor}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
@@ -192,12 +221,12 @@ fun TarjetaPrincipalGasto() {
                 ) {
                     DatoIconoPequeno(
                         icono = Icons.Default.DateRange,
-                        texto = "19/05/2026"
+                        texto = gasto.fecha
                     )
 
                     DatoIconoPequeno(
                         icono = Icons.Default.Payment,
-                        texto = "Efectivo"
+                        texto = gasto.metodoPago
                     )
                 }
             }
@@ -215,7 +244,7 @@ fun TarjetaPrincipalGasto() {
                 AssistChip(
                     onClick = { },
                     label = {
-                        Text("Pagado")
+                        Text("Registrado")
                     },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = Color(0xFFDFF3E3),
@@ -224,6 +253,20 @@ fun TarjetaPrincipalGasto() {
                 )
             }
         }
+    }
+}
+
+fun iconoPorCategoriaGasto(
+    categoria: String
+): androidx.compose.ui.graphics.vector.ImageVector {
+    return when (categoria) {
+        "Materiales" -> Icons.Default.ShoppingCart
+        "Transporte" -> Icons.Default.LocalGasStation
+        "Servicios" -> Icons.Default.Build
+        "Nómina" -> Icons.Default.Person
+        "Herramientas" -> Icons.Default.Handyman
+        "Seguridad" -> Icons.Default.HealthAndSafety
+        else -> Icons.Default.MoreHoriz
     }
 }
 
@@ -253,7 +296,9 @@ fun DatoIconoPequeno(
 }
 
 @Composable
-fun SeccionDetalleInformacionGeneral() {
+fun SeccionDetalleInformacionGeneral(
+    gasto: GastoUi
+) {
     TarjetaDetalleGasto(
         titulo = "Información general",
         icono = Icons.Default.Info
@@ -267,14 +312,14 @@ fun SeccionDetalleInformacionGeneral() {
             ) {
                 ItemDatoDetalle(
                     titulo = "Concepto",
-                    valor = "Compra de material"
+                    valor = gasto.titulo
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 ItemDatoDetalle(
                     titulo = "Categoría",
-                    valor = "Materiales"
+                    valor = gasto.categoria
                 )
             }
 
@@ -283,14 +328,14 @@ fun SeccionDetalleInformacionGeneral() {
             ) {
                 ItemDatoDetalle(
                     titulo = "Método de pago",
-                    valor = "Efectivo"
+                    valor = gasto.metodoPago
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 ItemDatoDetalle(
-                    titulo = "Registrado por",
-                    valor = "Administrador"
+                    titulo = "Forma de pago",
+                    valor = gasto.formaPago.ifBlank { "No especificada" }
                 )
             }
         }
@@ -299,8 +344,12 @@ fun SeccionDetalleInformacionGeneral() {
 
 @Composable
 fun SeccionDetalleInformacionFinanciera(
+    gasto: GastoUi,
     modifier: Modifier = Modifier
 ) {
+    val subtotal = gasto.monto / 1.16
+    val iva = gasto.monto - subtotal
+
     TarjetaDetalleGasto(
         titulo = "Información financiera",
         icono = Icons.Default.AttachMoney,
@@ -308,14 +357,14 @@ fun SeccionDetalleInformacionFinanciera(
     ) {
         FilaMontoDetalle(
             titulo = "Subtotal",
-            valor = "$ 2,758.62"
+            valor = "$ ${String.format("%.2f", subtotal)}"
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         FilaMontoDetalle(
             titulo = "IVA (16%)",
-            valor = "$ 441.38"
+            valor = "$ ${String.format("%.2f", iva)}"
         )
 
         Divider(
@@ -324,7 +373,7 @@ fun SeccionDetalleInformacionFinanciera(
 
         FilaMontoDetalle(
             titulo = "Total",
-            valor = "$ 3,200.00",
+            valor = "$ ${String.format("%.2f", gasto.monto)}",
             destacar = true
         )
     }
@@ -357,6 +406,7 @@ fun FilaMontoDetalle(
 
 @Composable
 fun SeccionDetalleProveedor(
+    gasto: GastoUi,
     modifier: Modifier = Modifier
 ) {
     TarjetaDetalleGasto(
@@ -365,29 +415,29 @@ fun SeccionDetalleProveedor(
         modifier = modifier
     ) {
         ItemDatoDetalle(
-            titulo = "Aceros del Norte",
-            valor = ""
+            titulo = "Nombre",
+            valor = gasto.proveedor
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         ItemDatoDetalle(
-            titulo = "Teléfono:",
-            valor = "614 123 4567"
+            titulo = "Teléfono",
+            valor = "No registrado"
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoDetalle(
-            titulo = "Correo:",
-            valor = "ventas@acerosnorte.com"
+            titulo = "Correo",
+            valor = "No registrado"
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoDetalle(
-            titulo = "RFC:",
-            valor = "ACN980312K7"
+            titulo = "RFC",
+            valor = "No registrado"
         )
     }
 }
@@ -482,6 +532,7 @@ fun ArchivoComprobanteCard(
 
 @Composable
 fun SeccionDetalleObservaciones(
+    gasto: GastoUi,
     modifier: Modifier = Modifier
 ) {
     TarjetaDetalleGasto(
@@ -490,7 +541,7 @@ fun SeccionDetalleObservaciones(
         modifier = modifier
     ) {
         Text(
-            text = "Compra para fabricación de estructura metálica proyecto Cliente XYZ.",
+            text = gasto.descripcion.ifBlank { "Sin observaciones registradas." },
             style = MaterialTheme.typography.bodySmall,
             color = Color.DarkGray
         )
@@ -499,6 +550,7 @@ fun SeccionDetalleObservaciones(
 
 @Composable
 fun SeccionDetalleRelacionado(
+    gasto: GastoUi,
     modifier: Modifier = Modifier
 ) {
     TarjetaDetalleGasto(
@@ -508,21 +560,21 @@ fun SeccionDetalleRelacionado(
     ) {
         ItemDatoConLink(
             titulo = "Proyecto:",
-            valor = "Estructura Nave Industrial"
+            valor = gasto.proyecto.ifBlank { "Sin proyecto" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLink(
             titulo = "Cotización:",
-            valor = "COT-0456"
+            valor = gasto.cotizacion.ifBlank { "Sin cotización" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLink(
             titulo = "Cliente:",
-            valor = "Cliente XYZ"
+            valor = gasto.cliente.ifBlank { "Sin cliente" }
         )
     }
 }
