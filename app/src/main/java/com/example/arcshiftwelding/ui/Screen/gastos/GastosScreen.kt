@@ -20,20 +20,27 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
+import kotlin.collections.filter
 
 data class GastoUi(
     val id: Int,
-    val titulo: String,
-    val proveedor: String,
+    val concepto: String,
     val categoria: String,
-    val monto: Double,
     val fecha: String,
+    val proveedor: String,
+    val subtotal: Double,
+    val ivaPorcentaje: Double,
+    val iva: Double,
+    val total: Double,
     val metodoPago: String,
-    val formaPago: String = "",
-    val descripcion: String = "",
-    val proyecto: String = "",
-    val cotizacion: String = "",
-    val cliente: String = ""
+    val formaPago: String,
+    val telefonoProveedor: String,
+    val correoProveedor: String,
+    val rfcProveedor: String,
+    val observaciones: String,
+    val proyecto: String,
+    val cotizacion: String,
+    val cliente: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +60,7 @@ fun GastosScreen(
 
         val coincideBusqueda =
             textoBusqueda.isBlank() ||
-                    gasto.titulo.contains(textoBusqueda, ignoreCase = true) ||
+                    gasto.concepto.contains(textoBusqueda, ignoreCase = true) ||
                     gasto.proveedor.contains(textoBusqueda, ignoreCase = true) ||
                     gasto.categoria.contains(textoBusqueda, ignoreCase = true)
 
@@ -189,7 +196,7 @@ fun HeaderGastos(
 fun TarjetasResumenGastos(
     gastos: List<GastoUi>
 ) {
-    val totalGastos = gastos.sumOf { it.monto }
+    val totalGastos = gastos.sumOf { it.total }
     val totalCategorias = gastos.map { it.categoria }.distinct().size
     val promedio = if (gastos.isNotEmpty()) {
         totalGastos / gastos.size
@@ -199,7 +206,7 @@ fun TarjetasResumenGastos(
 
     val gastosHoy = gastos
         .filter { it.fecha == "19/5/2026" }
-        .sumOf { it.monto }
+        .sumOf { it.total }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -457,7 +464,7 @@ fun ItemGasto(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = gasto.titulo,
+                    text = gasto.concepto,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -479,7 +486,7 @@ fun ItemGasto(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "$${String.format("%.2f", gasto.monto)}",
+                    text = "$${String.format("%.2f", gasto.total)}",
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFDC2626),
                     style = MaterialTheme.typography.bodyMedium

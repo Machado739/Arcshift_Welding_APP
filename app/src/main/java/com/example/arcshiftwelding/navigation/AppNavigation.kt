@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -16,7 +17,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.Screen.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
@@ -53,14 +53,32 @@ import com.example.arcshiftwelding.ui.Screen.ingresos.DetalleIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.EditarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.EliminarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.NuevoIngresoScreen
-import com.example.arcshiftwelding.ui.clientes.ClientesScreen
+import com.example.arcshiftwelding.ui.Screen.clientes.ClientesScreen
 import com.example.arcshiftwelding.ui.gastos.GastosViewModel
 import com.example.arcshiftwelding.ui.gastos.GastosViewModelFactory
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
+import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+    val clientesViewModel: ClientesViewModel = viewModel(
+        factory = ClientesViewModelFactory(
+            clienteDao = database.clienteDao()
+        )
+    )
 
+    val gastosViewModel: GastosViewModel = viewModel(
+        factory = GastosViewModelFactory(database.gastoDao())
+    )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -223,6 +241,8 @@ fun AppNavigation() {
                     navController = navController,
                     viewModel = viewModel
                 )
+
+
             }
 
             composable(AppRoutes.NUEVO_GASTO) {
@@ -243,16 +263,20 @@ fun AppNavigation() {
             }
 
             composable(
-                route = AppRoutes.ELIMINAR_GASTO
+                route = AppRoutes.ELIMINAR_GASTO,
+                arguments = listOf(
+                    navArgument("gastoId") {
+                        type = NavType.IntType
+                    }
+                )
             ) { backStackEntry ->
 
-                val gastoId = backStackEntry.arguments
-                    ?.getString("gastoId")
-                    ?.toIntOrNull() ?: 0
+                val gastoId = backStackEntry.arguments?.getInt("gastoId") ?: return@composable
 
                 EliminarGastoScreen(
                     navController = navController,
-                    gastoId = gastoId
+                    gastoId = gastoId,
+                    viewModel = gastosViewModel
                 )
             }
 
@@ -280,14 +304,21 @@ fun AppNavigation() {
                 )
             }
 
-            composable(AppRoutes.EDITAR_GASTO) { backStackEntry ->
-                val gastoId = backStackEntry.arguments
-                    ?.getString("gastoId")
-                    ?.toIntOrNull()
+            composable(
+                route = AppRoutes.EDITAR_GASTO,
+                arguments = listOf(
+                    navArgument("gastoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val gastoId = backStackEntry.arguments?.getInt("gastoId") ?: return@composable
 
                 EditarGastoScreen(
                     navController = navController,
-                    gastoId = gastoId ?: 0
+                    gastoId = gastoId,
+                    viewModel = gastosViewModel
                 )
             }
 ///                     INGRESOS
@@ -408,22 +439,18 @@ fun AppNavigation() {
 
 
             composable(AppRoutes.CLIENTES) {
-                ClientesScreen(navController = navController)
+                ClientesScreen(
+                    navController = navController,
+                    viewModel = clientesViewModel
+                )
+
+
             }
 
             composable(AppRoutes.NUEVO_CLIENTE) {
-                NuevoClienteScreen(navController = navController)
-            }
-
-            composable(
-                route = AppRoutes.ELIMINAR_CLIENTE,
-                arguments = listOf(navArgument("clienteId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
-
-                EliminarClienteScreen(
+                NuevoClienteScreen(
                     navController = navController,
-                    clienteId = clienteId
+                    viewModel = clientesViewModel
                 )
             }
 
@@ -435,11 +462,13 @@ fun AppNavigation() {
                     }
                 )
             ) { backStackEntry ->
+
                 val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
 
                 DetalleClienteScreen(
                     navController = navController,
-                    clienteId = clienteId
+                    clienteId = clienteId,
+                    viewModel = clientesViewModel
                 )
             }
 
@@ -451,11 +480,31 @@ fun AppNavigation() {
                     }
                 )
             ) { backStackEntry ->
+
                 val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
 
                 EditarClienteScreen(
                     navController = navController,
-                    clienteId = clienteId
+                    clienteId = clienteId,
+                    viewModel = clientesViewModel
+                )
+            }
+
+            composable(
+                route = AppRoutes.ELIMINAR_CLIENTE,
+                arguments = listOf(
+                    navArgument("clienteId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
+
+                EliminarClienteScreen(
+                    navController = navController,
+                    clienteId = clienteId,
+                    viewModel = clientesViewModel
                 )
             }
 

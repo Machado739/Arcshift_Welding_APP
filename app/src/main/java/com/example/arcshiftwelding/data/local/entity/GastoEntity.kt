@@ -7,16 +7,21 @@ import androidx.room.PrimaryKey
 data class GastoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val titulo: String,
-    val proveedor: String,
+    val concepto: String,
     val categoria: String,
-    val monto: Double,
     val fecha: String,
+    val proveedor: String,
+    val subtotal: Double,
+    val ivaPorcentaje: Double,
+    val iva: Double,
+    val total: Double,
     val metodoPago: String,
-    val formaPago: String = "",
-    val descripcion: String = "",
-    val proyecto: String = "",
-    val cotizacion: String = "",
-    val cliente: String = "",
-    val activo: Boolean = true
+    val formaPago: String,
+    val telefonoProveedor: String? = null,
+    val correoProveedor: String? = null,
+    val rfcProveedor: String? = null,
+    val observaciones: String? = null,
+    val proyecto: String? = null,
+    val cotizacion: String? = null,
+    val cliente: String? = null
 )

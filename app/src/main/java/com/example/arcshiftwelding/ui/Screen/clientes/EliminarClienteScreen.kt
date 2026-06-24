@@ -14,14 +14,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.navigation.AppRoutes
 
 @Composable
 fun EliminarClienteScreen(
     navController: NavController,
-    clienteId: Int
+    clienteId: Int,
+    viewModel: ClientesViewModel
 ) {
+    val clienteFlow = remember(clienteId) {
+        viewModel.obtenerClienteDetalle(clienteId)
+    }
+
+    val cliente by clienteFlow.collectAsState()
+
+    if (cliente == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
     var confirmarEliminacion by remember { mutableStateOf(false) }
 
+    val clienteActual = cliente!!
     Scaffold(
         topBar = {
             Row(
@@ -162,26 +182,26 @@ fun EliminarClienteScreen(
 
                         Column {
                             Text(
-                                text = "Carlos Martínez",
+                                text = clienteActual.nombre,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF111827)
                             )
 
                             Text(
-                                text = "Teléfono: 686 123 4567",
+                                text = "Teléfono: ${clienteActual.telefono}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
 
                             Text(
-                                text = "Correo: cliente@email.com",
+                                text = "Correo: ${clienteActual.correo}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
 
                             Text(
-                                text = "Registrado: 10/05/2026",
+                                text = "Registrado: ${clienteActual.fechaRegistro}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.Gray
                             )
@@ -196,13 +216,13 @@ fun EliminarClienteScreen(
                     ) {
                         InfoClienteEliminarCard(
                             titulo = "Cotizaciones",
-                            valor = "5",
+                            valor = clienteActual.totalCotizaciones.toString(),
                             modifier = Modifier.weight(1f)
                         )
 
                         InfoClienteEliminarCard(
                             titulo = "Estado",
-                            valor = "Activo",
+                            valor = clienteActual.estado,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -304,8 +324,9 @@ fun EliminarClienteScreen(
 
                 Button(
                     onClick = {
-                        // Aquí después puedes eliminar el cliente por clienteId
-                        navController.popBackStack()
+                        viewModel.eliminarCliente(clienteId) {
+                            navController.popBackStack(AppRoutes.CLIENTES, false)
+                        }
                     },
                     enabled = confirmarEliminacion,
                     modifier = Modifier

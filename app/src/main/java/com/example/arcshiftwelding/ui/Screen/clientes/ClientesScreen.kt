@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.clientes
+package com.example.arcshiftwelding.ui.Screen.clientes
 
 import android.R.attr.shape
 import androidx.compose.foundation.background
@@ -42,243 +42,34 @@ data class ClienteUI(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientesScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: ClientesViewModel
 ) {
+
     var textoBusqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
 
-    val clientes = listOf(
-        ClienteUI(
-            id = 1,
-            nombre = "Eduardo Barrios",
-            telefono = "614 123 4567",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "eduardo@correo.com",
-            cotizaciones = 2,
-            estado = "Activo",
-            tipo = "Cliente desde: 10/05/2026",
-            color = Color(0xFF2563EB)
-        ),
-        ClienteUI(
-            id = 2,
-            nombre = "Jose Vera",
-            telefono = "614 987 6543",
-            ubicacion = "Cuauhtémoc, Chihuahua",
-            correo = "severa@gmail.com",
-            cotizaciones = 1,
-            estado = "Activo",
-            tipo = "Cliente desde: 12/05/2026",
-            color = Color(0xFF16A34A)
-        ),
-        ClienteUI(
-            id = 3,
-            nombre = "Maria Lopez",
-            telefono = "614 555 1122",
-            ubicacion = "Delicias, Chihuahua",
-            correo = "mlopez@gmail.com",
-            cotizaciones = 1,
-            estado = "Activo",
-            tipo = "Cliente desde: 15/05/2026",
-            color = Color(0xFFF97316)
-        ),
-        ClienteUI(
-            id = 4,
-            nombre = "Constructora del Norte",
-            telefono = "614 222 3344",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "contacto@cdn.com",
-            cotizaciones = 3,
-            estado = "Activo",
-            tipo = "Cliente desde: 16/05/2026",
-            color = Color(0xFF7C3AED)
-        ),
-        ClienteUI(
-            id = 5,
-            nombre = "Alberto Ruiz",
-            telefono = "614 444 6577",
-            ubicacion = "Juárez, Chihuahua",
-            correo = "alberto.ruiz@mail.com",
-            cotizaciones = 0,
-            estado = "Inactivo",
-            tipo = "Cliente desde: 18/05/2026",
-            color = Color(0xFF64748B)
-        ),
-        ClienteUI(
-            id = 6,
-            nombre = "Cliente General",
-            telefono = "614 000 8999",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "cliente@correo.com",
-            cotizaciones = 1,
-            estado = "Pendiente",
-            tipo = "Cliente desde: 20/05/2026",
-            color = Color(0xFFEAB308)
-        ),
-        ClienteUI(
-            id = 7,
-            nombre = "Carlos Mendoza",
-            telefono = "614 321 7788",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "cmendoza@gmail.com",
-            cotizaciones = 4,
-            estado = "Activo",
-            tipo = "Cliente desde: 22/05/2026",
-            color = Color(0xFF0EA5E9)
-        ),
-        ClienteUI(
-            id = 8,
-            nombre = "Taller Metalúrgico Ramírez",
-            telefono = "614 678 1122",
-            ubicacion = "Aldama, Chihuahua",
-            correo = "ventas@tmramirez.com",
-            cotizaciones = 6,
-            estado = "Activo",
-            tipo = "Cliente desde: 24/05/2026",
-            color = Color(0xFFDC2626)
-        ),
-        ClienteUI(
-            id = 9,
-            nombre = "Ana Torres",
-            telefono = "614 456 2233",
-            ubicacion = "Delicias, Chihuahua",
-            correo = "ana.torres@hotmail.com",
-            cotizaciones = 2,
-            estado = "Activo",
-            tipo = "Cliente desde: 25/05/2026",
-            color = Color(0xFF14B8A6)
-        ),
-        ClienteUI(
-            id = 10,
-            nombre = "Servicios Industriales Vega",
-            telefono = "614 852 3698",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "contacto@vegaindustrial.com",
-            cotizaciones = 5,
-            estado = "Pendiente",
-            tipo = "Cliente desde: 26/05/2026",
-            color = Color(0xFF8B5CF6)
-        ),
-        ClienteUI(
-            id = 11,
-            nombre = "Roberto Salas",
-            telefono = "614 741 2589",
-            ubicacion = "Camargo, Chihuahua",
-            correo = "rsalas@gmail.com",
-            cotizaciones = 1,
-            estado = "Activo",
-            tipo = "Cliente desde: 27/05/2026",
-            color = Color(0xFF10B981)
-        ),
-        ClienteUI(
-            id = 12,
-            nombre = "Agropecuaria El Valle",
-            telefono = "614 963 1478",
-            ubicacion = "Cuauhtémoc, Chihuahua",
-            correo = "administracion@elvalle.com",
-            cotizaciones = 3,
-            estado = "Activo",
-            tipo = "Cliente desde: 28/05/2026",
-            color = Color(0xFFF59E0B)
-        ),
-        ClienteUI(
-            id = 13,
-            nombre = "Miguel Herrera",
-            telefono = "614 147 8523",
-            ubicacion = "Juárez, Chihuahua",
-            correo = "miguelh@gmail.com",
-            cotizaciones = 0,
-            estado = "Inactivo",
-            tipo = "Cliente desde: 29/05/2026",
-            color = Color(0xFF6B7280)
-        ),
-        ClienteUI(
-            id = 14,
-            nombre = "Transportes del Norte",
-            telefono = "614 852 7410",
-            ubicacion = "Juárez, Chihuahua",
-            correo = "logistica@tdn.com",
-            cotizaciones = 7,
-            estado = "Activo",
-            tipo = "Cliente desde: 30/05/2026",
-            color = Color(0xFFEF4444)
-        ),
-        ClienteUI(
-            id = 15,
-            nombre = "Laura Sánchez",
-            telefono = "614 555 8899",
-            ubicacion = "Parral, Chihuahua",
-            correo = "laurasanchez@gmail.com",
-            cotizaciones = 2,
-            estado = "Pendiente",
-            tipo = "Cliente desde: 01/06/2026",
-            color = Color(0xFFEC4899)
-        ),
-        ClienteUI(
-            id = 16,
-            nombre = "Constructora Horizonte",
-            telefono = "614 777 4411",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "proyectos@horizonte.com",
-            cotizaciones = 8,
-            estado = "Activo",
-            tipo = "Cliente desde: 02/06/2026",
-            color = Color(0xFF3B82F6)
-        ),
-        ClienteUI(
-            id = 17,
-            nombre = "Ricardo Chávez",
-            telefono = "614 333 7788",
-            ubicacion = "Delicias, Chihuahua",
-            correo = "rchavez@gmail.com",
-            cotizaciones = 1,
-            estado = "Activo",
-            tipo = "Cliente desde: 03/06/2026",
-            color = Color(0xFF22C55E)
-        ),
-        ClienteUI(
-            id = 18,
-            nombre = "Soldaduras Industriales García",
-            telefono = "614 888 9900",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "ventas@sigarcia.com",
-            cotizaciones = 9,
-            estado = "Activo",
-            tipo = "Cliente desde: 04/06/2026",
-            color = Color(0xFF7C3AED)
-        ),
-        ClienteUI(
-            id = 19,
-            nombre = "Patricia Moreno",
-            telefono = "614 123 9876",
-            ubicacion = "Aldama, Chihuahua",
-            correo = "paty.moreno@gmail.com",
-            cotizaciones = 3,
-            estado = "Activo",
-            tipo = "Cliente desde: 05/06/2026",
-            color = Color(0xFF06B6D4)
-        ),
-        ClienteUI(
-            id = 20,
-            nombre = "Grupo Constructor Alfa",
-            telefono = "614 456 7890",
-            ubicacion = "Chihuahua, Chihuahua",
-            correo = "contacto@grupoalfa.com",
-            cotizaciones = 12,
-            estado = "Activo",
-            tipo = "Cliente desde: 06/06/2026",
-            color = Color(0xFF2563EB)
-        )
-    )
+    val clientes by viewModel.clientes.collectAsState()
+
     val clientesFiltrados = clientes.filter { cliente ->
-        when (categoriaSeleccionada) {
+        val coincideEstado = when (categoriaSeleccionada) {
             "Todos" -> true
             "Activos" -> cliente.estado == "Activo"
             "Inactivos" -> cliente.estado == "Inactivo"
             "Pendientes" -> cliente.estado == "Pendiente"
             else -> true
         }
+
+        val coincideBusqueda =
+            cliente.nombre.contains(textoBusqueda, ignoreCase = true) ||
+                    cliente.telefono.contains(textoBusqueda, ignoreCase = true) ||
+                    cliente.correo.contains(textoBusqueda, ignoreCase = true) ||
+                    cliente.ubicacion.contains(textoBusqueda, ignoreCase = true)
+
+        coincideEstado && coincideBusqueda
     }
-          Column(
+
+    Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
@@ -294,11 +85,16 @@ fun ClientesScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            ResumenClientes()
+            ResumenClientes(clientes = clientes)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            BuscadorClientes()
+            BuscadorClientes(
+                textoBusqueda = textoBusqueda,
+                onTextoBusquedaChange = {
+                    textoBusqueda = it
+                }
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -383,14 +179,21 @@ fun HeaderClientes(
 }
 
 @Composable
-fun ResumenClientes() {
+fun ResumenClientes(
+    clientes: List<ClienteUI>
+) {
+    val total = clientes.size
+    val activos = clientes.count { it.estado == "Activo" }
+    val inactivos = clientes.count { it.estado == "Inactivo" }
+    val pendientes = clientes.count { it.estado == "Pendiente" }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ResumenClienteCard(
             titulo = "Total clientes",
-            valor = "18",
+            valor = total.toString(),
             subtitulo = "Registrados",
             icono = Icons.Default.Groups,
             colorIcono = Color(0xFF2563EB),
@@ -398,18 +201,18 @@ fun ResumenClientes() {
         )
 
         ResumenClienteCard(
-            titulo = "Clientes activos",
-            valor = "15",
-            subtitulo = "Este mes",
+            titulo = "Activos",
+            valor = activos.toString(),
+            subtitulo = "Disponibles",
             icono = Icons.Default.PersonAdd,
             colorIcono = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
         )
 
         ResumenClienteCard(
-            titulo = "Nuevos este mes",
-            valor = "3",
-            subtitulo = "Este mes",
+            titulo = "Pendientes",
+            valor = pendientes.toString(),
+            subtitulo = "Por revisar",
             icono = Icons.Default.AccessTime,
             colorIcono = Color(0xFFF59E0B),
             modifier = Modifier.weight(1f)
@@ -417,8 +220,8 @@ fun ResumenClientes() {
 
         ResumenClienteCard(
             titulo = "Inactivos",
-            valor = "3",
-            subtitulo = "Este mes",
+            valor = inactivos.toString(),
+            subtitulo = "Desactivados",
             icono = Icons.Default.Work,
             colorIcono = Color(0xFF7C3AED),
             modifier = Modifier.weight(1f)
@@ -487,21 +290,28 @@ fun ResumenClienteCard(
     }
 }
 
+
 @Composable
-fun BuscadorClientes() {
+fun BuscadorClientes(
+    textoBusqueda: String,
+    onTextoBusquedaChange: (String) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = "",
-            onValueChange = {  },
+            value = textoBusqueda,
+            onValueChange = onTextoBusquedaChange,
             placeholder = {
                 Text("Buscar cliente...")
             },
             leadingIcon = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
             },
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(10.dp),
@@ -513,8 +323,13 @@ fun BuscadorClientes() {
             modifier = Modifier.height(56.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Icon(imageVector = Icons.Default.FilterList, contentDescription = null)
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = null
+            )
+
             Spacer(modifier = Modifier.width(4.dp))
+
             Text("Filtros")
         }
     }

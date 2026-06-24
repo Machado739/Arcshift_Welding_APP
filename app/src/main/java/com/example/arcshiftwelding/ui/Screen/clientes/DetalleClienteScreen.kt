@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+
 data class ClienteDetalleUI(
     val id: Int,
     val nombre: String,
@@ -65,53 +69,28 @@ data class CotizacionClienteUI(
 @Composable
 fun DetalleClienteScreen(
     navController: NavController,
-    clienteId: Int
+    clienteId: Int,
+    viewModel: ClientesViewModel
 ) {
-    val cliente = ClienteDetalleUI(
-        id = clienteId,
-        nombre = "Eduardo Barrios",
-        empresa = "Taller Barrios S.A. de C.V.",
-        telefono = "614 123 4567",
-        correo = "eduardo@tallerbarrios.com",
-        direccion = "Av. de las Industrias #123, Chihuahua, Chih.",
-        rfc = "TBA190101ABC",
-        tipoCliente = "Empresa",
-        registradoPor = "Administrador",
-        fechaRegistro = "19/05/2026",
-        ultimaActualizacion = "19/05/2026 10:30 a.m.",
-        estado = "Activo",
-        personaContacto = "Ing. Eduardo Barrios",
-        ultimaActividad = "19/05/2026 10:45 a.m.",
-        totalCotizaciones = 8,
-        totalIngresos = 5,
-        totalProyectos = 3,
-        totalFacturado = 128560.00,
-        notas = "Cliente recurrente. Prefiere comunicación por WhatsApp. Pagos 50% anticipo y 50% al finalizar."
-    )
+    val clienteFlow = remember(clienteId) {
+        viewModel.obtenerClienteDetalle(clienteId)
+    }
 
-    val cotizaciones = listOf(
-        CotizacionClienteUI(
-            folio = "COT-00025",
-            descripcion = "Pago por fabricación de estructura metálica",
-            fecha = "19/05/2026",
-            estado = "Pendiente",
-            monto = 10324.00
-        ),
-        CotizacionClienteUI(
-            folio = "COT-00021",
-            descripcion = "Barandal para escalera",
-            fecha = "10/05/2026",
-            estado = "Aprobado",
-            monto = 6750.00
-        ),
-        CotizacionClienteUI(
-            folio = "COT-00019",
-            descripcion = "Portón corredizo",
-            fecha = "02/05/2026",
-            estado = "Rechazado",
-            monto = 4500.00
-        )
-    )
+    val cliente by clienteFlow.collectAsState()
+
+    if (cliente == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val clienteActual = cliente!!
 
 
     Scaffold(
@@ -149,8 +128,7 @@ fun DetalleClienteScreen(
 
                 IconButton(
                     onClick = {
-                        navController.navigate(AppRoutes.editarCliente(cliente.id))
-                    }
+                        navController.navigate(AppRoutes.editarCliente(clienteActual.id))                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -173,35 +151,25 @@ fun DetalleClienteScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-                CardPrincipalCliente(cliente = cliente)
+            CardPrincipalCliente(cliente = clienteActual)
 
-                CardsContactoCliente(cliente = cliente)
+            CardsContactoCliente(cliente = clienteActual)
 
-                SeccionInformacionGeneralCliente(cliente = cliente)
+            SeccionInformacionGeneralCliente(cliente = clienteActual)
 
-                SeccionHistorialCliente(cliente = cliente)
+            SeccionHistorialCliente(cliente = clienteActual)
 
-                SeccionCotizacionesCliente(
-                    cotizaciones = cotizaciones,
-                    onVerTodoClick = {
-                        navController.navigate("cotizaciones_cliente/${cliente.id}")
-                    },
-                    onCotizacionClick = { cotizacion ->
-                         navController.navigate("detalle_cotizacion/${cotizacion.folio}")
-                    }
-                )
+            SeccionNotasCliente(cliente = clienteActual)
 
-                SeccionNotasCliente(cliente = cliente)
-
-                SeccionAccionesRapidasCliente(
+            SeccionAccionesRapidasCliente(
                 onEditarClick = {
-                    navController.navigate(AppRoutes.editarCliente(cliente.id))
+                    navController.navigate(AppRoutes.editarCliente(clienteActual.id))
                 },
                 onWhatsappClick = { },
                 onLlamarClick = { },
                 onNuevaCotizacionClick = { },
                 onEliminarClick = {
-                    navController.navigate(AppRoutes.eliminarCliente(cliente.id))
+                    navController.navigate(AppRoutes.eliminarCliente(clienteActual.id))
                 }
             )
         }
@@ -239,10 +207,19 @@ fun SeccionNotasCliente(
         }
     }
 }
+
 @Composable
 fun CardPrincipalCliente(
     cliente: ClienteDetalleUI
 ) {
+    val colorEstado = obtenerColorEstadoCliente(cliente.estado)
+    val textoEstado = when (cliente.estado) {
+        "Activo" -> "Cliente activo"
+        "Inactivo" -> "Cliente inactivo"
+        "Pendiente" -> "Cliente pendiente"
+        else -> cliente.estado
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -261,12 +238,12 @@ fun CardPrincipalCliente(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE0ECFF)),
+                    .background(colorEstado.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = obtenerIniciales(cliente.nombre),
-                    color = Color(0xFF2563EB),
+                    color = colorEstado,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -276,7 +253,7 @@ fun CardPrincipalCliente(
                         .align(Alignment.BottomEnd)
                         .size(16.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF22C55E))
+                        .background(colorEstado)
                 )
             }
 
@@ -302,8 +279,15 @@ fun CardPrincipalCliente(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    BadgeEstadoCliente(texto = "Cliente activo", color = Color(0xFF16A34A))
-                    BadgeEstadoCliente(texto = cliente.tipoCliente, color = Color(0xFF2563EB))
+                    BadgeEstadoCliente(
+                        texto = textoEstado,
+                        color = colorEstado
+                    )
+
+                    BadgeEstadoCliente(
+                        texto = cliente.tipoCliente,
+                        color = Color(0xFF2563EB)
+                    )
                 }
             }
         }
@@ -317,7 +301,14 @@ fun obtenerIniciales(nombre: String): String {
         .take(2)
         .joinToString("") { it.first().uppercase() }
 }
-
+fun obtenerColorEstadoCliente(estado: String): Color {
+    return when (estado) {
+        "Activo" -> Color(0xFF16A34A)
+        "Inactivo" -> Color(0xFF64748B)
+        "Pendiente" -> Color(0xFFF59E0B)
+        else -> Color.Gray
+    }
+}
 @Composable
 fun BadgeEstadoCliente(
     texto: String,

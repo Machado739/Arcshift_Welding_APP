@@ -10,8 +10,11 @@ interface CotizacionDao {
     @Query("SELECT * FROM cotizaciones ORDER BY id DESC")
     fun obtenerCotizaciones(): Flow<List<CotizacionEntity>>
 
+
     @Query("SELECT * FROM cotizaciones WHERE id = :id")
     suspend fun obtenerCotizacionPorId(id: Int): CotizacionEntity?
+
+
 
     @Insert
     suspend fun insertarCotizacion(cotizacion: CotizacionEntity)

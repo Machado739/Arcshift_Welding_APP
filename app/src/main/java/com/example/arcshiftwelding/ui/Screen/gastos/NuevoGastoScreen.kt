@@ -51,10 +51,23 @@ fun NuevoGastoScreen(
 
     var mostrarError by remember { mutableStateOf(false) }
 
-    val subtotalValor = subtotal.toDoubleOrNull() ?: 0.0
-    val porcentajeValor = ivaPorcentaje.toDoubleOrNull() ?: 0.0
-    val ivaCalculado = subtotalValor * (porcentajeValor / 100.0)
+    var telefonoProveedor by remember { mutableStateOf("") }
+    var correoProveedor by remember { mutableStateOf("") }
+    var rfcProveedor by remember { mutableStateOf("") }
+
+
+    val subtotalValor = subtotal.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val ivaValor = ivaPorcentaje.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val ivaCalculado = subtotalValor * (ivaValor / 100.0)
     val totalCalculado = subtotalValor + ivaCalculado
+
+    val datosValidos =
+        concepto.isNotBlank() &&
+                categoria.isNotBlank() &&
+                fecha.isNotBlank() &&
+                proveedor.isNotBlank() &&
+                subtotalValor > 0.0 &&
+                metodoPago.isNotBlank()
 
     val categorias = listOf(
         "Materiales",
@@ -427,24 +440,22 @@ fun NuevoGastoScreen(
 
                 Button(
                     onClick = {
-                        val datosValidos =
-                            concepto.isNotBlank() &&
-                                    categoria.isNotBlank() &&
-                                    fecha.isNotBlank() &&
-                                    proveedor.isNotBlank() &&
-                                    subtotalValor > 0.0 &&
-                                    metodoPago.isNotBlank()
-
                         if (datosValidos) {
                             viewModel.guardarGasto(
-                                titulo = concepto,
-                                proveedor = proveedor,
+                                concepto = concepto,
                                 categoria = categoria,
-                                monto = totalCalculado,
                                 fecha = fecha,
+                                proveedor = proveedor,
+                                subtotal = subtotalValor,
+                                ivaPorcentaje = ivaValor,
+                                iva = ivaCalculado,
+                                total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = formaPago,
-                                descripcion = observaciones,
+                                telefonoProveedor = telefonoProveedor,
+                                correoProveedor = correoProveedor,
+                                rfcProveedor = rfcProveedor,
+                                observaciones = observaciones,
                                 proyecto = proyecto,
                                 cotizacion = cotizacion,
                                 cliente = cliente

@@ -48,25 +48,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.runtime.collectAsState
+import com.example.arcshiftwelding.ui.gastos.GastosViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EliminarGastoScreen(
     navController: NavController,
-    gastoId: Int
+    gastoId: Int,
+    viewModel: GastosViewModel
 ) {
-    /*
-        Datos de prueba.
-        Después estos datos vendrán desde Room usando gastoId.
-    */
-    val conceptoGasto = "Compra de material"
-    val categoriaGasto = "Materiales"
-    val proveedorGasto = "Aceros del Norte"
-    val montoGasto = 3200.00
-    val fechaGasto = "10/05/2026"
-    val metodoPago = "Efectivo"
-    val observaciones = "Se realizó compra de acero estructural para proyecto en construcción"
-
+    val gasto by viewModel.obtenerDetalleGasto(gastoId).collectAsState()
     var confirmarEliminacion by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -100,100 +93,107 @@ fun EliminarGastoScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-
-
             }
-
         },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF5F5F5)
     ) { padding ->
 
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F6FA))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-
-            CardAdvertenciaEliminarGasto()
-
-            CardGastoEliminar(
-                conceptoGasto = conceptoGasto,
-                categoriaGasto = categoriaGasto,
-                proveedorGasto = proveedorGasto,
-                montoGasto = montoGasto,
-                fechaGasto = fechaGasto,
-                metodoPago = metodoPago
-            )
-
-            CardImpactoEliminacionGasto(
-                montoGasto = montoGasto
-            )
-
-            CardConfirmacionEliminarGasto(
-                confirmado = confirmarEliminacion,
-                onConfirmadoChange = {
-                    confirmarEliminacion = it
-                }
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        if (gasto == null) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                OutlinedButton(
-                    onClick = {
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
+                Text(
+                    text = "No se encontró el gasto",
+                    color = Color.Gray
+                )
+            }
+        } else {
+            val gastoActual = gasto!!
+
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .background(Color(0xFFF5F6FA))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+                CardAdvertenciaEliminarGasto()
+
+                CardGastoEliminar(
+                    conceptoGasto = gastoActual.concepto,
+                    categoriaGasto = gastoActual.categoria,
+                    proveedorGasto = gastoActual.proveedor,
+                    montoGasto = gastoActual.total,
+                    fechaGasto = gastoActual.fecha,
+                    metodoPago = gastoActual.metodoPago
+                )
+
+                CardImpactoEliminacionGasto(
+                    montoGasto = gastoActual.total
+                )
+
+                CardConfirmacionEliminarGasto(
+                    confirmado = confirmarEliminacion,
+                    onConfirmadoChange = {
+                        confirmarEliminacion = it
+                    }
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Cancelar")
-                }
+                    OutlinedButton(
+                        onClick = {
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                    ) {
+                        Text("Cancelar")
+                    }
 
-                Button(
-                    onClick = {
-                        /*
-                            Aquí después harás:
-                            viewModel.eliminarGasto(gastoId)
-
-                            Luego regresas a gastos:
-                        */
-                        navController.navigate(AppRoutes.GASTOS) {
-                            popUpTo(AppRoutes.GASTOS) {
-                                inclusive = false
+                    Button(
+                        onClick = {
+                            viewModel.eliminarGasto(gastoActual.id) {
+                                navController.navigate(AppRoutes.GASTOS) {
+                                    popUpTo(AppRoutes.GASTOS) {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
-                            launchSingleTop = true
-                        }
-                    },
-                    enabled = confirmarEliminacion,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB42318),
-                        contentColor = Color.White,
-                        disabledContainerColor = Color(0xFFE5E7EB),
-                        disabledContentColor = Color.Gray
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null
-                    )
+                        },
+                        enabled = confirmarEliminacion,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFB42318),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFFE5E7EB),
+                            disabledContentColor = Color.Gray
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null
+                        )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                    Text("Eliminar")
+                        Text("Eliminar")
+                    }
                 }
             }
-
         }
     }
 }

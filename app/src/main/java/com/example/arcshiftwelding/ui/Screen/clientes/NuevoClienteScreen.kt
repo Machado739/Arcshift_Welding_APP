@@ -26,10 +26,8 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoClienteScreen(
-    onBack: () -> Unit = {},
-    onGuardar: () -> Unit = {},
-    onCancelar: () -> Unit = {},
-    navController: NavController
+    navController: NavController,
+    viewModel: ClientesViewModel
 ) {
     var nombre by remember { mutableStateOf("") }
     var empresa by remember { mutableStateOf("") }
@@ -67,7 +65,6 @@ fun NuevoClienteScreen(
             ) {
                 IconButton(
                     onClick = {
-                        onBack()
                         navController.popBackStack()
                     }
                 ) {
@@ -76,7 +73,6 @@ fun NuevoClienteScreen(
                         contentDescription = "Regresar"
                     )
                 }
-
                 Text(
                     text = "Nuevo Cliente",
                     style = MaterialTheme.typography.headlineSmall,
@@ -147,12 +143,29 @@ fun NuevoClienteScreen(
 
             BotonesFormularioCliente(
                 onCancelarClick = {
-                    onCancelar()
                     navController.popBackStack()
                 },
                 onGuardarClick = {
-                    onGuardar()
-                    navController.popBackStack()
+                    viewModel.guardarCliente(
+                        nombre = nombre,
+                        empresa = empresa,
+                        tipoCliente = tipoCliente,
+                        estatus = estatus,
+                        telefono = telefono,
+                        correo = correo,
+                        direccion = direccion,
+                        rfc = rfc,
+                        personaContacto = personaContacto,
+                        cargo = cargo,
+                        notas = notas,
+                        clienteActivo = clienteActivo,
+                        recibeCotizaciones = recibeCotizaciones,
+                        contactoWhatsapp = contactoWhatsapp,
+                        contactoLlamadas = contactoLlamadas,
+                        contactoCorreo = contactoCorreo
+                    ) {
+                        navController.popBackStack()
+                    }
                 }
             )
         }

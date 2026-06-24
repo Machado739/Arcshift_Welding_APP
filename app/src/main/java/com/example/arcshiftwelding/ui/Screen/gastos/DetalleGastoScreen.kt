@@ -1,6 +1,5 @@
 package com.example.arcshiftwelding.ui.Screen.gastos
 
-import GastosViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -146,13 +145,13 @@ fun DetalleGastoScreen(
 
                 SeccionAccionesRapidasGasto(
                     onEditar = {
-                        navController.navigate(AppRoutes.editarGasto(gastoId = gastoId))
+                        navController.navigate(AppRoutes.editarGasto(gastoActual.id))
                     },
                     onDescargarPDF = {
                         // Pendiente generar PDF
                     },
                     onEliminar = {
-                        navController.navigate(AppRoutes.eliminarGasto(gastoId = gastoId))
+                        navController.navigate(AppRoutes.eliminarGasto(gastoId = gastoActual.id))
                     }
                 )
             }
@@ -197,13 +196,13 @@ fun TarjetaPrincipalGasto(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = gasto.titulo,
+                    text = gasto.concepto,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "$ ${String.format("%.2f", gasto.monto)}",
+                    text = "$ ${String.format("%.2f", gasto.total)}",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -312,7 +311,7 @@ fun SeccionDetalleInformacionGeneral(
             ) {
                 ItemDatoDetalle(
                     titulo = "Concepto",
-                    valor = gasto.titulo
+                    valor = gasto.concepto
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -341,15 +340,11 @@ fun SeccionDetalleInformacionGeneral(
         }
     }
 }
-
 @Composable
 fun SeccionDetalleInformacionFinanciera(
     gasto: GastoUi,
     modifier: Modifier = Modifier
 ) {
-    val subtotal = gasto.monto / 1.16
-    val iva = gasto.monto - subtotal
-
     TarjetaDetalleGasto(
         titulo = "Información financiera",
         icono = Icons.Default.AttachMoney,
@@ -357,14 +352,14 @@ fun SeccionDetalleInformacionFinanciera(
     ) {
         FilaMontoDetalle(
             titulo = "Subtotal",
-            valor = "$ ${String.format("%.2f", subtotal)}"
+            valor = "$ ${String.format("%.2f", gasto.subtotal)}"
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         FilaMontoDetalle(
-            titulo = "IVA (16%)",
-            valor = "$ ${String.format("%.2f", iva)}"
+            titulo = "IVA (${String.format("%.0f", gasto.ivaPorcentaje)}%)",
+            valor = "$ ${String.format("%.2f", gasto.iva)}"
         )
 
         Divider(
@@ -373,11 +368,12 @@ fun SeccionDetalleInformacionFinanciera(
 
         FilaMontoDetalle(
             titulo = "Total",
-            valor = "$ ${String.format("%.2f", gasto.monto)}",
+            valor = "$ ${String.format("%.2f", gasto.total)}",
             destacar = true
         )
     }
 }
+
 
 @Composable
 fun FilaMontoDetalle(
@@ -423,21 +419,21 @@ fun SeccionDetalleProveedor(
 
         ItemDatoDetalle(
             titulo = "Teléfono",
-            valor = "No registrado"
+            valor = gasto.telefonoProveedor.ifBlank { "No registrado" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoDetalle(
             titulo = "Correo",
-            valor = "No registrado"
+            valor = gasto.correoProveedor.ifBlank { "No registrado" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoDetalle(
             titulo = "RFC",
-            valor = "No registrado"
+            valor = gasto.rfcProveedor.ifBlank { "No registrado" }
         )
     }
 }
@@ -541,7 +537,7 @@ fun SeccionDetalleObservaciones(
         modifier = modifier
     ) {
         Text(
-            text = gasto.descripcion.ifBlank { "Sin observaciones registradas." },
+            text = gasto.observaciones.ifBlank { "Sin observaciones registradas." },
             style = MaterialTheme.typography.bodySmall,
             color = Color.DarkGray
         )

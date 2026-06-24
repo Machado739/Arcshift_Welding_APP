@@ -1,6 +1,7 @@
 package com.example.arcshiftwelding.ui.gastos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,41 +16,140 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.gastos.TarjetaDetalleGasto
+import com.example.arcshiftwelding.ui.gastos.GastosViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditarGastoScreen(
     navController: NavController,
-    gastoId: Int?
+    gastoId: Int?,
+    viewModel: GastosViewModel
 ) {
-    var concepto by remember { mutableStateOf("Compra de material") }
-    var categoria by remember { mutableStateOf("Materiales") }
-    var fecha by remember { mutableStateOf("19/05/2026") }
-    var proveedor by remember { mutableStateOf("Aceros del Norte") }
-
-    var subtotal by remember { mutableStateOf("2758.62") }
-    var ivaPorcentaje by remember { mutableStateOf("16") }
-    var metodoPago by remember { mutableStateOf("Efectivo") }
-    var formaPago by remember { mutableStateOf("Contado") }
-
-    var telefonoProveedor by remember { mutableStateOf("614 123 4567") }
-    var correoProveedor by remember { mutableStateOf("ventas@acerosnorte.com") }
-    var rfcProveedor by remember { mutableStateOf("ACN980312K7") }
-
-    var observaciones by remember {
-        mutableStateOf("Compra para fabricación de estructura metálica proyecto Cliente XYZ.")
+    val gastoActual by if (gastoId != null) {
+        viewModel.obtenerGastoPorId(gastoId).collectAsState(initial = null)
+    } else {
+        remember { mutableStateOf(null) }
     }
 
-    var proyecto by remember { mutableStateOf("Estructura Nave Industrial") }
-    var cotizacion by remember { mutableStateOf("COT-0456") }
-    var cliente by remember { mutableStateOf("Cliente XYZ") }
+    val categoriasGasto = listOf(
+        "Materiales",
+        "Servicios",
+        "Transporte",
+        "Nómina",
+        "Herramientas",
+        "Seguridad",
+        "Otro"
+    )
 
-    val subtotalValor = subtotal.toDoubleOrNull() ?: 0.0
-    val ivaValor = ivaPorcentaje.toDoubleOrNull() ?: 0.0
+    val proveedores = listOf(
+        "Aceros del Norte",
+        "Ferretería Industrial",
+        "PEMEX",
+        "CFE",
+        "Taller Mecánico JR",
+        "Jaime Lozano",
+        "Otro"
+    )
+
+    val porcentajesIva = listOf(
+        "0",
+        "8",
+        "16"
+    )
+
+    val metodosPago = listOf(
+        "Efectivo",
+        "Tarjeta",
+        "Transferencia",
+        "Cheque",
+        "Crédito"
+    )
+
+    val formasPago = listOf(
+        "Contado",
+        "Crédito",
+        "Parcialidades"
+    )
+
+    val proyectos = listOf(
+        "Estructura Nave Industrial",
+        "Portón Metálico",
+        "Reparación de maquinaria",
+        "Barandal residencial",
+        "Sin proyecto"
+    )
+
+    val cotizaciones = listOf(
+        "COT-0456",
+        "COT-0457",
+        "COT-0458",
+        "Sin cotización"
+    )
+
+    val clientes = listOf(
+        "Cliente XYZ",
+        "Eduardo Barrios",
+        "Jose Vera",
+        "Maria Lopez",
+        "Sin cliente"
+    )
+
+    var concepto by remember { mutableStateOf("") }
+    var categoria by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf("") }
+    var proveedor by remember { mutableStateOf("") }
+
+    var subtotal by remember { mutableStateOf("") }
+    var ivaPorcentaje by remember { mutableStateOf("16") }
+    var metodoPago by remember { mutableStateOf("") }
+    var formaPago by remember { mutableStateOf("") }
+
+    var telefonoProveedor by remember { mutableStateOf("") }
+    var correoProveedor by remember { mutableStateOf("") }
+    var rfcProveedor by remember { mutableStateOf("") }
+
+    var observaciones by remember { mutableStateOf("") }
+
+    var proyecto by remember { mutableStateOf("") }
+    var cotizacion by remember { mutableStateOf("") }
+    var cliente by remember { mutableStateOf("") }
+
+    val subtotalValor = subtotal.replace(",", ".").toDoubleOrNull() ?: 0.0
+    val ivaValor = ivaPorcentaje.replace(",", ".").toDoubleOrNull() ?: 0.0
     val ivaCalculado = subtotalValor * (ivaValor / 100.0)
     val totalCalculado = subtotalValor + ivaCalculado
+
+
+    LaunchedEffect(gastoActual) {
+        gastoActual?.let { gasto ->
+            concepto = gasto.concepto
+            categoria = gasto.categoria
+            fecha = gasto.fecha
+            proveedor = gasto.proveedor
+
+            subtotal = gasto.subtotal.toString()
+            ivaPorcentaje = gasto.ivaPorcentaje.toString()
+            metodoPago = gasto.metodoPago
+            formaPago = gasto.formaPago
+
+            telefonoProveedor = gasto.telefonoProveedor ?: ""
+            correoProveedor = gasto.correoProveedor ?: ""
+            rfcProveedor = gasto.rfcProveedor ?: ""
+
+            observaciones = gasto.observaciones ?: ""
+
+            proyecto = gasto.proyecto ?: ""
+            cotizacion = gasto.cotizacion ?: ""
+            cliente = gasto.cliente ?: ""
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -121,20 +221,16 @@ fun EditarGastoScreen(
                     CampoSelectorEditar(
                         label = "Categoría *",
                         value = categoria,
+                        opciones = categoriasGasto,
+                        onValueChange = { categoria = it },
                         modifier = Modifier.weight(1f)
                     )
 
-                    CampoTextoEditar(
+                    CampoFechaEditar(
                         label = "Fecha *",
                         value = fecha,
                         onValueChange = { fecha = it },
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = null
-                            )
-                        }
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
@@ -143,6 +239,8 @@ fun EditarGastoScreen(
                 CampoSelectorEditar(
                     label = "Proveedor *",
                     value = proveedor,
+                    opciones = proveedores,
+                    onValueChange = { proveedor = it },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -165,6 +263,8 @@ fun EditarGastoScreen(
                     CampoSelectorEditar(
                         label = "IVA (%)",
                         value = ivaPorcentaje,
+                        opciones = porcentajesIva,
+                        onValueChange = { ivaPorcentaje = it },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -215,12 +315,16 @@ fun EditarGastoScreen(
                     CampoSelectorEditar(
                         label = "Método de pago *",
                         value = metodoPago,
+                        opciones = metodosPago,
+                        onValueChange = { metodoPago = it },
                         modifier = Modifier.weight(1f)
                     )
 
                     CampoSelectorEditar(
                         label = "Forma de pago",
                         value = formaPago,
+                        opciones = formasPago,
+                        onValueChange = { formaPago = it },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -344,6 +448,8 @@ fun EditarGastoScreen(
                 CampoSelectorEditar(
                     label = "Proyecto",
                     value = proyecto,
+                    opciones = proyectos,
+                    onValueChange = { proyecto = it },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -352,6 +458,8 @@ fun EditarGastoScreen(
                 CampoSelectorEditar(
                     label = "Cotización",
                     value = cotizacion,
+                    opciones = cotizaciones,
+                    onValueChange = { cotizacion = it },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -360,6 +468,8 @@ fun EditarGastoScreen(
                 CampoSelectorEditar(
                     label = "Cliente",
                     value = cliente,
+                    opciones = clientes,
+                    onValueChange = { cliente = it },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -382,25 +492,32 @@ fun EditarGastoScreen(
 
                 Button(
                     onClick = {
-                        /*
-                            Aquí después llamas al ViewModel:
-
-                            viewModel.actualizarGasto(
-                                gastoId = gastoId,
+                        if (gastoId != null) {
+                            val gastoEditado = GastoEntity(
+                                id = gastoId,
                                 concepto = concepto,
                                 categoria = categoria,
                                 fecha = fecha,
                                 proveedor = proveedor,
                                 subtotal = subtotalValor,
+                                ivaPorcentaje = ivaValor,
                                 iva = ivaCalculado,
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = formaPago,
-                                observaciones = observaciones
+                                telefonoProveedor = telefonoProveedor,
+                                correoProveedor = correoProveedor,
+                                rfcProveedor = rfcProveedor,
+                                observaciones = observaciones,
+                                proyecto = proyecto,
+                                cotizacion = cotizacion,
+                                cliente = cliente
                             )
 
-                            navController.popBackStack()
-                        */
+                            viewModel.actualizarGasto(gastoEditado) {
+                                navController.popBackStack()
+                            }
+                        }
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
@@ -418,6 +535,114 @@ fun EditarGastoScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoFechaEditar(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var mostrarCalendario by remember { mutableStateOf(false) }
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = convertirFechaAMillis(value)
+    )
+
+    Box(
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(label)
+            },
+            readOnly = true,
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = null
+                )
+            },
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        mostrarCalendario = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Seleccionar fecha"
+                    )
+                }
+            }
+        )
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable {
+                    mostrarCalendario = true
+                }
+        )
+    }
+
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = {
+                mostrarCalendario = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val fechaSeleccionada = datePickerState.selectedDateMillis
+
+                        if (fechaSeleccionada != null) {
+                            onValueChange(formatearFecha(fechaSeleccionada))
+                        }
+
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
+    }
+}
+fun formatearFecha(millis: Long): String {
+    val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    formato.timeZone = TimeZone.getTimeZone("UTC")
+    return formato.format(Date(millis))
+}
+
+fun convertirFechaAMillis(fecha: String): Long? {
+    return try {
+        val formato = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        formato.timeZone = TimeZone.getTimeZone("UTC")
+        formato.isLenient = false
+        formato.parse(fecha)?.time
+    } catch (e: Exception) {
+        null
+    }
+}
 @Composable
 fun CampoTextoEditar(
     label: String,
@@ -441,29 +666,62 @@ fun CampoTextoEditar(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoSelectorEditar(
     label: String,
     value: String,
+    opciones: List<String>,
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        modifier = modifier,
-        label = {
-            Text(label)
+    var expandido by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = {
+            expandido = !expandido
         },
-        readOnly = true,
-        singleLine = true,
-        shape = RoundedCornerShape(10.dp),
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Seleccionar"
-            )
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            label = {
+                Text(label)
+            },
+            readOnly = true,
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expandido
+                )
+            }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = {
+                expandido = false
+            }
+        ) {
+            opciones.forEach { opcion ->
+                DropdownMenuItem(
+                    text = {
+                        Text(opcion)
+                    },
+                    onClick = {
+                        onValueChange(opcion)
+                        expandido = false
+                    }
+                )
+            }
         }
-    )
+    }
 }
 
 @Composable

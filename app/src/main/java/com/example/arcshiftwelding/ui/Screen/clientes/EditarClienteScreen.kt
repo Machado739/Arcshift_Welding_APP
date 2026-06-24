@@ -44,51 +44,71 @@ data class ClienteEditarUI(
 @Composable
 fun EditarClienteScreen(
     navController: NavController,
-    clienteId: Int
+    clienteId: Int,
+    viewModel: ClientesViewModel
 ) {
-    /*
-        Estos datos después los vas a cargar desde Room usando el clienteId.
-        Por ahora son datos de prueba para que la pantalla funcione.
-    */
-    val clienteActual = ClienteEditarUI(
-        id = clienteId,
-        nombre = "Eduardo Barrios",
-        empresa = "Taller Barrios S.A. de C.V.",
-        tipoCliente = "Empresa",
-        estatus = "Activo",
-        telefono = "614 123 4567",
-        correo = "eduardo@tallerbarrios.com",
-        direccion = "Av. de las Industrias #123, Chihuahua, Chih.",
-        rfc = "TBA190101ABC",
-        personaContacto = "Ing. Eduardo Barrios",
-        cargo = "Gerente de proyectos",
-        notas = "Cliente recurrente. Prefiere comunicación por WhatsApp.",
-        clienteActivo = true,
-        recibeCotizaciones = true,
-        contactoWhatsapp = true,
-        contactoLlamadas = true,
-        contactoCorreo = false
-    )
+    val clienteFlow = remember(clienteId) {
+        viewModel.obtenerClienteEditar(clienteId)
+    }
 
-    var nombre by remember { mutableStateOf(clienteActual.nombre) }
-    var empresa by remember { mutableStateOf(clienteActual.empresa) }
-    var tipoCliente by remember { mutableStateOf(clienteActual.tipoCliente) }
-    var estatus by remember { mutableStateOf(clienteActual.estatus) }
+    val clienteState by clienteFlow.collectAsState()
+    val clienteActual = clienteState
 
-    var telefono by remember { mutableStateOf(clienteActual.telefono) }
-    var correo by remember { mutableStateOf(clienteActual.correo) }
-    var direccion by remember { mutableStateOf(clienteActual.direccion) }
+    if (clienteActual == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
-    var rfc by remember { mutableStateOf(clienteActual.rfc) }
-    var personaContacto by remember { mutableStateOf(clienteActual.personaContacto) }
-    var cargo by remember { mutableStateOf(clienteActual.cargo) }
-    var notas by remember { mutableStateOf(clienteActual.notas) }
+    val cliente = clienteActual!!
 
-    var clienteActivo by remember { mutableStateOf(clienteActual.clienteActivo) }
-    var recibeCotizaciones by remember { mutableStateOf(clienteActual.recibeCotizaciones) }
-    var contactoWhatsapp by remember { mutableStateOf(clienteActual.contactoWhatsapp) }
-    var contactoLlamadas by remember { mutableStateOf(clienteActual.contactoLlamadas) }
-    var contactoCorreo by remember { mutableStateOf(clienteActual.contactoCorreo) }
+    var nombre by remember { mutableStateOf("") }
+    var empresa by remember { mutableStateOf("") }
+    var tipoCliente by remember { mutableStateOf("") }
+    var estatus by remember { mutableStateOf("Activo") }
+
+    var telefono by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
+
+    var rfc by remember { mutableStateOf("") }
+    var personaContacto by remember { mutableStateOf("") }
+    var cargo by remember { mutableStateOf("") }
+    var notas by remember { mutableStateOf("") }
+
+    var clienteActivo by remember { mutableStateOf(true) }
+    var recibeCotizaciones by remember { mutableStateOf(true) }
+    var contactoWhatsapp by remember { mutableStateOf(true) }
+    var contactoLlamadas by remember { mutableStateOf(true) }
+    var contactoCorreo by remember { mutableStateOf(false) }
+
+    LaunchedEffect(cliente.id) {
+        nombre = cliente.nombre
+        empresa = cliente.empresa
+        tipoCliente = cliente.tipoCliente
+        estatus = cliente.estatus
+
+        telefono = cliente.telefono
+        correo = cliente.correo
+        direccion = cliente.direccion
+
+        rfc = cliente.rfc
+        personaContacto = cliente.personaContacto
+        cargo = cliente.cargo
+        notas = cliente.notas
+
+        clienteActivo = cliente.clienteActivo
+        recibeCotizaciones = cliente.recibeCotizaciones
+        contactoWhatsapp = cliente.contactoWhatsapp
+        contactoLlamadas = cliente.contactoLlamadas
+        contactoCorreo = cliente.contactoCorreo
+    }
 
     Scaffold(
         topBar = {
@@ -139,7 +159,6 @@ fun EditarClienteScreen(
                 .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-
 
             item {
                 AvisoEditandoCliente(
@@ -205,19 +224,27 @@ fun EditarClienteScreen(
                         navController.popBackStack()
                     },
                     onActualizarClick = {
-                        /*
-                            Aquí después conectas con ViewModel / Room:
-
-                            viewModel.actualizarCliente(
-                                clienteId = clienteId,
-                                nombre = nombre,
-                                empresa = empresa,
-                                telefono = telefono,
-                                ...
-                            )
-                        */
-
-                        navController.popBackStack()
+                        viewModel.actualizarCliente(
+                            clienteId = clienteId,
+                            nombre = nombre,
+                            empresa = empresa,
+                            tipoCliente = tipoCliente,
+                            estatus = estatus,
+                            telefono = telefono,
+                            correo = correo,
+                            direccion = direccion,
+                            rfc = rfc,
+                            personaContacto = personaContacto,
+                            cargo = cargo,
+                            notas = notas,
+                            clienteActivo = clienteActivo,
+                            recibeCotizaciones = recibeCotizaciones,
+                            contactoWhatsapp = contactoWhatsapp,
+                            contactoLlamadas = contactoLlamadas,
+                            contactoCorreo = contactoCorreo
+                        ) {
+                            navController.popBackStack()
+                        }
                     }
                 )
             }
