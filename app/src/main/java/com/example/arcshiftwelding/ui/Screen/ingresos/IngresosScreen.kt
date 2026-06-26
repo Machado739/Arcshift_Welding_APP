@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,89 +27,28 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 
-data class IngresoUI(
-    val id: Int,
-    val cliente: String,
-    val trabajo: String,
-    val folio: String,
-    val total: String,
-    val anticipo: String,
-    val pendiente: String,
-    val categoria: String,
-    val fecha: String
-)
 
 @Composable
 fun IngresosScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: IngresosViewModel
 ) {
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var busqueda by remember { mutableStateOf("") }
 
-
-
-    val ingresos = listOf(
-        IngresoUI(1, "Eduardo Barrios",
-            "Tejaban 6x4m",
-            "001",
-            "$12,000",
-             "$7,000",
-            "$5,000",
-            "Pagados",
-            "19/05/2026"),
-        IngresoUI(
-            2,
-            "Jose Vera",
-             "Portón 123\"x85\"",
-            "002",
-             "$12,000",
-             "$6,000",
-             "$6,000",
-            "Pendientes",
-           "26/05/2026"),
-        IngresoUI(
-            3,
-             "Maria Lopez",
-             "Escalera metálica",
-            "003",
-            "$8,500",
-             "$4,000",
-         "$4,500",
-             "Folio",
-         "20/05/2026"),
-        IngresoUI(
-         4,
-            "Constructora Del Norte",
-             "Estructura metálica",
-             "004",
-             "$15,000",
-             "$8,000",
-            "$7,000",
-             "Pendientes",
-           "22/05/2026"),
-        IngresoUI(
-            5,
-            "Alberto Ruiz",
-            "Reja perimetral",
-             "005",
-         "$9,000",
-             "$5,000",
-           "$4,000",
-             "Pagados",
-          "16/05/2026"),
-        IngresoUI(
-            5,
-            "Alberto Ruiz",
-            "Reja perimetral",
-             "005",
-         "$9,000",
-             "$5,000",
-           "$4,000",
-             "Anticipos",
-          "16/05/2026")
-    )
+    val ingresos by viewModel.ingresos.collectAsState()
 
     val ingresosFiltrados = ingresos.filter { ingreso ->
-        categoriaSeleccionada == "Todos"|| ingreso.categoria == categoriaSeleccionada }
+        val coincideCategoria =
+            categoriaSeleccionada == "Todos" || ingreso.categoria == categoriaSeleccionada
+
+        val coincideBusqueda =
+            ingreso.cliente.contains(busqueda, ignoreCase = true) ||
+                    ingreso.trabajo.contains(busqueda, ignoreCase = true) ||
+                    ingreso.folio.contains(busqueda, ignoreCase = true)
+
+        coincideCategoria && coincideBusqueda
+    }
 
     Column(
         modifier = Modifier
@@ -125,12 +65,14 @@ fun IngresosScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-
-        ResumenIngresos()
+        ResumenIngresos(ingresos = ingresos)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        BarraBusquedaIngresos()
+        BarraBusquedaIngresos(
+            busqueda = busqueda,
+            onBusquedaChange = { busqueda = it }
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -152,7 +94,7 @@ fun IngresosScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosCategoriaIngresos(
-            seleccionada= categoriaSeleccionada,
+            seleccionada = categoriaSeleccionada,
             onSeleccionar = {
                 categoriaSeleccionada = it
             }
@@ -166,7 +108,6 @@ fun IngresosScreen(
                 navController.navigate(AppRoutes.detalleIngreso(ingreso.id))
             }
         )
-
     }
 }
 
@@ -217,7 +158,13 @@ fun HeaderIngresos(
 }
 
 @Composable
-fun ResumenIngresos() {
+fun ResumenIngresos(
+    ingresos: List<IngresoUI>
+) {
+    val totalIngresos = ingresos.sumOf { it.totalNumero }
+    val totalAnticipos = ingresos.sumOf { it.anticipoNumero }
+    val totalPendiente = ingresos.sumOf { it.pendienteNumero }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(7.dp)
@@ -225,8 +172,8 @@ fun ResumenIngresos() {
         CardResumenIngreso(
             modifier = Modifier.weight(1f),
             titulo = "Total ingresos",
-            monto = "$24,000",
-            subtitulo = "Este mes",
+            monto = totalIngresos.formatoDinero(),
+            subtitulo = "Registrados",
             icono = Icons.Default.AttachMoney,
             color = Color(0xFF2563EB),
             fondo = Color(0xFFEFF6FF)
@@ -235,8 +182,8 @@ fun ResumenIngresos() {
         CardResumenIngreso(
             modifier = Modifier.weight(1f),
             titulo = "Anticipos",
-            monto = "$13,000",
-            subtitulo = "Este mes",
+            monto = totalAnticipos.formatoDinero(),
+            subtitulo = "Cobrados",
             icono = Icons.Default.ArrowDownward,
             color = Color(0xFF16A34A),
             fondo = Color(0xFFF0FDF4)
@@ -245,8 +192,8 @@ fun ResumenIngresos() {
         CardResumenIngreso(
             modifier = Modifier.weight(1f),
             titulo = "Pendiente",
-            monto = "$11,000",
-            subtitulo = "Este mes",
+            monto = totalPendiente.formatoDinero(),
+            subtitulo = "Por cobrar",
             icono = Icons.Default.Schedule,
             color = Color(0xFFF59E0B),
             fondo = Color(0xFFFFFBEB)
@@ -254,9 +201,9 @@ fun ResumenIngresos() {
 
         CardResumenIngreso(
             modifier = Modifier.weight(1f),
-            titulo = "Cobros realizados",
-            monto = "$13,000",
-            subtitulo = "Este mes",
+            titulo = "Cobros",
+            monto = ingresos.size.toString(),
+            subtitulo = "Registros",
             icono = Icons.Default.ReceiptLong,
             color = Color(0xFF7C3AED),
             fondo = Color(0xFFF5F3FF)
@@ -331,15 +278,18 @@ fun CardResumenIngreso(
 }
 
 @Composable
-fun BarraBusquedaIngresos() {
+fun BarraBusquedaIngresos(
+    busqueda: String,
+    onBusquedaChange: (String) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = busqueda,
+            onValueChange = onBusquedaChange,
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
@@ -567,10 +517,10 @@ fun ItemIngreso(
                 Text(
                     text = ingreso.categoria,
                     fontSize = 8.sp,
-                    color = if (ingreso.categoria == "Pagado") Color(0xFF16A34A) else Color(0xFFF59E0B),
+                    color = if (ingreso.categoria == "Pagados") Color(0xFF16A34A) else Color(0xFFF59E0B),
                     modifier = Modifier
                         .background(
-                            color = if (ingreso.categoria == "Pagado") Color(0xFFEAF7EE) else Color(0xFFFFF7E6),
+                            color = if (ingreso.categoria == "Pagados") Color(0xFFEAF7EE) else Color(0xFFFFF7E6),
                             shape = RoundedCornerShape(4.dp)
                         )
                         .padding(horizontal = 5.dp, vertical = 2.dp)

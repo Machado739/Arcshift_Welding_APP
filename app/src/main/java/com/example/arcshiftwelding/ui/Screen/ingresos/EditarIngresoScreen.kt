@@ -20,8 +20,15 @@ import androidx.navigation.NavController
 @Composable
 fun EditarIngresoScreen(
     navController: NavController,
-    ingresoId: Int = 0
+    ingresoId: Int,
+    viewModel: IngresosViewModel
 ) {
+    val form by viewModel.formState.collectAsState()
+
+    LaunchedEffect(ingresoId) {
+        viewModel.cargarIngresoParaEditar(ingresoId)
+    }
+
     Scaffold(
         topBar = {
             Row(
@@ -53,13 +60,6 @@ fun EditarIngresoScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones"
-                    )
-                }
             }
         },
         contentWindowInsets = WindowInsets(0),
@@ -74,20 +74,34 @@ fun EditarIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            SeccionEditarIngresoInformacionGeneral()
+            SeccionIngresoInformacionGeneral(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionEditarIngresoInformacionFinanciera()
+            SeccionIngresoInformacionFinanciera(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionEditarIngresoComprobante()
+            SeccionIngresoComprobante(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionEditarIngresoRelacionado()
+            SeccionIngresoRelacionado(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
             BotonesEditarIngreso(
                 onCancelar = {
                     navController.popBackStack()
                 },
                 onActualizar = {
-                    navController.popBackStack()
+                    viewModel.actualizarIngreso {
+                        navController.popBackStack()
+                    }
                 }
             )
         }

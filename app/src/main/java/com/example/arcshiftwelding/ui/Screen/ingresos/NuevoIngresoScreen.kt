@@ -16,11 +16,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoIngresoScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: IngresosViewModel
 ) {
+    val form by viewModel.formState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.limpiarFormulario()
+    }
+
     Scaffold(
         topBar = {
             Row(
@@ -52,13 +58,6 @@ fun NuevoIngresoScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones"
-                    )
-                }
             }
         },
         contentWindowInsets = WindowInsets(0),
@@ -73,108 +72,54 @@ fun NuevoIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            SeccionNuevoIngresoInformacionGeneral()
+            SeccionIngresoInformacionGeneral(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionNuevoIngresoInformacionFinanciera()
+            SeccionIngresoInformacionFinanciera(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionNuevoIngresoComprobante()
+            SeccionIngresoComprobante(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
-            SeccionNuevoIngresoRelacionado()
+            SeccionIngresoRelacionado(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
 
             BotonesNuevoIngreso(
                 onCancelar = {
                     navController.popBackStack()
                 },
                 onGuardar = {
-                    navController.popBackStack()
+                    viewModel.guardarIngreso {
+                        navController.popBackStack()
+                    }
                 }
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SeccionNuevoIngresoInformacionGeneral() {
-    var concepto by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("19/05/2026") }
-    var cliente by remember { mutableStateOf("") }
-    var proyecto by remember { mutableStateOf("") }
-
-    TarjetaNuevoIngreso(
-        titulo = "Información general",
-        icono = Icons.Default.Info
-    ) {
-        CampoTextoIngreso(
-            titulo = "Concepto / Descripción *",
-            valor = concepto,
-            placeholder = "Ej. Pago por fabricación de estructura metálica",
-            onValueChange = { concepto = it },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CampoSeleccionIngreso(
-                titulo = "Cliente *",
-                valor = if (cliente.isEmpty()) "Seleccionar cliente" else cliente,
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = Color(0xFFF1F1F1),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Nuevo cliente"
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CampoTextoIngreso(
-                titulo = "Fecha *",
-                valor = fecha,
-                placeholder = "Fecha",
-                onValueChange = { fecha = it },
-                leadingIcon = Icons.Default.CalendarToday,
-                modifier = Modifier.weight(1f)
-            )
-
-            CampoSeleccionIngreso(
-                titulo = "Proyecto opcional",
-                valor = if (proyecto.isEmpty()) "Seleccionar proyecto" else proyecto,
-                modifier = Modifier.weight(1f)
-            )
-        }
+fun SeccionIngresoInformacionFinanciera(
+    form: IngresoFormState,
+    onChange: (IngresoFormState) -> Unit
+) {
+    val subtotalNumero = form.subtotal.aDouble()
+    val ivaNumero = if (form.iva.isBlank()) {
+        subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
+    } else {
+        form.iva.aDouble()
     }
-}
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SeccionNuevoIngresoInformacionFinanciera() {
-    var subtotal by remember { mutableStateOf("") }
-    var ivaPorcentaje by remember { mutableStateOf("16") }
-    var iva by remember { mutableStateOf("") }
-    var metodoPago by remember { mutableStateOf("") }
-    var formaPago by remember { mutableStateOf("Contado") }
-    var folio by remember { mutableStateOf("") }
+    val totalNumero = subtotalNumero + ivaNumero
+    val pendienteNumero = totalNumero - form.anticipo.aDouble()
 
     TarjetaNuevoIngreso(
         titulo = "Información financiera",
@@ -186,26 +131,46 @@ fun SeccionNuevoIngresoInformacionFinanciera() {
         ) {
             CampoTextoIngreso(
                 titulo = "Subtotal *",
-                valor = subtotal,
+                valor = form.subtotal,
                 placeholder = "$ 0.00",
-                onValueChange = { subtotal = it },
+                onValueChange = {
+                    onChange(form.copy(subtotal = it))
+                },
                 modifier = Modifier.weight(1f)
             )
 
-            CampoSeleccionIngreso(
+            CampoTextoIngreso(
                 titulo = "IVA (%)",
-                valor = ivaPorcentaje,
+                valor = form.ivaPorcentaje,
+                placeholder = "16",
+                onValueChange = {
+                    onChange(form.copy(ivaPorcentaje = it))
+                },
                 modifier = Modifier.weight(1f)
             )
 
             CampoTextoIngreso(
                 titulo = "IVA",
-                valor = iva,
-                placeholder = "$ 0.00",
-                onValueChange = { iva = it },
+                valor = form.iva,
+                placeholder = "Auto",
+                onValueChange = {
+                    onChange(form.copy(iva = it))
+                },
                 modifier = Modifier.weight(1f)
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Anticipo / Pago recibido",
+            valor = form.anticipo,
+            placeholder = "$ 0.00",
+            onValueChange = {
+                onChange(form.copy(anticipo = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -220,17 +185,23 @@ fun SeccionNuevoIngresoInformacionFinanciera() {
                 modifier = Modifier.padding(12.dp)
             ) {
                 Text(
-                    text = "Total *",
+                    text = "Total",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFF2E7D32),
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "$ 0.00",
+                    text = totalNumero.formatoDinero(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2E7D32)
+                )
+
+                Text(
+                    text = "Pendiente: ${pendienteNumero.formatoDinero()}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.DarkGray
                 )
             }
         }
@@ -241,15 +212,23 @@ fun SeccionNuevoIngresoInformacionFinanciera() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampoSeleccionIngreso(
+            CampoTextoIngreso(
                 titulo = "Método de pago *",
-                valor = if (metodoPago.isEmpty()) "Seleccionar método" else metodoPago,
+                valor = form.metodoPago,
+                placeholder = "Efectivo, transferencia, tarjeta",
+                onValueChange = {
+                    onChange(form.copy(metodoPago = it))
+                },
                 modifier = Modifier.weight(1f)
             )
 
-            CampoSeleccionIngreso(
+            CampoTextoIngreso(
                 titulo = "Forma de pago",
-                valor = formaPago,
+                valor = form.formaPago,
+                placeholder = "Contado / crédito",
+                onValueChange = {
+                    onChange(form.copy(formaPago = it))
+                },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -257,56 +236,33 @@ fun SeccionNuevoIngresoInformacionFinanciera() {
         Spacer(modifier = Modifier.height(10.dp))
 
         CampoTextoIngreso(
-            titulo = "Referencia / Folio opcional",
-            valor = folio,
+            titulo = "Referencia / Folio",
+            valor = form.folio,
             placeholder = "Ej. FACT-001",
-            onValueChange = { folio = it },
+            onValueChange = {
+                onChange(form.copy(folio = it))
+            },
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @Composable
-fun SeccionNuevoIngresoComprobante() {
-    var observaciones by remember { mutableStateOf("") }
-
+fun SeccionIngresoComprobante(
+    form: IngresoFormState,
+    onChange: (IngresoFormState) -> Unit
+) {
     TarjetaNuevoIngreso(
         titulo = "Comprobante / Evidencia",
         icono = Icons.Default.AttachFile
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            BotonArchivoIngreso(
-                titulo = "Generar factura",
-                subtitulo = "Crear factura PDF",
-                icono = Icons.Default.ReceiptLong,
-                modifier = Modifier.weight(1f)
-            )
-
-            BotonArchivoIngreso(
-                titulo = "Subir PDF",
-                subtitulo = "Factura o recibo",
-                icono = Icons.Default.Description,
-                modifier = Modifier.weight(1f)
-            )
-
-            BotonArchivoIngreso(
-                titulo = "Adjuntar archivo",
-                subtitulo = "Máx. 10 MB",
-                icono = Icons.Default.AttachFile,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
         CampoTextoIngreso(
             titulo = "Observaciones opcional",
-            valor = observaciones,
+            valor = form.observaciones,
             placeholder = "Agrega notas u observaciones opcionales",
-            onValueChange = { observaciones = it },
+            onValueChange = {
+                onChange(form.copy(observaciones = it))
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(95.dp),
@@ -315,32 +271,106 @@ fun SeccionNuevoIngresoComprobante() {
     }
 }
 
-
 @Composable
-fun SeccionNuevoIngresoRelacionado() {
+fun SeccionIngresoRelacionado(
+    form: IngresoFormState,
+    onChange: (IngresoFormState) -> Unit
+) {
     TarjetaNuevoIngreso(
         titulo = "Relacionado con opcional",
         icono = Icons.Default.Link
     ) {
+        CampoTextoIngreso(
+            titulo = "Cotización",
+            valor = form.cotizacion,
+            placeholder = "Ej. COT-001",
+            onValueChange = {
+                onChange(form.copy(cotizacion = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Orden de trabajo",
+            valor = form.ordenTrabajo,
+            placeholder = "Ej. OT-001",
+            onValueChange = {
+                onChange(form.copy(ordenTrabajo = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Proyecto",
+            valor = form.proyecto,
+            placeholder = "Nombre del proyecto",
+            onValueChange = {
+                onChange(form.copy(proyecto = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun SeccionIngresoInformacionGeneral(
+    form: IngresoFormState,
+    onChange: (IngresoFormState) -> Unit
+) {
+    TarjetaNuevoIngreso(
+        titulo = "Información general",
+        icono = Icons.Default.Info
+    ) {
+        CampoTextoIngreso(
+            titulo = "Concepto / Descripción *",
+            valor = form.concepto,
+            placeholder = "Ej. Pago por fabricación de estructura metálica",
+            onValueChange = {
+                onChange(form.copy(concepto = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Cliente *",
+            valor = form.cliente,
+            placeholder = "Nombre del cliente",
+            onValueChange = {
+                onChange(form.copy(cliente = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampoSeleccionIngreso(
-                titulo = "Cotización",
-                valor = "Seleccionar",
+            CampoTextoIngreso(
+                titulo = "Fecha *",
+                valor = form.fecha,
+                placeholder = "dd/mm/aaaa",
+                onValueChange = {
+                    onChange(form.copy(fecha = it))
+                },
+                leadingIcon = Icons.Default.CalendarToday,
                 modifier = Modifier.weight(1f)
             )
 
-            CampoSeleccionIngreso(
-                titulo = "Orden de trabajo",
-                valor = "Seleccionar",
-                modifier = Modifier.weight(1f)
-            )
-
-            CampoSeleccionIngreso(
-                titulo = "Cliente",
-                valor = "Seleccionar",
+            CampoTextoIngreso(
+                titulo = "Trabajo",
+                valor = form.trabajo,
+                placeholder = "Ej. Tejaban 6x4m",
+                onValueChange = {
+                    onChange(form.copy(trabajo = it))
+                },
                 modifier = Modifier.weight(1f)
             )
         }

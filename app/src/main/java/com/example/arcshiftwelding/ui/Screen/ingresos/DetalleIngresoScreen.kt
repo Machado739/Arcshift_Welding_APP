@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +24,23 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 @Composable
 fun DetalleIngresoScreen(
     navController: NavController,
-    ingresoId: Int = 0
+    ingresoId: Int,
+    viewModel: IngresosViewModel
 ) {
+    val ingreso by viewModel.obtenerIngreso(ingresoId).collectAsState(initial = null)
+
+    if (ingreso == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Ingreso no encontrado")
+        }
+        return
+    }
+
+    val ingresoActual = ingreso!!
+
     Scaffold(
         topBar = {
             Row(
@@ -58,7 +75,7 @@ fun DetalleIngresoScreen(
 
                 IconButton(
                     onClick = {
-                       navController.navigate(AppRoutes.editarIngreso(ingresoId))
+                        navController.navigate(AppRoutes.editarIngreso(ingresoActual.id))
                     }
                 ) {
                     Icon(
@@ -80,34 +97,24 @@ fun DetalleIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            TarjetaPrincipalIngreso()
+            TarjetaPrincipalIngreso(ingresoActual)
 
-            SeccionDetalleInformacionGeneralIngreso()
+            SeccionDetalleInformacionGeneralIngreso(ingresoActual)
 
-            SeccionDetalleClienteIngreso()
+            SeccionDetalleInformacionFinancieraIngreso(ingresoActual)
 
-            SeccionDetalleInformacionFinancieraIngreso()
+            SeccionDetalleObservacionesIngreso(ingresoActual)
 
-            SeccionDetalleComprobanteIngreso()
-
-            SeccionDetalleObservacionesIngreso()
-
-            SeccionDetalleRelacionadoIngreso()
-
-            SeccionHistorialPagosIngreso()
+            SeccionDetalleRelacionadoIngreso(ingresoActual)
 
             SeccionAccionesRapidasIngreso(
                 onEditar = {
-                    navController.navigate(AppRoutes.editarIngreso(ingresoId = ingresoId))
+                    navController.navigate(AppRoutes.editarIngreso(ingresoActual.id))
                 },
-                onEnviarFactura = {
-                    // Pendiente: enviar factura
-                },
-                onDescargarPDF = {
-                    // Pendiente: descargar PDF
-                },
+                onEnviarFactura = {},
+                onDescargarPDF = {},
                 onEliminar = {
-                    navController.navigate(AppRoutes.eliminarIngreso(ingresoId = ingresoId))
+                    navController.navigate(AppRoutes.eliminarIngreso(ingresoActual.id))
                 }
             )
         }
@@ -115,7 +122,9 @@ fun DetalleIngresoScreen(
 }
 
 @Composable
-fun TarjetaPrincipalIngreso() {
+fun TarjetaPrincipalIngreso(
+    ingreso: IngresoUI
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -150,20 +159,20 @@ fun TarjetaPrincipalIngreso() {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Pago por fabricación",
+                    text = ingreso.concepto,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "\$ 15,080.00",
+                    text = ingreso.total,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2E7D32)
                 )
 
                 Text(
-                    text = "Cliente: Constructora del Bajío",
+                    text = "Cliente: ${ingreso.cliente}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
@@ -175,97 +184,71 @@ fun TarjetaPrincipalIngreso() {
                 ) {
                     DatoIconoPequenoIngreso(
                         icono = Icons.Default.DateRange,
-                        texto = "19/05/2026"
+                        texto = ingreso.fecha
                     )
 
                     DatoIconoPequenoIngreso(
                         icono = Icons.Default.Payment,
-                        texto = "Transferencia"
+                        texto = ingreso.metodoPago
                     )
                 }
             }
 
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                IconButton(onClick = { }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreHoriz,
-                        contentDescription = "Más opciones"
-                    )
-                }
-
-                AssistChip(
-                    onClick = { },
-                    label = {
-                        Text("Pagado")
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = Color(0xFFDFF3E3),
-                        labelColor = Color(0xFF2E7D32)
-                    )
+            AssistChip(
+                onClick = { },
+                label = {
+                    Text(ingreso.categoria)
+                },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = Color(0xFFDFF3E3),
+                    labelColor = Color(0xFF2E7D32)
                 )
-            }
+            )
         }
     }
 }
 
+
 @Composable
-fun SeccionDetalleInformacionGeneralIngreso() {
+fun SeccionDetalleInformacionGeneralIngreso(
+    ingreso: IngresoUI
+) {
     TarjetaDetalleIngreso(
         titulo = "Información general",
         icono = Icons.Default.Info
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoDetalleIngreso(
-                    titulo = "Concepto",
-                    valor = "Pago por fabricación"
-                )
+        ItemDatoDetalleIngreso(
+            titulo = "Concepto",
+            valor = ingreso.concepto
+        )
 
-                Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-                ItemDatoDetalleIngreso(
-                    titulo = "Trabajo",
-                    valor = "Estructura metálica"
-                )
+        ItemDatoDetalleIngreso(
+            titulo = "Trabajo",
+            valor = ingreso.trabajo
+        )
 
-                Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-                ItemDatoDetalleIngreso(
-                    titulo = "Registrado por",
-                    valor = "Administrador"
-                )
-            }
+        ItemDatoDetalleIngreso(
+            titulo = "Folio",
+            valor = ingreso.folio
+        )
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoDetalleIngreso(
-                    titulo = "Folio",
-                    valor = "FACT-0258"
-                )
+        Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
+        ItemDatoDetalleIngreso(
+            titulo = "Método de pago",
+            valor = ingreso.metodoPago
+        )
 
-                ItemDatoDetalleIngreso(
-                    titulo = "Método de pago",
-                    valor = "Transferencia"
-                )
+        Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoDetalleIngreso(
-                    titulo = "Estado",
-                    valor = "Pagado"
-                )
-            }
-        }
+        ItemDatoDetalleIngreso(
+            titulo = "Estado",
+            valor = ingreso.categoria
+        )
     }
 }
 
@@ -311,21 +294,37 @@ fun SeccionDetalleClienteIngreso() {
 }
 
 @Composable
-fun SeccionDetalleInformacionFinancieraIngreso() {
+fun SeccionDetalleInformacionFinancieraIngreso(
+    ingreso: IngresoUI
+) {
     TarjetaDetalleIngreso(
         titulo = "Información financiera",
         icono = Icons.Default.AttachMoney
     ) {
         FilaMontoDetalleIngreso(
             titulo = "Subtotal",
-            valor = "\$ 12,982.76"
+            valor = ingreso.subtotal
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         FilaMontoDetalleIngreso(
-            titulo = "IVA (16%)",
-            valor = "\$ 2,077.24"
+            titulo = "IVA",
+            valor = ingreso.iva
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FilaMontoDetalleIngreso(
+            titulo = "Anticipo",
+            valor = ingreso.anticipo
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FilaMontoDetalleIngreso(
+            titulo = "Pendiente",
+            valor = ingreso.pendiente
         )
 
         Divider(
@@ -334,34 +333,22 @@ fun SeccionDetalleInformacionFinancieraIngreso() {
 
         FilaMontoDetalleIngreso(
             titulo = "Total",
-            valor = "\$ 15,080.00",
+            valor = ingreso.total,
             destacar = true
         )
     }
 }
 
 @Composable
-fun SeccionDetalleComprobanteIngreso() {
-    TarjetaDetalleIngreso(
-        titulo = "Comprobante / Evidencia",
-        icono = Icons.Default.AttachFile
-    ) {
-        ArchivoComprobanteIngresoCard(
-            nombre = "FACTURA_FACT-0258.pdf",
-            peso = "156 KB",
-            icono = Icons.Default.PictureAsPdf
-        )
-    }
-}
-
-@Composable
-fun SeccionDetalleObservacionesIngreso() {
+fun SeccionDetalleObservacionesIngreso(
+    ingreso: IngresoUI
+) {
     TarjetaDetalleIngreso(
         titulo = "Observaciones",
         icono = Icons.Default.Edit
     ) {
         Text(
-            text = "Pago correspondiente al 50% del proyecto de fabricación de estructura metálica.",
+            text = ingreso.observaciones.ifBlank { "Sin observaciones registradas." },
             style = MaterialTheme.typography.bodySmall,
             color = Color.DarkGray
         )
@@ -369,122 +356,31 @@ fun SeccionDetalleObservacionesIngreso() {
 }
 
 @Composable
-fun SeccionDetalleRelacionadoIngreso() {
+fun SeccionDetalleRelacionadoIngreso(
+    ingreso: IngresoUI
+) {
     TarjetaDetalleIngreso(
         titulo = "Relacionado con",
         icono = Icons.Default.Link
     ) {
         ItemDatoConLinkIngreso(
             titulo = "Cotización:",
-            valor = "COT-0148"
+            valor = ingreso.cotizacion.ifBlank { "Sin cotización" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLinkIngreso(
             titulo = "Orden de trabajo:",
-            valor = "OT-0095"
+            valor = ingreso.ordenTrabajo.ifBlank { "Sin orden" }
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLinkIngreso(
             titulo = "Proyecto:",
-            valor = "Nave Industrial"
+            valor = ingreso.proyecto.ifBlank { "Sin proyecto" }
         )
-    }
-}
-
-@Composable
-fun SeccionHistorialPagosIngreso() {
-    TarjetaDetalleIngreso(
-        titulo = "Historial de pagos",
-        icono = Icons.Default.History
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFFAFAFA)
-            ),
-            elevation = CardDefaults.cardElevation(1.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Fecha",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Text(
-                        text = "Descripción",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1.4f)
-                    )
-
-                    Text(
-                        text = "Monto",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Text(
-                        text = "Estado",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Divider(
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "19/05/2026",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Text(
-                        text = "Pago inicial",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.weight(1.4f)
-                    )
-
-                    Text(
-                        text = "\$ 15,080.00",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    AssistChip(
-                        onClick = { },
-                        label = {
-                            Text("Pagado")
-                        },
-                        colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Color(0xFFDFF3E3),
-                            labelColor = Color(0xFF2E7D32)
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
     }
 }
 

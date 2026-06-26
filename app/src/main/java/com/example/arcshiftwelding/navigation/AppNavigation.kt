@@ -62,6 +62,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
+import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModel
+import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 
 @Composable
 fun AppNavigation() {
@@ -79,6 +81,13 @@ fun AppNavigation() {
     val gastosViewModel: GastosViewModel = viewModel(
         factory = GastosViewModelFactory(database.gastoDao())
     )
+
+    val ingresosViewModel: IngresosViewModel = viewModel(
+        factory = IngresosViewModelFactory(
+            database.ingresoDao()
+        )
+    )
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -326,54 +335,46 @@ fun AppNavigation() {
 ///                     INGRESOS
 
             composable(AppRoutes.INGRESOS) {
-                IngresosScreen(navController = navController)
+                IngresosScreen(
+                    navController = navController,
+                    viewModel = ingresosViewModel
+                )
             }
 
             composable(AppRoutes.NUEVO_INGRESO) {
-                NuevoIngresoScreen(navController = navController)
+                NuevoIngresoScreen(
+                    navController = navController,
+                    viewModel = ingresosViewModel
+                )
             }
 
-            composable(AppRoutes.DETALLE_INGRESO){backStackEntry ->
-                val ingresoId = backStackEntry.arguments
-                    ?.getString("ingresoId")
-                    ?.toIntOrNull()
+            composable(AppRoutes.DETALLE_INGRESO) { backStackEntry ->
+                val ingresoId = backStackEntry.arguments?.getString("ingresoId")?.toIntOrNull() ?: 0
+
                 DetalleIngresoScreen(
                     navController = navController,
-                    ingresoId = ingresoId ?:0
+                    ingresoId = ingresoId,
+                    viewModel = ingresosViewModel
                 )
             }
 
-            composable(
-                route = AppRoutes.EDITAR_INGRESO,
-                arguments = listOf(
-                    navArgument("ingresoId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) { backStackEntry ->
-
-                val ingresoId = backStackEntry.arguments?.getInt("ingresoId") ?: 0
+            composable(AppRoutes.EDITAR_INGRESO) { backStackEntry ->
+                val ingresoId = backStackEntry.arguments?.getString("ingresoId")?.toIntOrNull() ?: 0
 
                 EditarIngresoScreen(
                     navController = navController,
-                    ingresoId = ingresoId
+                    ingresoId = ingresoId,
+                    viewModel = ingresosViewModel
                 )
             }
 
-            composable(
-                route = AppRoutes.ELIMINAR_INGRESO,
-                arguments = listOf(
-                    navArgument("ingresoId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) { backStackEntry ->
-
-                val ingresoId = backStackEntry.arguments?.getInt("ingresoId") ?: 0
+            composable(AppRoutes.ELIMINAR_INGRESO) { backStackEntry ->
+                val ingresoId = backStackEntry.arguments?.getString("ingresoId")?.toIntOrNull() ?: 0
 
                 EliminarIngresoScreen(
                     navController = navController,
-                    ingresoId = ingresoId
+                    ingresoId = ingresoId,
+                    viewModel = ingresosViewModel
                 )
             }
 

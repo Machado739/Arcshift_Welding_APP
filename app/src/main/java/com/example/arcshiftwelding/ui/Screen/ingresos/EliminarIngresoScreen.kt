@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +24,23 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 @Composable
 fun EliminarIngresoScreen(
     navController: NavController,
-    ingresoId: Int = 0
+    ingresoId: Int,
+    viewModel: IngresosViewModel
 ) {
+    val ingreso by viewModel.obtenerIngreso(ingresoId).collectAsState(initial = null)
+
+    if (ingreso == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Ingreso no encontrado")
+        }
+        return
+    }
+
+    val ingresoActual = ingreso!!
+
     Scaffold(
         topBar = {
             Row(
@@ -71,20 +88,20 @@ fun EliminarIngresoScreen(
         ) {
             TarjetaAdvertenciaEliminarIngreso()
 
-            TarjetaResumenEliminarIngreso()
-
-            TarjetaDetalleEliminarIngreso()
+            TarjetaResumenEliminarIngreso(ingresoActual)
 
             BotonesEliminarIngreso(
                 onCancelar = {
                     navController.popBackStack()
                 },
                 onEliminar = {
-                    navController.navigate(AppRoutes.INGRESOS) {
-                        popUpTo(AppRoutes.INGRESOS) {
-                            inclusive = true
+                    viewModel.eliminarIngreso(ingresoId) {
+                        navController.navigate(AppRoutes.INGRESOS) {
+                            popUpTo(AppRoutes.INGRESOS) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
                     }
                 }
             )
@@ -176,8 +193,11 @@ fun TarjetaAdvertenciaEliminarIngreso() {
     }
 }
 
+
 @Composable
-fun TarjetaResumenEliminarIngreso() {
+fun TarjetaResumenEliminarIngreso(
+    ingreso: IngresoUI
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -215,20 +235,20 @@ fun TarjetaResumenEliminarIngreso() {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Pago por fabricación",
+                    text = ingreso.concepto,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = "$ 15,080.00",
+                    text = ingreso.total,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2E7D32)
                 )
 
                 Text(
-                    text = "Cliente: Constructora del Bajío",
+                    text = "Cliente: ${ingreso.cliente}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
@@ -240,12 +260,12 @@ fun TarjetaResumenEliminarIngreso() {
                 ) {
                     DatoIconoPequenoEliminarIngreso(
                         icono = Icons.Default.DateRange,
-                        texto = "19/05/2026"
+                        texto = ingreso.fecha
                     )
 
                     DatoIconoPequenoEliminarIngreso(
                         icono = Icons.Default.Payment,
-                        texto = "Transferencia"
+                        texto = ingreso.metodoPago
                     )
                 }
             }
@@ -253,94 +273,12 @@ fun TarjetaResumenEliminarIngreso() {
             AssistChip(
                 onClick = { },
                 label = {
-                    Text("Pagado")
+                    Text(ingreso.categoria)
                 },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = Color(0xFFDFF3E3),
                     labelColor = Color(0xFF2E7D32)
                 )
-            )
-        }
-    }
-}
-
-@Composable
-fun TarjetaDetalleEliminarIngreso() {
-    TarjetaEliminarIngreso(
-        titulo = "Información del ingreso",
-        icono = Icons.Default.Info
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoEliminarIngreso(
-                    titulo = "Folio",
-                    valor = "FACT-0258"
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoEliminarIngreso(
-                    titulo = "Concepto",
-                    valor = "Pago por fabricación de estructura metálica"
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoEliminarIngreso(
-                    titulo = "Subtotal",
-                    valor = "$ 12,982.76"
-                )
-            }
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoEliminarIngreso(
-                    titulo = "Método de pago",
-                    valor = "Transferencia"
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoEliminarIngreso(
-                    titulo = "Forma de pago",
-                    valor = "Contado"
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoEliminarIngreso(
-                    titulo = "IVA",
-                    valor = "$ 2,077.24"
-                )
-            }
-        }
-
-        Divider(
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Total",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2E7D32),
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                text = "$ 15,080.00",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2E7D32)
             )
         }
     }
