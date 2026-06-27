@@ -16,12 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 @Composable
 fun NuevaCotizacionScreen(
-    navController: NavController
-) {
+    navController: NavController,
+    viewModel: CotizacionesViewModel
+){
     var cliente by remember { mutableStateOf("") }
     var proyecto by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("19/05/2026") }
@@ -99,7 +101,32 @@ fun NuevaCotizacionScreen(
                     navController.popBackStack()
                 },
                 onGuardarClick = {
-                    navController.popBackStack()
+                    val subtotalCalculado = 8900.0
+                    val ivaCalculado = subtotalCalculado * 0.16
+                    val totalCalculado = subtotalCalculado + ivaCalculado
+
+                    viewModel.guardarCotizacion(
+                        folio = folio,
+                        cliente = cliente,
+                        descripcionTrabajo = descripcion,
+                        subtotal = subtotalCalculado,
+                        iva = ivaCalculado,
+                        total = totalCalculado,
+                        fecha = fecha,
+                        estado = "Pendiente",
+                        detalles = listOf(
+                            DetalleCotizacionEntity(
+                                cotizacionId = 0,
+                                concepto = descripcion.ifBlank { "Trabajo cotizado" },
+                                cantidad = 1.0,
+                                precioUnitario = subtotalCalculado,
+                                importe = subtotalCalculado
+                            )
+                        ),
+                        onFinish = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
         }
@@ -695,6 +722,7 @@ fun SeccionObservacionesNuevaCotizacion(
         )
     }
 }
+
 
 @Composable
 fun BotonesNuevaCotizacion(

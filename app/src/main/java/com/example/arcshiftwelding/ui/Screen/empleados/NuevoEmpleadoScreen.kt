@@ -54,6 +54,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,8 +65,11 @@ fun NuevoEmpleadoScreen(
     onBack: () -> Unit = {},
     onGuardar: () -> Unit = {},
     onCancelar: () -> Unit = {},
-    navController: NavController
+    navController: NavController,
+    viewModel: EmpleadosViewModel
+
 ) {
+
     var nombre by remember { mutableStateOf("") }
     var puesto by remember { mutableStateOf("") }
     var estatus by remember { mutableStateOf("Activo") }
@@ -178,6 +185,18 @@ fun NuevoEmpleadoScreen(
                     navController.popBackStack()
                 },
                 onGuardarClick = {
+                    val empleado = EmpleadoEntity(
+                        nombre = nombre,
+                        telefono = telefono,
+                        correo = correo,
+                        puesto = puesto,
+                        salario = pagoSemanal.aDoubleMoneda(),
+                        fechaIngreso = fechaIngreso,
+                        activo = empleadoActivo && estatus == "Activo"
+                    )
+
+                    viewModel.insertarEmpleado(empleado)
+
                     onGuardar()
                     navController.popBackStack()
                 }

@@ -50,6 +50,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 
 data class EmpleadoUI(
     val id: Int,
@@ -60,84 +67,19 @@ data class EmpleadoUI(
     val pagoTotal: String,
     val periodoPago: String,
     val estado: String,
-    val color: Color
+    val color: Color,
+    val salario: Double
 )
 
 @Composable
 fun EmpleadosScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: EmpleadosViewModel
 ) {
+    val empleados by viewModel.empleados.collectAsState()
+
     var textoBusqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
-
-    val empleados = listOf(
-        EmpleadoUI(
-            id = 1,
-            nombre = "Jaime Lozano",
-            puesto = "Ayudante General",
-            trabajo = "Tejaban 6x4m",
-            contrato = "Contrato: 20%",
-            pagoTotal = "$980",
-            periodoPago = "Pago total",
-            estado = "Activo",
-            color = Color(0xFF2563EB)
-        ),
-        EmpleadoUI(
-            id = 2,
-            nombre = "Carlos Martínez",
-            puesto = "Soldador",
-            trabajo = "Portón 123\"x85\"",
-            contrato = "Contrato: 25%",
-            pagoTotal = "$2,730",
-            periodoPago = "Pago total",
-            estado = "Activo",
-            color = Color(0xFF16A34A)
-        ),
-        EmpleadoUI(
-            id = 3,
-            nombre = "Pedro Sánchez",
-            puesto = "Ayudante",
-            trabajo = "Estructura metálica",
-            contrato = "Contrato: 15%",
-            pagoTotal = "$645",
-            periodoPago = "Pago total",
-            estado = "Activo",
-            color = Color(0xFFF59E0B)
-        ),
-        EmpleadoUI(
-            id = 4,
-            nombre = "Miguel Torres",
-            puesto = "Soldador",
-            trabajo = "Tejaban 6x4m",
-            contrato = "Contrato: 30%",
-            pagoTotal = "$1,470",
-            periodoPago = "Pago total",
-            estado = "Activo",
-            color = Color(0xFF7C3AED)
-        ),
-        EmpleadoUI(
-            id = 5,
-            nombre = "Roberto Salas",
-            puesto = "Soldador",
-            trabajo = "Escalera metálica",
-            contrato = "Contrato: 20%",
-            pagoTotal = "$1,250",
-            periodoPago = "Pago total",
-            estado = "Inactivo",
-            color = Color(0xFF64748B)
-        ),
-        EmpleadoUI(
-            id = 6,
-            nombre = "Luis Hernández",
-            puesto = "Ayudante",
-            trabajo = "Reparación de barandal",
-            contrato = "Contrato: 10%",
-            pagoTotal = "$420",
-            periodoPago = "Pago total",
-            estado = "Activo",
-            color = Color(0xFF0EA5E9)
-        )
-    )
 
     val empleadosFiltrados = empleados.filter { empleado ->
         val coincideCategoria = when (categoriaSeleccionada) {
@@ -171,7 +113,7 @@ fun EmpleadosScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        ResumenEmpleados()
+        ResumenEmpleados(empleados = empleados)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -261,14 +203,20 @@ fun HeaderEmpleados(
 }
 
 @Composable
-fun ResumenEmpleados() {
+fun ResumenEmpleados(
+    empleados: List<EmpleadoUI>
+) {
+    val totalEmpleados = empleados.size
+    val empleadosActivos = empleados.count { it.estado == "Activo" }
+    val pagoTotal = empleados.sumOf { it.salario }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ResumenEmpleadoCard(
             titulo = "Total empleados",
-            valor = "12",
+            valor = totalEmpleados.toString(),
             subtitulo = "Registrados",
             icono = Icons.Default.Groups,
             colorIcono = Color(0xFF2563EB),
@@ -277,7 +225,7 @@ fun ResumenEmpleados() {
 
         ResumenEmpleadoCard(
             titulo = "Activos",
-            valor = "10",
+            valor = empleadosActivos.toString(),
             subtitulo = "Empleados",
             icono = Icons.Default.PersonAdd,
             colorIcono = Color(0xFF16A34A),
@@ -286,7 +234,7 @@ fun ResumenEmpleados() {
 
         ResumenEmpleadoCard(
             titulo = "Pago total",
-            valor = "$9,800",
+            valor = pagoTotal.formatoMoneda(),
             subtitulo = "Semana",
             icono = Icons.Default.AttachMoney,
             colorIcono = Color(0xFFF59E0B),
@@ -295,7 +243,7 @@ fun ResumenEmpleados() {
 
         ResumenEmpleadoCard(
             titulo = "Trabajos",
-            valor = "6",
+            valor = "0",
             subtitulo = "Activos",
             icono = Icons.Default.Work,
             colorIcono = Color(0xFF7C3AED),

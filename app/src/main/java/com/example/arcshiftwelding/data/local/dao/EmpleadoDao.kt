@@ -10,7 +10,10 @@ interface EmpleadoDao {
     @Query("SELECT * FROM empleados ORDER BY id DESC")
     fun obtenerEmpleados(): Flow<List<EmpleadoEntity>>
 
-    @Query("SELECT * FROM empleados WHERE id = :id")
+    @Query("SELECT * FROM empleados WHERE id = :id LIMIT 1")
+    fun observarEmpleadoPorId(id: Int): Flow<EmpleadoEntity?>
+
+    @Query("SELECT * FROM empleados WHERE id = :id LIMIT 1")
     suspend fun obtenerEmpleadoPorId(id: Int): EmpleadoEntity?
 
     @Insert

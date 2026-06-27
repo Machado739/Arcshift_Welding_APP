@@ -9,6 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 data class CotizacionDetalleUI(
@@ -43,29 +47,31 @@ data class CotizacionDetalleUI(
 
 @Composable
 fun DetalleCotizacionScreen(
-    navController: NavController
+    navController: NavController,
+    cotizacionId: Int,
+    viewModel: CotizacionesViewModel
 ) {
-    val cotizacion = CotizacionDetalleUI(
-        id = 25,
-        folio = "COT-00025",
-        cliente = "Constructora del Bajío S.A. de C.V.",
-        contacto = "Ing. Juan Pérez",
-        telefono = "477 123 4567",
-        correo = "jperez@bajio.com",
-        trabajo = "Pago por fabricación de estructura metálica",
-        descripcion = "Fabricación e instalación de estructura metálica para nave industrial.",
-        proyecto = "Nave Industrial",
-        registradoPor = "Administrador",
-        fecha = "19/05/2026",
-        vigencia = "02/06/2026",
-        estado = "Pendiente",
-        subtotal = "$8,900.00",
-        iva = "$1,424.00",
-        total = "$10,324.00",
-        anticipo = "$5,162.00",
-        saldo = "$5,162.00",
-        observaciones = "Los precios incluyen materiales, mano de obra y acabado final. Tiempo estimado de entrega: 15 días hábiles."
-    )
+    val cotizacion by viewModel
+        .observarCotizacion(cotizacionId)
+        .collectAsState(initial = null)
+
+    val detalles by viewModel
+        .observarDetalles(cotizacionId)
+        .collectAsState(initial = emptyList())
+
+    if (cotizacion == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Cotización no encontrada")
+        }
+        return
+    }
+
+    val cotizacionUi = cotizacion!!.toDetalleUi()
 
     LazyColumn(
         modifier = Modifier
@@ -84,56 +90,76 @@ fun DetalleCotizacionScreen(
         }
 
         item {
-            CardPrincipalDetalleCotizacion(cotizacion = cotizacion)
+            CardPrincipalDetalleCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
-            SeccionInformacionGeneralCotizacion(cotizacion = cotizacion)
+            SeccionInformacionGeneralCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
-            SeccionClienteDetalleCotizacion(cotizacion = cotizacion)
+            SeccionClienteDetalleCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
-            SeccionResumenFinancieroCotizacion(cotizacion = cotizacion)
+            SeccionResumenFinancieroCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
-            SeccionEstadoCotizacion(cotizacion = cotizacion)
+            SeccionEstadoCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
-            SeccionConceptosCotizados()
+            SeccionConceptosCotizados(detalles = detalles)
         }
 
         item {
-            SeccionArchivosCotizacion()
-        }
-
-        item {
-            SeccionObservacionesCotizacion(cotizacion = cotizacion)
-        }
-
-        item {
-            SeccionHistorialCotizacion()
+            SeccionObservacionesCotizacion(cotizacion = cotizacionUi)
         }
 
         item {
             SeccionAccionesRapidasCotizacion(
                 onEditarClick = {
-                    navController.navigate(AppRoutes.editarCotizacion(cotizacion.id))
+                    navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
                 },
                 onEliminarClick = {
-                    navController.navigate(AppRoutes.eliminarCotizacion(cotizacion.id))
+                    navController.navigate(AppRoutes.eliminarCotizacion(cotizacionId))
                 },
-                onAprobarClick = { },
-                onRechazarClick = { },
+                onAprobarClick = {
+                    viewModel.aprobarCotizacion(cotizacionId)
+                },
+                onRechazarClick = {
+                    viewModel.rechazarCotizacion(cotizacionId)
+                },
                 onGenerarPdfClick = { },
                 onConvertirIngresoClick = { }
             )
         }
     }
+}
+
+private fun CotizacionEntity.toDetalleUi(): CotizacionDetalleUI {
+    return CotizacionDetalleUI(
+        id = id,
+        folio = folio,
+        cliente = cliente,
+        contacto = "",
+        telefono = "",
+        correo = "",
+        trabajo = descripcionTrabajo,
+        descripcion = descripcionTrabajo,
+        proyecto = "",
+        registradoPor = "Administrador",
+        fecha = fecha,
+        vigencia = fecha,
+        estado = estado,
+        subtotal = subtotal.formatoMoneda(),
+        iva = iva.formatoMoneda(),
+        total = total.formatoMoneda(),
+        anticipo = (total * 0.50).formatoMoneda(),
+        saldo = (total * 0.50).formatoMoneda(),
+        observaciones = "Sin observaciones registradas."
+    )
 }
 
 @Composable
@@ -409,36 +435,24 @@ fun SeccionEstadoCotizacion(
 }
 
 @Composable
-fun SeccionConceptosCotizados() {
+fun SeccionConceptosCotizados(
+    detalles: List<DetalleCotizacionEntity>
+) {
     CardSeccionCotizacion(
         titulo = "Conceptos cotizados",
         icono = Icons.Default.FormatListBulleted
     ) {
         EncabezadoConceptoCotizacion()
 
-        ConceptoCotizacionItem(
-            concepto = "PTR 2x2 Cal. 14",
-            cantidad = "12",
-            unidad = "Pza",
-            precio = "$450.00",
-            importe = "$5,400.00"
-        )
-
-        ConceptoCotizacionItem(
-            concepto = "Soldadura",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$2,000.00",
-            importe = "$2,000.00"
-        )
-
-        ConceptoCotizacionItem(
-            concepto = "Pintura anticorrosiva",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$1,500.00",
-            importe = "$1,500.00"
-        )
+        detalles.forEach { detalle ->
+            ConceptoCotizacionItem(
+                concepto = detalle.concepto,
+                cantidad = detalle.cantidad.toString(),
+                unidad = "Pza",
+                precio = detalle.precioUnitario.formatoMoneda(),
+                importe = detalle.importe.formatoMoneda()
+            )
+        }
 
         Divider(
             modifier = Modifier.padding(vertical = 6.dp),
@@ -447,7 +461,7 @@ fun SeccionConceptosCotizados() {
 
         FilaMontoCotizacion(
             titulo = "Total",
-            valor = "$10,324.00",
+            valor = detalles.sumOf { it.importe }.formatoMoneda(),
             color = Color(0xFF16A34A),
             negrita = true
         )

@@ -30,6 +30,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,21 +54,39 @@ data class CotizacionEliminarUI(
     val conceptos: String
 )
 
+
 @Composable
 fun EliminarCotizacionScreen(
     navController: NavController,
-    cotizacionId: Int
+    cotizacionId: Int,
+    viewModel: CotizacionesViewModel
 ) {
+    val cotizacionEntity by viewModel
+        .observarCotizacion(cotizacionId)
+        .collectAsState(initial = null)
+
+    if (cotizacionEntity == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Cotización no encontrada")
+        }
+        return
+    }
+
     val cotizacion = CotizacionEliminarUI(
-        id = cotizacionId,
-        folio = "COT-00025",
-        cliente = "Constructora del Bajío S.A. de C.V.",
-        trabajo = "Fabricación de estructura metálica",
-        total = "$10,324.00",
-        estado = "Pendiente",
-        fecha = "19/05/2026",
-        vigencia = "02/06/2026",
-        conceptos = "3 conceptos cotizados"
+        id = cotizacionEntity!!.id,
+        folio = cotizacionEntity!!.folio,
+        cliente = cotizacionEntity!!.cliente,
+        trabajo = cotizacionEntity!!.descripcionTrabajo,
+        total = cotizacionEntity!!.total.formatoMoneda(),
+        estado = cotizacionEntity!!.estado,
+        fecha = cotizacionEntity!!.fecha,
+        vigencia = cotizacionEntity!!.fecha,
+        conceptos = "Conceptos relacionados"
     )
 
     LazyColumn(
@@ -107,7 +127,12 @@ fun EliminarCotizacionScreen(
                     navController.popBackStack()
                 },
                 onEliminarClick = {
-                    navController.popBackStack()
+                    viewModel.eliminarCotizacion(
+                        cotizacionId = cotizacionId,
+                        onFinish = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
         }
@@ -119,6 +144,7 @@ fun EliminarCotizacionScreen(
 fun HeaderEliminarCotizacion(
     navController: NavController
 ) {
+
     Row(
         modifier = Modifier
             .fillMaxWidth()

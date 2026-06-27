@@ -32,8 +32,9 @@ import com.example.arcshiftwelding.data.local.entity.ProductoEntity
         EmpleadoEntity::class,
         CotizacionEntity::class,
         DetalleCotizacionEntity::class
+
                ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -45,6 +46,7 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
     abstract fun clienteDao(): ClienteDao
     abstract fun empleadoDao(): EmpleadoDao
     abstract fun cotizacionDao(): CotizacionDao
+    abstract fun detalleCotizacionDao(): DetalleCotizacionDao
 
     companion object {
         @Volatile

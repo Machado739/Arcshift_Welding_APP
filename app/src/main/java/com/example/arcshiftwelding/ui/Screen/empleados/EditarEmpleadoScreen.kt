@@ -21,6 +21,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,27 +41,66 @@ fun EditarEmpleadoScreen(
     empleadoId: Int,
     onBack: () -> Unit = {},
     onGuardar: () -> Unit = {},
-    onCancelar: () -> Unit = {}
+    onCancelar: () -> Unit = {},
+    viewModel: EmpleadosViewModel
+
 ) {
-    var nombre by remember { mutableStateOf("Jaime Lozano") }
-    var puesto by remember { mutableStateOf("Ayudante General") }
+    val empleadoEntity by viewModel
+        .observarEmpleado(empleadoId)
+        .collectAsState(initial = null)
+
+    var datosCargados by remember { mutableStateOf(false) }
+
+    var nombre by remember { mutableStateOf("") }
+    var puesto by remember { mutableStateOf("") }
     var estatus by remember { mutableStateOf("Activo") }
 
-    var telefono by remember { mutableStateOf("614 123 4567") }
-    var correo by remember { mutableStateOf("jaime.lozano@gmail.com") }
-    var direccion by remember { mutableStateOf("Chihuahua, Chihuahua") }
+    var telefono by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var direccion by remember { mutableStateOf("") }
 
-    var fechaIngreso by remember { mutableStateOf("10/05/2026") }
-    var porcentajeContrato by remember { mutableStateOf("20%") }
-    var trabajoActual by remember { mutableStateOf("Tejaban 6x4m") }
-    var pagoSemanal by remember { mutableStateOf("$980") }
+    var fechaIngreso by remember { mutableStateOf("") }
+    var porcentajeContrato by remember { mutableStateOf("") }
+    var trabajoActual by remember { mutableStateOf("") }
+    var pagoSemanal by remember { mutableStateOf("") }
 
-    var notas by remember { mutableStateOf("Empleado asignado principalmente como ayudante general en trabajos de estructura y montaje.") }
+    var notas by remember { mutableStateOf("") }
 
     var empleadoActivo by remember { mutableStateOf(true) }
     var asignarTrabajos by remember { mutableStateOf(true) }
     var pagoSemanalActivo by remember { mutableStateOf(true) }
 
+    LaunchedEffect(empleadoEntity) {
+        val empleado = empleadoEntity
+
+        if (empleado != null && !datosCargados) {
+            nombre = empleado.nombre
+            puesto = empleado.puesto
+            estatus = if (empleado.activo) "Activo" else "Inactivo"
+
+            telefono = empleado.telefono
+            correo = empleado.correo
+
+            fechaIngreso = empleado.fechaIngreso
+            pagoSemanal = empleado.salario.toString()
+
+            empleadoActivo = empleado.activo
+
+            datosCargados = true
+        }
+    }
+
+    if (empleadoEntity == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Empleado no encontrado")
+        }
+        return
+    }
     Scaffold(
         topBar = {
             Row(
@@ -156,6 +197,18 @@ fun EditarEmpleadoScreen(
                     navController.popBackStack()
                 },
                 onGuardarClick = {
+                    val empleadoActualizado = empleadoEntity!!.copy(
+                        nombre = nombre,
+                        telefono = telefono,
+                        correo = correo,
+                        puesto = puesto,
+                        salario = pagoSemanal.aDoubleMoneda(),
+                        fechaIngreso = fechaIngreso,
+                        activo = empleadoActivo && estatus == "Activo"
+                    )
+
+                    viewModel.actualizarEmpleado(empleadoActualizado)
+
                     onGuardar()
                     navController.popBackStack()
                 }

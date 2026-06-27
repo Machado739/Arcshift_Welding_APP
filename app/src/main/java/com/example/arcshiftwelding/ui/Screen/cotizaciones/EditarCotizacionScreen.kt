@@ -16,27 +16,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 @Composable
 fun EditarCotizacionScreen(
     navController: NavController,
-    cotizacionId: Int
+    cotizacionId: Int,
+    viewModel: CotizacionesViewModel
 ) {
-    var cliente by remember { mutableStateOf("Constructora del Bajío S.A. de C.V.") }
-    var proyecto by remember { mutableStateOf("Nave Industrial") }
-    var fecha by remember { mutableStateOf("19/05/2026") }
-    var vigencia by remember { mutableStateOf("02/06/2026") }
-    var folio by remember { mutableStateOf("COT-00025") }
-    var descripcion by remember {
-        mutableStateOf("Fabricación e instalación de estructura metálica para nave industrial.")
-    }
+
+    val cotizacionEntity by viewModel
+        .observarCotizacion(cotizacionId)
+        .collectAsState(initial = null)
+
+    var datosCargados by remember { mutableStateOf(false) }
+
+    var cliente by remember { mutableStateOf("") }
+    var proyecto by remember { mutableStateOf("") }
+    var fecha by remember { mutableStateOf("") }
+    var vigencia by remember { mutableStateOf("") }
+    var folio by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
 
     var descuento by remember { mutableStateOf("0") }
     var iva by remember { mutableStateOf("16") }
     var anticipo by remember { mutableStateOf("50") }
-    var observaciones by remember {
-        mutableStateOf("Los precios incluyen materiales, mano de obra y acabado final. Tiempo estimado de entrega: 15 días hábiles.")
+    var observaciones by remember { mutableStateOf("") }
+
+    LaunchedEffect(cotizacionEntity) {
+        if (cotizacionEntity != null && !datosCargados) {
+            cliente = cotizacionEntity!!.cliente
+            fecha = cotizacionEntity!!.fecha
+            vigencia = cotizacionEntity!!.fecha
+            folio = cotizacionEntity!!.folio
+            descripcion = cotizacionEntity!!.descripcionTrabajo
+            iva = "16"
+            datosCargados = true
+        }
     }
 
     LazyColumn(
@@ -108,7 +126,35 @@ fun EditarCotizacionScreen(
                     navController.popBackStack()
                 },
                 onActualizarClick = {
-                    navController.popBackStack()
+                    val subtotalCalculado = cotizacionEntity?.subtotal ?: 0.0
+                    val ivaCalculado = subtotalCalculado * 0.16
+                    val totalCalculado = subtotalCalculado + ivaCalculado
+
+                    viewModel.actualizarCotizacion(
+                        cotizacion = CotizacionEntity(
+                            id = cotizacionId,
+                            folio = folio,
+                            cliente = cliente,
+                            descripcionTrabajo = descripcion,
+                            subtotal = subtotalCalculado,
+                            iva = ivaCalculado,
+                            total = totalCalculado,
+                            fecha = fecha,
+                            estado = cotizacionEntity?.estado ?: "Pendiente"
+                        ),
+                        detalles = listOf(
+                            DetalleCotizacionEntity(
+                                cotizacionId = cotizacionId,
+                                concepto = descripcion.ifBlank { "Trabajo cotizado" },
+                                cantidad = 1.0,
+                                precioUnitario = subtotalCalculado,
+                                importe = subtotalCalculado
+                            )
+                        ),
+                        onFinish = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
         }

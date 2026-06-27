@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,72 +40,12 @@ data class CotizacionUI(
 
 @Composable
 fun CotizacionesScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: CotizacionesViewModel
 ) {
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
 
-    val cotizaciones = listOf(
-        CotizacionUI(
-            id = 1,
-            cliente = "Eduardo Barrios",
-            trabajo = "Tejaban 6x4m",
-            folio = "COT-001",
-            total = "$12,000",
-            estado = "Pendientes",
-            fecha = "19/05/2026",
-            vence = "25/05/2026"
-        ),
-        CotizacionUI(
-            id = 2,
-            cliente = "Jose Vera",
-            trabajo = "Portón 123x95",
-            folio = "COT-002",
-            total = "$12,000",
-            estado = "Pendientes",
-            fecha = "18/05/2026",
-            vence = "10/06/2026"
-        ),
-        CotizacionUI(
-            id = 3,
-            cliente = "Constructora Del Norte",
-            trabajo = "Estructura metálica",
-            folio = "COT-003",
-            total = "$15,000",
-            estado = "Aceptadas",
-            fecha = "16/05/2026",
-            vence = "16/05/2026"
-        ),
-        CotizacionUI(
-            id = 4,
-            cliente = "María López",
-            trabajo = "Escalera metálica",
-            folio = "COT-004",
-            total = "$8,500",
-            estado = "Rechazadas",
-            fecha = "15/05/2026",
-            vence = "15/05/2026"
-        ),
-        CotizacionUI(
-            id = 5,
-            cliente = "Alberto Ruiz",
-            trabajo = "Reja perimetral",
-            folio = "COT-005",
-            total = "$9,000",
-            estado = "Aceptadas",
-            fecha = "14/05/2026",
-            vence = "14/05/2026"
-        ),
-        CotizacionUI(
-            id = 6,
-            cliente = "Cliente General",
-            trabajo = "Barandal para escalera",
-            folio = "COT-006",
-            total = "$4,200",
-            estado = "Pendientes",
-            fecha = "12/05/2026",
-            vence = "19/05/2026"
-        )
-    )
+    val cotizaciones by viewModel.cotizaciones.collectAsState()
 
     val cotizacionesFiltradas = cotizaciones.filter { cotizacion ->
         categoriaSeleccionada == "Todos" || cotizacion.estado == categoriaSeleccionada
@@ -125,7 +66,9 @@ fun CotizacionesScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        ResumenCotizaciones()
+        ResumenCotizaciones(
+            cotizaciones = cotizaciones
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -213,7 +156,14 @@ fun HeaderCotizaciones(
 }
 
 @Composable
-fun ResumenCotizaciones() {
+fun ResumenCotizaciones(
+    cotizaciones: List<CotizacionUI>
+) {
+    val total = cotizaciones.size
+    val pendientes = cotizaciones.count { it.estado == "Pendiente" }
+    val aprobadas = cotizaciones.count { it.estado == "Aprobada" }
+    val rechazadas = cotizaciones.count { it.estado == "Rechazada" }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(7.dp)
@@ -221,8 +171,8 @@ fun ResumenCotizaciones() {
         CardResumenCotizacion(
             modifier = Modifier.weight(1f),
             titulo = "Total cotizaciones",
-            monto = "15",
-            subtitulo = "Este mes",
+            monto = total.toString(),
+            subtitulo = "Registradas",
             icono = Icons.Default.Description,
             color = Color(0xFF2563EB),
             fondo = Color(0xFFEFF6FF)
@@ -231,8 +181,8 @@ fun ResumenCotizaciones() {
         CardResumenCotizacion(
             modifier = Modifier.weight(1f),
             titulo = "Pendientes",
-            monto = "7",
-            subtitulo = "Este mes",
+            monto = pendientes.toString(),
+            subtitulo = "Activas",
             icono = Icons.Default.Schedule,
             color = Color(0xFFF59E0B),
             fondo = Color(0xFFFFFBEB)
@@ -240,9 +190,9 @@ fun ResumenCotizaciones() {
 
         CardResumenCotizacion(
             modifier = Modifier.weight(1f),
-            titulo = "Aceptadas",
-            monto = "5",
-            subtitulo = "Este mes",
+            titulo = "Aprobadas",
+            monto = aprobadas.toString(),
+            subtitulo = "Aceptadas",
             icono = Icons.Default.CheckCircle,
             color = Color(0xFF16A34A),
             fondo = Color(0xFFF0FDF4)
@@ -251,8 +201,8 @@ fun ResumenCotizaciones() {
         CardResumenCotizacion(
             modifier = Modifier.weight(1f),
             titulo = "Rechazadas",
-            monto = "3",
-            subtitulo = "Este mes",
+            monto = rechazadas.toString(),
+            subtitulo = "No aceptadas",
             icono = Icons.Default.Cancel,
             color = Color(0xFFDC2626),
             fondo = Color(0xFFFEF2F2)
@@ -385,10 +335,9 @@ fun FiltrosCategoriaCotizaciones(
 ) {
     val categorias = listOf(
         "Todos",
-        "Pendientes",
-        "Aceptadas",
-        "Rechazadas",
-        "Más"
+        "Pendiente",
+        "Aprobada",
+        "Rechazada"
     )
 
     LazyRow(
@@ -599,23 +548,23 @@ fun IconoEstadoCotizacion(
     estado: String
 ) {
     val icono = when (estado) {
-        "Pendientes" -> Icons.Default.Schedule
-        "Aceptadas" -> Icons.Default.CheckCircle
-        "Rechazadas" -> Icons.Default.Cancel
+        "Pendiente" -> Icons.Default.Schedule
+        "Aprobada" -> Icons.Default.CheckCircle
+        "Rechazada" -> Icons.Default.Cancel
         else -> Icons.Default.Description
     }
 
     val color = when (estado) {
-        "Pendientes" -> Color(0xFFF59E0B)
-        "Aceptadas" -> Color(0xFF16A34A)
-        "Rechazadas" -> Color(0xFFDC2626)
+        "Pendiente" -> Color(0xFFF59E0B)
+        "Aprobada" -> Color(0xFF16A34A)
+        "Rechazada" -> Color(0xFFDC2626)
         else -> Color(0xFF2563EB)
     }
 
     val fondo = when (estado) {
-        "Pendientes" -> Color(0xFFFEF3C7)
-        "Aceptadas" -> Color(0xFFDCFCE7)
-        "Rechazadas" -> Color(0xFFFEE2E2)
+        "Pendiente" -> Color(0xFFFEF3C7)
+        "Aprobada" -> Color(0xFFDCFCE7)
+        "Rechazada" -> Color(0xFFFEE2E2)
         else -> Color(0xFFEFF6FF)
     }
 
@@ -665,18 +614,18 @@ fun DatosCotizacion(
 
 fun ColorEstadoCotizacion(estado: String): Color {
     return when (estado) {
-        "Pendientes" -> Color(0xFFF59E0B)
-        "Aceptadas" -> Color(0xFF16A34A)
-        "Rechazadas" -> Color(0xFFDC2626)
+        "Pendiente" -> Color(0xFFF59E0B)
+        "Aprobada" -> Color(0xFF16A34A)
+        "Rechazada" -> Color(0xFFDC2626)
         else -> Color(0xFF2563EB)
     }
 }
 
 fun FondoEstadoCotizacion(estado: String): Color {
     return when (estado) {
-        "Pendientes" -> Color(0xFFFFF7E6)
-        "Aceptadas" -> Color(0xFFEAF7EE)
-        "Rechazadas" -> Color(0xFFFFEEEE)
+        "Pendiente" -> Color(0xFFFFF7E6)
+        "Aprobada" -> Color(0xFFEAF7EE)
+        "Rechazada" -> Color(0xFFFFEEEE)
         else -> Color(0xFFEFF6FF)
     }
 }

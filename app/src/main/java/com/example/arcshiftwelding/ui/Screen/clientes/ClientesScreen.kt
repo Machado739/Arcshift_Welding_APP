@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
@@ -313,24 +314,30 @@ fun BuscadorClientes(
                     contentDescription = null
                 )
             },
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.weight(1f)
+                .height(48.dp),
+            shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
 
         OutlinedButton(
             onClick = { },
-            modifier = Modifier.height(56.dp),
-            shape = RoundedCornerShape(8.dp)
+            modifier = Modifier.height(48.dp),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.FilterList,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
             )
 
             Spacer(modifier = Modifier.width(4.dp))
 
-            Text("Filtros")
+            Text(
+                text = "Filtros",
+                fontSize = 12.sp
+            )
         }
     }
 }

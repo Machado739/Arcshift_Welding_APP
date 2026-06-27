@@ -47,15 +47,21 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 data class EmpleadoDetalleUI(
@@ -83,45 +89,30 @@ data class TrabajoAsignadoEmpleadoUI(
 @Composable
 fun DetalleEmpleadoScreen(
     navController: NavController,
-    empleadoId: Int
+    empleadoId: Int,
+    viewModel: EmpleadosViewModel
 ) {
-    val empleado = EmpleadoDetalleUI(
-        id = empleadoId,
-        nombre = "Jaime Lozano",
-        puesto = "Ayudante General",
-        telefono = "614 123 4567",
-        fechaIngreso = "10/05/2026",
-        correo = "jaime.lozano@gmail.com",
-        direccion = "Chihuahua, Chihuahua",
-        porcentajeContrato = "20%",
-        trabajoActual = "Tejaban 6x4m",
-        pagoTotalSemana = "$980",
-        estado = "Activo"
-    )
 
-    val trabajosAsignados = listOf(
-        TrabajoAsignadoEmpleadoUI(
-            id = 1,
-            nombreTrabajo = "Tejaban 6x4m",
-            inicio = "Inicio: 19/05/2026",
-            estado = "En proceso",
-            pagoTotal = "$980"
-        ),
-        TrabajoAsignadoEmpleadoUI(
-            id = 2,
-            nombreTrabajo = "Portón 123\"x85\"",
-            inicio = "Inicio: 15/05/2026",
-            estado = "Terminado",
-            pagoTotal = "$2,730"
-        ),
-        TrabajoAsignadoEmpleadoUI(
-            id = 3,
-            nombreTrabajo = "Estructura metálica",
-            inicio = "Inicio: 12/05/2026",
-            estado = "Terminado",
-            pagoTotal = "$645"
-        )
-    )
+
+    val empleadoEntity by viewModel
+        .observarEmpleado(empleadoId)
+        .collectAsState(initial = null)
+
+    if (empleadoEntity == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Empleado no encontrado")
+        }
+        return
+    }
+
+    val empleado = empleadoEntity!!.toDetalleUi()
+
+    val trabajosAsignados = emptyList<TrabajoAsignadoEmpleadoUI>()
 
     Scaffold(
         topBar = {

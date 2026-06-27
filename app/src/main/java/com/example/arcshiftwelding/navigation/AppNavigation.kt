@@ -62,6 +62,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModel
+import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModelFactory
+import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModel
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 
@@ -85,6 +89,19 @@ fun AppNavigation() {
     val ingresosViewModel: IngresosViewModel = viewModel(
         factory = IngresosViewModelFactory(
             database.ingresoDao()
+        )
+    )
+
+    val cotizacionesViewModel: CotizacionesViewModel = viewModel(
+        factory = CotizacionesViewModelFactory(
+            cotizacionDao = database.cotizacionDao(),
+            detalleCotizacionDao = database.detalleCotizacionDao()
+        )
+    )
+
+    val empleadosViewModel: EmpleadosViewModel = viewModel(
+        factory = EmpleadosViewModelFactory(
+            empleadoDao = database.empleadoDao()
         )
     )
 
@@ -383,57 +400,55 @@ fun AppNavigation() {
 ///                 COTIZACIONES
 
             composable(AppRoutes.COTIZACIONES) {
-                CotizacionesScreen(navController = navController)
+                CotizacionesScreen(
+                    navController = navController,
+                    viewModel = cotizacionesViewModel
+                )
             }
 
             composable(AppRoutes.NUEVA_COTIZACION) {
-               NuevaCotizacionScreen(navController = navController)
+                NuevaCotizacionScreen(
+                    navController = navController,
+                    viewModel = cotizacionesViewModel
+                )
             }
 
-            composable(
-                route = AppRoutes.DETALLE_COTIZACION,
-                arguments = listOf(
-                    navArgument("cotizacionId") {
-                        type = NavType.IntType
-                    }
+            composable("${AppRoutes.DETALLE_COTIZACION}/{cotizacionId}") { backStackEntry ->
+                val cotizacionId = backStackEntry.arguments
+                    ?.getString("cotizacionId")
+                    ?.toIntOrNull() ?: 0
+
+                DetalleCotizacionScreen(
+                    navController = navController,
+                    cotizacionId = cotizacionId,
+                    viewModel = cotizacionesViewModel
                 )
-            ) {
-                DetalleCotizacionScreen(navController = navController)
             }
 
-            composable(
-                route = AppRoutes.EDITAR_COTIZACION,
-                arguments = listOf(
-                    navArgument("cotizacionId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) { backStackEntry ->
-
-                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
+            composable("${AppRoutes.EDITAR_COTIZACION}/{cotizacionId}") { backStackEntry ->
+                val cotizacionId = backStackEntry.arguments
+                    ?.getString("cotizacionId")
+                    ?.toIntOrNull() ?: 0
 
                 EditarCotizacionScreen(
                     navController = navController,
-                    cotizacionId = cotizacionId
+                    cotizacionId = cotizacionId,
+                    viewModel = cotizacionesViewModel
                 )
             }
 
-            composable(
-                route = AppRoutes.ELIMINAR_COTIZACION,
-                arguments = listOf(
-                    navArgument("cotizacionId") {
-                        type = NavType.IntType
-                    }
-                )
-            ) { backStackEntry ->
-
-                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
+            composable("${AppRoutes.ELIMINAR_COTIZACION}/{cotizacionId}") { backStackEntry ->
+                val cotizacionId = backStackEntry.arguments
+                    ?.getString("cotizacionId")
+                    ?.toIntOrNull() ?: 0
 
                 EliminarCotizacionScreen(
                     navController = navController,
-                    cotizacionId = cotizacionId
+                    cotizacionId = cotizacionId,
+                    viewModel = cotizacionesViewModel
                 )
             }
+
 ///                 CLIENTES
 ///                 CLIENTES
 ///                 CLIENTES
@@ -514,12 +529,20 @@ fun AppNavigation() {
 ///                     EMPLEADOS
 ///                     EMPLEADOS
 
-            composable(AppRoutes.EMPLEADOS) {
-                EmpleadosScreen(navController)
+            // EMPLEADOS
+
+            composable(route = AppRoutes.EMPLEADOS) {
+                EmpleadosScreen(
+                    navController = navController,
+                    viewModel = empleadosViewModel
+                )
             }
 
-            composable(AppRoutes.NUEVO_EMPLEADO ) {
-                NuevoEmpleadoScreen(navController = navController)
+            composable(route = AppRoutes.NUEVO_EMPLEADO) {
+                NuevoEmpleadoScreen(
+                    navController = navController,
+                    viewModel = empleadosViewModel
+                )
             }
 
             composable(
@@ -534,7 +557,8 @@ fun AppNavigation() {
 
                 DetalleEmpleadoScreen(
                     navController = navController,
-                    empleadoId = empleadoId
+                    empleadoId = empleadoId,
+                    viewModel = empleadosViewModel
                 )
             }
 
@@ -550,21 +574,28 @@ fun AppNavigation() {
 
                 EditarEmpleadoScreen(
                     navController = navController,
-                    empleadoId = empleadoId
+                    empleadoId = empleadoId,
+                    viewModel = empleadosViewModel
                 )
             }
 
             composable(
                 route = AppRoutes.ELIMINAR_EMPLEADO,
-                arguments = listOf(navArgument("empleadoId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val empleadoId = backStackEntry.arguments?.getInt("empleadoId") ?: 0
+                arguments = listOf(
+                    navArgument("empleadoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) {
+                val empleadoId = it.arguments?.getInt("empleadoId") ?: 0
 
                 EliminarEmpleadoScreen(
                     navController = navController,
-                    empleadoId = empleadoId
+                    empleadoId = empleadoId,
+                    viewModel = empleadosViewModel
                 )
             }
+
 ///                     REPORTES
 ///                     REPORTES
 ///                     REPORTES

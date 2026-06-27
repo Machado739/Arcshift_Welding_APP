@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
@@ -328,9 +329,11 @@ fun BarraBusquedaFiltros(
                 Text("Buscar gasto...")
             },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
+                Icon(Icons.Default.Search,
+                    contentDescription = null)
             },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
+                .height(48.dp),
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
@@ -338,11 +341,20 @@ fun BarraBusquedaFiltros(
         OutlinedButton(
             onClick = { },
             shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.height(56.dp)
+            modifier = Modifier.height(48.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp)
+
         ) {
-            Icon(Icons.Default.FilterList, contentDescription = null)
+            Icon(Icons.Default.FilterList,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Filtros")
+
+            Text(
+                text = "Filtros",
+                fontSize = 12.sp
+            )
         }
     }
 }

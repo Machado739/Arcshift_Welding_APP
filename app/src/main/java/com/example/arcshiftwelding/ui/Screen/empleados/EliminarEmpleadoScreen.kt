@@ -26,6 +26,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,17 +46,26 @@ fun EliminarEmpleadoScreen(
     empleadoId: Int,
     onBack: () -> Unit = {},
     onCancelar: () -> Unit = {},
-    onEliminar: () -> Unit = {}
+    onEliminar: () -> Unit = {},
+    viewModel: EmpleadosViewModel
 ) {
-    val empleado = EmpleadoEliminarUI(
-        id = empleadoId,
-        nombre = "Jaime Lozano",
-        puesto = "Ayudante General",
-        estado = "Activo",
-        trabajoActual = "Tejaban 6x4m",
-        contrato = "20%",
-        pagoTotal = "$980"
-    )
+    val empleadoEntity by viewModel
+        .observarEmpleado(empleadoId)
+        .collectAsState(initial = null)
+
+    if (empleadoEntity == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Empleado no encontrado")
+        }
+        return
+    }
+
+    val empleado = empleadoEntity!!.toEliminarUi()
 
     Scaffold(
         topBar = {
@@ -118,6 +129,8 @@ fun EliminarEmpleadoScreen(
                     navController.popBackStack()
                 },
                 onEliminarClick = {
+                    viewModel.eliminarEmpleado(empleadoEntity!!)
+
                     onEliminar()
 
                     navController.navigate(AppRoutes.EMPLEADOS) {

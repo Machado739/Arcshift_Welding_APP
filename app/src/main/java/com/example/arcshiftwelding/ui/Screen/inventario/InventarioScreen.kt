@@ -56,6 +56,7 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
@@ -128,39 +129,6 @@ fun InventarioScreen(
     //
     var busqueda by remember { mutableStateOf("") }
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
-
-/*
-    val productos = listOf(
-        ProductoUI(1, "PRT 2\"x2\" Cal. 14", "Materiales", "MAT-001", "Almacén A", 10, "Piezas"),
-        ProductoUI(2, "Soldadura 6013 1/8", "Consumibles", "CON-001", "Almacén B", 25, "Cajas"),
-        ProductoUI(3, "Disco de corte 4 1/2", "Herramientas", "HER-001", "Almacén A", 0, "Piezas"),
-        ProductoUI(4, "Guantes de carnaza", "Seguridad", "SEG-001", "Almacén C", 4, "Pares"),
-
-        ProductoUI(5, "PTR 1 1/2\"x1 1/2\" Cal. 14", "Materiales", "MAT-002", "Almacén A", 18, "Piezas"),
-        ProductoUI(6, "Ángulo 1 1/2\" x 1/8", "Materiales", "MAT-003", "Almacén A", 12, "Piezas"),
-        ProductoUI(7, "Solera 1\" x 1/8", "Materiales", "MAT-004", "Almacén A", 20, "Piezas"),
-        ProductoUI(8, "Lámina negra Cal. 14", "Materiales", "MAT-005", "Almacén A", 6, "Hojas"),
-        ProductoUI(9, "Tubo redondo 1\"", "Materiales", "MAT-006", "Almacén A", 15, "Piezas"),
-
-        ProductoUI(10, "Soldadura 7018 1/8", "Consumibles", "CON-002", "Almacén B", 14, "Cajas"),
-        ProductoUI(11, "Soldadura 6011 1/8", "Consumibles", "CON-003", "Almacén B", 8, "Cajas"),
-        ProductoUI(12, "Microalambre ER70S-6", "Consumibles", "CON-004", "Almacén B", 5, "Rollos"),
-        ProductoUI(13, "Gas CO2 para soldar", "Consumibles", "CON-005", "Almacén B", 3, "Cilindros"),
-        ProductoUI(14, "Punta de contacto MIG 0.035", "Consumibles", "CON-006", "Almacén B", 30, "Piezas"),
-
-        ProductoUI(15, "Disco flap 4 1/2", "Herramientas", "HER-002", "Almacén A", 16, "Piezas"),
-        ProductoUI(16, "Disco desbaste 7\"", "Herramientas", "HER-003", "Almacén A", 9, "Piezas"),
-        ProductoUI(17, "Broca para metal 1/4", "Herramientas", "HER-004", "Almacén C", 22, "Piezas"),
-        ProductoUI(18, "Prensa tipo C 6\"", "Herramientas", "HER-005", "Almacén C", 7, "Piezas"),
-        ProductoUI(19, "Escuadra magnética", "Herramientas", "HER-006", "Almacén C", 11, "Piezas"),
-
-        ProductoUI(20, "Careta electrónica para soldar", "Seguridad", "SEG-002", "Almacén C", 3, "Piezas"),
-        ProductoUI(21, "Lentes de seguridad claros", "Seguridad", "SEG-003", "Almacén C", 18, "Piezas"),
-        ProductoUI(22, "Mandil de carnaza", "Seguridad", "SEG-004", "Almacén C", 5, "Piezas"),
-        ProductoUI(23, "Mangas de carnaza", "Seguridad", "SEG-005", "Almacén C", 6, "Pares"),
-        ProductoUI(24, "Botas de seguridad", "Seguridad", "SEG-006", "Almacén C", 2, "Pares")
-    )
-*/
 
     val productosFiltrados = productos.filter { producto ->
         val coincideBusqueda =
@@ -425,9 +393,11 @@ fun BarraBusquedaFiltrosInventario(
                 Text("Buscar producto...")
             },
             leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
+                Icon(Icons.Default.Search,
+                    contentDescription = null)
             },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
+                .height(48.dp),
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
@@ -435,11 +405,20 @@ fun BarraBusquedaFiltrosInventario(
         OutlinedButton(
             onClick = { },
             shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.height(56.dp)
+            modifier = Modifier.height(48.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp)
         ) {
-            Icon(Icons.Default.FilterList, contentDescription = null)
+            Icon(Icons.Default.FilterList
+                , contentDescription = null
+            ,modifier = Modifier.size(16.dp)
+            )
+
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Filtros")
+
+            Text(
+                text = "Filtros",
+                fontSize = 12.sp
+            )
         }
     }
 }

@@ -13,5 +13,9 @@ data class EmpleadoEntity(
     val puesto: String,
     val salario: Double,
     val fechaIngreso: String,
-    val activo: Boolean = true
+    val activo: Boolean = true,
+    val direccion: String = "",
+    val porcentajeContrato: String = "",
+    val trabajoActual: String = "",
+    val notas: String = ""
 )
