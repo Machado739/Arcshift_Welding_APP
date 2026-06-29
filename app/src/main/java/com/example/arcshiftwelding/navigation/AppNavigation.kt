@@ -95,7 +95,8 @@ fun AppNavigation() {
     val cotizacionesViewModel: CotizacionesViewModel = viewModel(
         factory = CotizacionesViewModelFactory(
             cotizacionDao = database.cotizacionDao(),
-            detalleCotizacionDao = database.detalleCotizacionDao()
+            detalleCotizacionDao = database.detalleCotizacionDao(),
+            clienteDao = database.clienteDao()
         )
     )
 

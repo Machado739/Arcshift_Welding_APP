@@ -57,169 +57,158 @@ fun EditarCotizacionScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                end = 8.dp,
-                bottom = 8.dp
-            ),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            HeaderEditarCotizacion(navController = navController)
-        }
-
-        item {
-            CardAvisoEditarCotizacion()
-        }
-
-        item {
-            SeccionInformacionGeneralEditarCotizacion(
-                cliente = cliente,
-                onClienteChange = { cliente = it },
-                proyecto = proyecto,
-                onProyectoChange = { proyecto = it },
-                fecha = fecha,
-                onFechaChange = { fecha = it },
-                vigencia = vigencia,
-                onVigenciaChange = { vigencia = it },
-                folio = folio,
-                onFolioChange = { folio = it },
-                descripcion = descripcion,
-                onDescripcionChange = { descripcion = it }
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
             )
-        }
-
-        item {
-            SeccionConceptosEditarCotizacion()
-        }
-
-        item {
-            SeccionResumenEditarCotizacion(
-                descuento = descuento,
-                onDescuentoChange = { descuento = it },
-                iva = iva,
-                onIvaChange = { iva = it },
-                anticipo = anticipo,
-                onAnticipoChange = { anticipo = it }
-            )
-        }
-
-        item {
-            SeccionArchivosEditarCotizacion()
-        }
-
-        item {
-            SeccionObservacionesEditarCotizacion(
-                observaciones = observaciones,
-                onObservacionesChange = { observaciones = it }
-            )
-        }
-
-        item {
-            BotonesEditarCotizacion(
-                onCancelarClick = {
-                    navController.popBackStack()
-                },
-                onActualizarClick = {
-                    val subtotalCalculado = cotizacionEntity?.subtotal ?: 0.0
-                    val ivaCalculado = subtotalCalculado * 0.16
-                    val totalCalculado = subtotalCalculado + ivaCalculado
-
-                    viewModel.actualizarCotizacion(
-                        cotizacion = CotizacionEntity(
-                            id = cotizacionId,
-                            folio = folio,
-                            cliente = cliente,
-                            descripcionTrabajo = descripcion,
-                            subtotal = subtotalCalculado,
-                            iva = ivaCalculado,
-                            total = totalCalculado,
-                            fecha = fecha,
-                            estado = cotizacionEntity?.estado ?: "Pendiente"
-                        ),
-                        detalles = listOf(
-                            DetalleCotizacionEntity(
-                                cotizacionId = cotizacionId,
-                                concepto = descripcion.ifBlank { "Trabajo cotizado" },
-                                cantidad = 1.0,
-                                precioUnitario = subtotalCalculado,
-                                importe = subtotalCalculado
-                            )
-                        ),
-                        onFinish = {
-                            navController.popBackStack()
-                        }
+            {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
                 }
-            )
-        }
-    }
-}
 
-@Composable
-fun HeaderEditarCotizacion(
-    navController: NavController
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = {
-                navController.popBackStack()
+                Text(
+                    text = "Editar Cotización",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
             }
+        },
+        contentWindowInsets = WindowInsets(0),
+        containerColor = Color(0xFFF5F5F5)
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC))
+                .padding(paddingValues)
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
+                ),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar"
-            )
-        }
 
-        Text(
-            text = "Editar Cotización",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
+            item {
+                CardAvisoEditarCotizacion()
+            }
 
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
+            item {
+                SeccionInformacionGeneralEditarCotizacion(
+                    cliente = cliente,
+                    onClienteChange = { cliente = it },
+                    proyecto = proyecto,
+                    onProyectoChange = { proyecto = it },
+                    fecha = fecha,
+                    onFechaChange = { fecha = it },
+                    vigencia = vigencia,
+                    onVigenciaChange = { vigencia = it },
+                    folio = folio,
+                    onFolioChange = { folio = it },
+                    descripcion = descripcion,
+                    onDescripcionChange = { descripcion = it }
+                )
+            }
 
-        TextButton(
-            onClick = {
-                navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(0) {
-                        inclusive = true
+            item {
+                SeccionConceptosEditarCotizacion()
+            }
+
+            item {
+                SeccionResumenEditarCotizacion(
+                    descuento = descuento,
+                    onDescuentoChange = { descuento = it },
+                    iva = iva,
+                    onIvaChange = { iva = it },
+                    anticipo = anticipo,
+                    onAnticipoChange = { anticipo = it }
+                )
+            }
+
+            item {
+                SeccionArchivosEditarCotizacion()
+            }
+
+            item {
+                SeccionObservacionesEditarCotizacion(
+                    observaciones = observaciones,
+                    onObservacionesChange = { observaciones = it }
+                )
+            }
+
+            item {
+                BotonesEditarCotizacion(
+                    onCancelarClick = {
+                        navController.popBackStack()
+                    },
+                    onActualizarClick = {
+                        val subtotalCalculado = cotizacionEntity?.subtotal ?: 0.0
+                        val ivaCalculado = subtotalCalculado * 0.16
+                        val totalCalculado = subtotalCalculado + ivaCalculado
+
+                        viewModel.actualizarCotizacion(
+                            cotizacion = CotizacionEntity(
+                                id = cotizacionId,
+                                folio = folio,
+                                cliente = cliente,
+                                descripcionTrabajo = descripcion,
+                                subtotal = subtotalCalculado,
+                                iva = ivaCalculado,
+                                total = totalCalculado,
+                                fecha = fecha,
+                                estado = cotizacionEntity?.estado ?: "Pendiente"
+                            ),
+                            detalles = listOf(
+                                DetalleCotizacionEntity(
+                                    cotizacionId = cotizacionId,
+                                    concepto = descripcion.ifBlank { "Trabajo cotizado" },
+                                    cantidad = 1.0,
+                                    precioUnitario = subtotalCalculado,
+                                    importe = subtotalCalculado
+                                )
+                            ),
+                            onFinish = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
-                    launchSingleTop = true
-                }
+                )
             }
-        ) {
-            Text(
-                text = "Log\nOut",
-                fontSize = 9.sp,
-                lineHeight = 10.sp
-            )
         }
     }
 }
+
 
 @Composable
 fun CardAvisoEditarCotizacion() {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .padding(
+                start = 0.dp,
+                top = 5.dp,
+                end = 0.dp,
+                bottom = 0.dp
+            ),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFFFFBEB)

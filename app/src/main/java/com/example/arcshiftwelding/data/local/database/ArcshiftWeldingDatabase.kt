@@ -12,26 +12,34 @@ import com.example.arcshiftwelding.data.local.dao.GastoDao
 import com.example.arcshiftwelding.data.local.dao.IngresoDao
 import com.example.arcshiftwelding.data.local.dao.MovimientoInventarioDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
+import com.example.arcshiftwelding.data.local.entity.CategoriaProductoEntity
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
+import com.example.arcshiftwelding.data.local.entity.EmpresaEntity
 import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
 import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
+import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
 
 
 @Database(
     entities = [
-        ProductoEntity::class,
-        MovimientoInventarioEntity::class,
+        ClienteEntity::class,
+        CotizacionEntity::class,
+        DetalleCotizacionEntity::class,
         GastoEntity::class,
         IngresoEntity::class,
-        ClienteEntity::class,
+        MovimientoInventarioEntity::class,
+        ProductoEntity::class,
+        CategoriaProductoEntity::class,
         EmpleadoEntity::class,
-        CotizacionEntity::class,
-        DetalleCotizacionEntity::class
+        EmpresaEntity::class,
+        ProyectoEntity::class,
+        UsuarioEntity::class
 
                ],
     version = 9,

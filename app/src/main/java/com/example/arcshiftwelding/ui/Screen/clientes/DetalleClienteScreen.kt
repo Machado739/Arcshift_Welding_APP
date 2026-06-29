@@ -35,6 +35,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlin.collections.emptyList
+import androidx.room.Transaction
+import com.example.arcshiftwelding.data.local.relation.ClienteConCotizaciones
+import kotlinx.coroutines.flow.Flow
 
 data class ClienteDetalleUI(
     val id: Int,
@@ -59,6 +63,7 @@ data class ClienteDetalleUI(
 )
 
 data class CotizacionClienteUI(
+    val id: Int,
     val folio: String,
     val descripcion: String,
     val fecha: String,
@@ -72,11 +77,19 @@ fun DetalleClienteScreen(
     clienteId: Int,
     viewModel: ClientesViewModel
 ) {
+
+
     val clienteFlow = remember(clienteId) {
         viewModel.obtenerClienteDetalle(clienteId)
     }
 
     val cliente by clienteFlow.collectAsState()
+
+    val clienteConCotizacionesFlow = remember(clienteId) {
+        viewModel.obtenerClienteConCotizaciones(clienteId)
+    }
+
+    val clienteConCotizaciones by clienteConCotizacionesFlow.collectAsState(initial = null)
 
     if (cliente == null) {
         Box(
@@ -90,7 +103,27 @@ fun DetalleClienteScreen(
         return
     }
 
-    val clienteActual = cliente!!
+    val cotizacionesCliente = clienteConCotizaciones
+        ?.cotizaciones
+        ?.map { cotizacion ->
+            CotizacionClienteUI(
+                id = cotizacion.id,
+                folio = cotizacion.folio,
+                descripcion = cotizacion.descripcionTrabajo,
+                fecha = cotizacion.fecha,
+                estado = cotizacion.estado,
+                monto = cotizacion.total
+            )
+        }
+        ?: emptyList()
+
+    val clienteActual = cliente!!.copy(
+        totalCotizaciones = cotizacionesCliente.size,
+        totalFacturado = cotizacionesCliente.sumOf { it.monto }
+    )
+
+
+
 
 
     Scaffold(
@@ -159,6 +192,16 @@ fun DetalleClienteScreen(
 
             SeccionHistorialCliente(cliente = clienteActual)
 
+            SeccionCotizacionesCliente(
+                cotizaciones = cotizacionesCliente,
+                onVerTodoClick = {
+                    navController.navigate(AppRoutes.COTIZACIONES)
+                },
+                onCotizacionClick = { cotizacion ->
+                    navController.navigate(AppRoutes.detalleCotizacion(cotizacion.id))
+                }
+            )
+
             SeccionNotasCliente(cliente = clienteActual)
 
             SeccionAccionesRapidasCliente(
@@ -167,7 +210,9 @@ fun DetalleClienteScreen(
                 },
                 onWhatsappClick = { },
                 onLlamarClick = { },
-                onNuevaCotizacionClick = { },
+                onNuevaCotizacionClick = {
+                    navController.navigate(AppRoutes.NUEVA_COTIZACION)
+                },
                 onEliminarClick = {
                     navController.navigate(AppRoutes.eliminarCliente(clienteActual.id))
                 }
@@ -537,6 +582,9 @@ fun SeccionHistorialCliente(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+
+
+
                 CardResumenActividad(
                     titulo = "Cotizaciones",
                     valor = cliente.totalCotizaciones.toString(),
@@ -732,8 +780,6 @@ fun ItemCotizacionCliente(
         )
     }
 }
-
-
 
 @Composable
 fun BadgeCotizacionEstado(

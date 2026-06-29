@@ -3,8 +3,10 @@ package com.example.arcshiftwelding.ui.Screen.cotizaciones
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -13,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -73,51 +76,77 @@ fun DetalleCotizacionScreen(
 
     val cotizacionUi = cotizacion!!.toDetalleUi()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                end = 8.dp,
-                bottom = 8.dp
-            ),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            HeaderDetalleCotizacion(navController = navController)
-        }
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
+                }
 
-        item {
+                Text(
+                    text = "Detalle de Cotización",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = {
+                        navController.navigate(AppRoutes.editarCotizacion(cotizacionId))                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar cotizacion"
+                    )
+                }
+
+            }
+        },
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
+
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
             CardPrincipalDetalleCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionInformacionGeneralCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionClienteDetalleCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionResumenFinancieroCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionEstadoCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionConceptosCotizados(detalles = detalles)
-        }
 
-        item {
             SeccionObservacionesCotizacion(cotizacion = cotizacionUi)
-        }
 
-        item {
             SeccionAccionesRapidasCotizacion(
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
@@ -134,6 +163,7 @@ fun DetalleCotizacionScreen(
                 onGenerarPdfClick = { },
                 onConvertirIngresoClick = { }
             )
+
         }
     }
 }
@@ -173,47 +203,7 @@ fun HeaderDetalleCotizacion(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = {
-                navController.popBackStack()
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar"
-            )
-        }
 
-        Text(
-            text = "Detalle de Cotización",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
-
-        TextButton(
-            onClick = {
-                navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
-                    launchSingleTop = true
-                }
-            }
-        ) {
-            Text(
-                text = "Log\nOut",
-                fontSize = 9.sp,
-                lineHeight = 10.sp
-            )
-        }
     }
 }
 

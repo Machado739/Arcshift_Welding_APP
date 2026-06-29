@@ -3,10 +3,13 @@ package com.example.arcshiftwelding.ui.Screen.cotizaciones
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.DetalleCotizacionDao
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
+import com.example.arcshiftwelding.data.local.relation.CotizacionConCliente
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +21,15 @@ import java.util.Locale
 
 class CotizacionesViewModel(
     private val cotizacionDao: CotizacionDao,
-    private val detalleCotizacionDao: DetalleCotizacionDao
+    private val detalleCotizacionDao: DetalleCotizacionDao,
+    private val clienteDao: ClienteDao
 ) : ViewModel() {
 
+    val clientesActivos: Flow<List<ClienteEntity>> =
+        clienteDao.obtenerClientesActivos()
+
     val cotizaciones: StateFlow<List<CotizacionUI>> =
-        cotizacionDao.obtenerCotizaciones()
+        cotizacionDao.obtenerCotizacionesConCliente()
             .map { lista ->
                 lista.map { it.toUi() }
             }
@@ -42,7 +49,7 @@ class CotizacionesViewModel(
 
     fun guardarCotizacion(
         folio: String,
-        cliente: String,
+        clienteId: Int,
         descripcionTrabajo: String,
         subtotal: Double,
         iva: Double,
@@ -56,7 +63,7 @@ class CotizacionesViewModel(
             val cotizacionId = cotizacionDao.insertarCotizacion(
                 CotizacionEntity(
                     folio = folio,
-                    cliente = cliente,
+                    clienteId = clienteId,
                     descripcionTrabajo = descripcionTrabajo,
                     subtotal = subtotal,
                     iva = iva,
@@ -67,8 +74,11 @@ class CotizacionesViewModel(
             ).toInt()
 
             if (detalles.isNotEmpty()) {
-                val detallesConId = detalles.map {
-                    it.copy(cotizacionId = cotizacionId)
+                val detallesConId = detalles.map { detalle ->
+                    detalle.copy(
+                        id = 0,
+                        cotizacionId = cotizacionId
+                    )
                 }
 
                 detalleCotizacionDao.insertarDetalles(detallesConId)
@@ -89,8 +99,11 @@ class CotizacionesViewModel(
             detalleCotizacionDao.eliminarDetallesCotizacion(cotizacion.id)
 
             if (detalles.isNotEmpty()) {
-                val detallesActualizados = detalles.map {
-                    it.copy(cotizacionId = cotizacion.id)
+                val detallesActualizados = detalles.map { detalle ->
+                    detalle.copy(
+                        id = 0,
+                        cotizacionId = cotizacion.id
+                    )
                 }
 
                 detalleCotizacionDao.insertarDetalles(detallesActualizados)
@@ -124,16 +137,16 @@ class CotizacionesViewModel(
     }
 }
 
-private fun CotizacionEntity.toUi(): CotizacionUI {
+private fun CotizacionConCliente.toUi(): CotizacionUI {
     return CotizacionUI(
-        id = id,
-        cliente = cliente,
-        trabajo = descripcionTrabajo,
-        folio = folio,
-        total = total.formatoMoneda(),
-        estado = estado,
-        fecha = fecha,
-        vence = fecha
+        id = cotizacion.id,
+        cliente = cliente?.nombre ?: "Cliente no encontrado",
+        trabajo = cotizacion.descripcionTrabajo,
+        folio = cotizacion.folio,
+        total = cotizacion.total.formatoMoneda(),
+        estado = cotizacion.estado,
+        fecha = cotizacion.fecha,
+        vence = cotizacion.fecha
     )
 }
 
@@ -144,14 +157,16 @@ fun Double.formatoMoneda(): String {
 
 class CotizacionesViewModelFactory(
     private val cotizacionDao: CotizacionDao,
-    private val detalleCotizacionDao: DetalleCotizacionDao
+    private val detalleCotizacionDao: DetalleCotizacionDao,
+    private val clienteDao: ClienteDao
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CotizacionesViewModel(
             cotizacionDao = cotizacionDao,
-            detalleCotizacionDao = detalleCotizacionDao
+            detalleCotizacionDao = detalleCotizacionDao,
+            clienteDao = clienteDao
         ) as T
     }
 }

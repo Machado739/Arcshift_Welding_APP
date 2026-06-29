@@ -48,6 +48,7 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.foundation)
     implementation(libs.material)
 
     implementation(libs.androidx.compose.ui)
@@ -66,6 +67,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.room.ktx)
+    testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)
 
     implementation("androidx.compose.material:material-icons-extended:1.7.8")

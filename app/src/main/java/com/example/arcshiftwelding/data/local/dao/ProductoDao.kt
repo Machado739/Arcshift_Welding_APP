@@ -5,8 +5,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.local.relation.MovimientoInventarioConRelaciones
+import com.example.arcshiftwelding.data.local.relation.ProductoConMovimientos
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -93,4 +96,14 @@ interface ProductoDao {
         )
     """)
     suspend fun reportarSalida(productoId: Int, cantidad: Int)
+
+    @Transaction
+    @Query("SELECT * FROM productos WHERE id = :productoId")
+    fun obtenerProductoConMovimientos(productoId: Int): Flow<ProductoConMovimientos?>
+
+    @Transaction
+    @Query("SELECT * FROM movimientos_inventario WHERE productoId = :productoId ORDER BY id DESC")
+    fun obtenerMovimientosConRelacionesPorProducto(
+        productoId: Int
+    ): Flow<List<MovimientoInventarioConRelaciones>>
 }

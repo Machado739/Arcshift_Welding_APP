@@ -16,15 +16,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevaCotizacionScreen(
     navController: NavController,
     viewModel: CotizacionesViewModel
-){
-    var cliente by remember { mutableStateOf("") }
+) {
+    val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
+
+    var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var errorCliente by remember { mutableStateOf(false) }
     var proyecto by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("19/05/2026") }
     var vigencia by remember { mutableStateOf("02/06/2026") }
@@ -35,6 +40,8 @@ fun NuevaCotizacionScreen(
     var iva by remember { mutableStateOf("16") }
     var anticipo by remember { mutableStateOf("50") }
     var observaciones by remember { mutableStateOf("") }
+
+
 
     LazyColumn(
         modifier = Modifier
@@ -54,8 +61,13 @@ fun NuevaCotizacionScreen(
 
         item {
             SeccionInformacionGeneralNuevaCotizacion(
-                cliente = cliente,
-                onClienteChange = { cliente = it },
+                clientes = clientes,
+                clienteSeleccionadoId = clienteSeleccionadoId,
+                onClienteSeleccionado = {
+                    clienteSeleccionadoId = it
+                    errorCliente = false
+                },
+                errorCliente = errorCliente,
                 proyecto = proyecto,
                 onProyectoChange = { proyecto = it },
                 fecha = fecha,
@@ -101,28 +113,38 @@ fun NuevaCotizacionScreen(
                     navController.popBackStack()
                 },
                 onGuardarClick = {
-                    val subtotalCalculado = 8900.0
-                    val ivaCalculado = subtotalCalculado * 0.16
+                    val clienteId = clienteSeleccionadoId
+
+                    if (clienteId == null) {
+                        errorCliente = true
+                        return@BotonesNuevaCotizacion
+                    }
+
+                    val detallesCotizacion = listOf(
+                        DetalleCotizacionEntity(
+                            cotizacionId = 0,
+                            descripcion = descripcion.ifBlank { "Trabajo cotizado" },
+                            cantidad = 1.0,
+                            precioUnitario = 8900.0,
+                            total = 8900.0
+                        )
+                    )
+
+                    val subtotalCalculado = detallesCotizacion.sumOf { it.total }
+                    val ivaPorcentaje = iva.toDoubleOrNull() ?: 16.0
+                    val ivaCalculado = subtotalCalculado * (ivaPorcentaje / 100.0)
                     val totalCalculado = subtotalCalculado + ivaCalculado
 
                     viewModel.guardarCotizacion(
                         folio = folio,
-                        cliente = cliente,
-                        descripcionTrabajo = descripcion,
+                        clienteId = clienteId,
+                        descripcionTrabajo = descripcion.ifBlank { "Trabajo cotizado" },
                         subtotal = subtotalCalculado,
                         iva = ivaCalculado,
                         total = totalCalculado,
                         fecha = fecha,
                         estado = "Pendiente",
-                        detalles = listOf(
-                            DetalleCotizacionEntity(
-                                cotizacionId = 0,
-                                concepto = descripcion.ifBlank { "Trabajo cotizado" },
-                                cantidad = 1.0,
-                                precioUnitario = subtotalCalculado,
-                                importe = subtotalCalculado
-                            )
-                        ),
+                        detalles = detallesCotizacion,
                         onFinish = {
                             navController.popBackStack()
                         }
@@ -188,10 +210,13 @@ fun HeaderNuevaCotizacion(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeccionInformacionGeneralNuevaCotizacion(
-    cliente: String,
-    onClienteChange: (String) -> Unit,
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int) -> Unit,
+    errorCliente: Boolean,
     proyecto: String,
     onProyectoChange: (String) -> Unit,
     fecha: String,
@@ -211,17 +236,19 @@ fun SeccionInformacionGeneralNuevaCotizacion(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CampoFormularioCotizacion(
-                titulo = "Cliente *",
-                valor = cliente,
-                placeholder = "Seleccionar cliente",
-                onValueChange = onClienteChange,
-                modifier = Modifier.weight(1f),
-                trailingIcon = Icons.Default.KeyboardArrowDown
+            SelectorClienteCotizacion(
+                clientes = clientes,
+                clienteSeleccionadoId = clienteSeleccionadoId,
+                onClienteSeleccionado = onClienteSeleccionado,
+                mostrarError = errorCliente,
+                modifier = Modifier.weight(1f)
             )
 
             IconButton(
-                onClick = { },
+                onClick = {
+                    // Aquí puedes navegar a NuevoCliente si quieres
+                    // navController.navigate(AppRoutes.NUEVO_CLIENTE)
+                },
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .size(38.dp)
@@ -277,6 +304,120 @@ fun SeccionInformacionGeneralNuevaCotizacion(
             placeholder = "Describe el trabajo o proyecto que se va a cotizar...",
             onValueChange = onDescripcionChange
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectorClienteCotizacion(
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int) -> Unit,
+    mostrarError: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val clienteSeleccionado = clientes.firstOrNull { cliente ->
+        cliente.id == clienteSeleccionadoId
+    }
+
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = "Cliente *",
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expandido,
+            onExpandedChange = {
+                expandido = !expandido
+            }
+        ) {
+            OutlinedTextField(
+                value = clienteSeleccionado?.nombre ?: "",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(48.dp),
+                placeholder = {
+                    Text(
+                        text = "Seleccionar cliente",
+                        fontSize = 10.sp
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandido
+                    )
+                },
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 10.sp
+                ),
+                shape = RoundedCornerShape(7.dp),
+                isError = mostrarError
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandido,
+                onDismissRequest = {
+                    expandido = false
+                }
+            ) {
+                if (clientes.isEmpty()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text("No hay clientes activos")
+                        },
+                        onClick = {
+                            expandido = false
+                        }
+                    )
+                } else {
+                    clientes.forEach { cliente ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(
+                                        text = cliente.nombre,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    if (cliente.empresa.isNotBlank()) {
+                                        Text(
+                                            text = cliente.empresa,
+                                            fontSize = 10.sp,
+                                            color = Color.Gray
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = {
+                                onClienteSeleccionado(cliente.id)
+                                expandido = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        if (mostrarError) {
+            Text(
+                text = "Selecciona un cliente",
+                fontSize = 9.sp,
+                color = Color(0xFFDC2626),
+                modifier = Modifier.padding(top = 3.dp)
+            )
+        }
     }
 }
 

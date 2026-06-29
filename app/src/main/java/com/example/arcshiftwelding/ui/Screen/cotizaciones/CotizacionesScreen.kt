@@ -166,7 +166,7 @@ fun ResumenCotizaciones(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(7.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CardResumenCotizacion(
             modifier = Modifier.weight(1f),
@@ -221,55 +221,53 @@ fun CardResumenCotizacion(
     fondo: Color
 ) {
     Card(
-        modifier = modifier.height(82.dp),
-        shape = RoundedCornerShape(10.dp),
+        modifier = modifier.height(105.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 1.dp
+            defaultElevation = 2.dp
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(7.dp),
+                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .background(fondo, CircleShape),
+                    .size(28.dp)
+                    .background(fondo.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = titulo,
-                fontSize = 8.sp,
-                color = Color.Gray,
-                maxLines = 1
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
             )
 
             Text(
                 text = monto,
-                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                style = MaterialTheme.typography.titleMedium
             )
 
             Text(
                 text = subtitulo,
-                fontSize = 7.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
         }
@@ -292,14 +290,12 @@ fun BarraBusquedaCotizaciones() {
             placeholder = {
                 Text(
                     text = "Buscar cotización...",
-                    fontSize = 12.sp
                 )
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
                 )
             },
             singleLine = true,

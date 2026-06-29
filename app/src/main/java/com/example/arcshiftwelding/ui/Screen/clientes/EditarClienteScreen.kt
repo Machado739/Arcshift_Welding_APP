@@ -141,11 +141,7 @@ fun EditarClienteScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-
-
             }
-
         },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF5F5F5)
@@ -156,7 +152,12 @@ fun EditarClienteScreen(
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
                 .padding(paddingValues)
-                .padding(horizontal = 12.dp),
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
@@ -248,7 +249,6 @@ fun EditarClienteScreen(
                     }
                 )
             }
-
         }
     }
 }
@@ -258,11 +258,19 @@ fun AvisoEditandoCliente(
     nombreCliente: String
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .padding(
+                start = 0.dp,
+                top = 5.dp,
+                end = 0.dp,
+                bottom = 0.dp
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFEFF6FF)
-        )
+        ),
+        elevation = CardDefaults.cardElevation(1.dp)
+
     ) {
         Row(
             modifier = Modifier

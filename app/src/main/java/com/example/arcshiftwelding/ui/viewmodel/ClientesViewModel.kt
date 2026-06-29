@@ -40,6 +40,9 @@ class ClientesViewModel(
             )
     }
 
+    fun obtenerClienteConCotizaciones(clienteId: Int) =
+        clienteDao.obtenerClienteConCotizaciones(clienteId)
+
     fun obtenerClienteEditar(clienteId: Int): StateFlow<ClienteEditarUI?> {
         return clienteDao.obtenerClientePorId(clienteId)
             .map { cliente ->

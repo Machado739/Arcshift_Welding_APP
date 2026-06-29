@@ -315,7 +315,7 @@ fun BuscadorClientes(
                 )
             },
             modifier = Modifier.weight(1f)
-                .height(48.dp),
+            .height(48.dp),
             shape = RoundedCornerShape(8.dp),
             singleLine = true
         )

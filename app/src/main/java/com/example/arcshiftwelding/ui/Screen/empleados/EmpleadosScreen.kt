@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.sp
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 
 data class EmpleadoUI(
@@ -126,18 +127,18 @@ fun EmpleadosScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        FiltrosCategoriaEmpleados(
-            seleccionada = categoriaSeleccionada,
-            onSeleccionar = {
-                categoriaSeleccionada = it
+        BotonNuevoEmpleado(
+            onClick = {
+                navController.navigate(AppRoutes.NUEVO_EMPLEADO)
             }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        BotonNuevoEmpleado(
-            onClick = {
-                navController.navigate(AppRoutes.NUEVO_EMPLEADO)
+        FiltrosCategoriaEmpleados(
+            seleccionada = categoriaSeleccionada,
+            onSeleccionar = {
+                categoriaSeleccionada = it
             }
         )
 
@@ -340,24 +341,31 @@ fun BuscadorEmpleados(
                     contentDescription = null
                 )
             },
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.weight(1f)
+                .height(48.dp),
+            shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
 
         OutlinedButton(
             onClick = { },
-            modifier = Modifier.height(56.dp),
-            shape = RoundedCornerShape(8.dp)
+            modifier = Modifier.height(48.dp),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp)
+
         ) {
             Icon(
                 imageVector = Icons.Default.FilterList,
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
             )
 
             Spacer(modifier = Modifier.width(4.dp))
 
-            Text("Filtros")
+            Text(
+                text = "Filtros",
+                fontSize = 12.sp
+            )
         }
     }
 }
@@ -428,9 +436,8 @@ fun BotonNuevoEmpleado(
     Button(
         onClick = onClick,
         modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        shape = RoundedCornerShape(10.dp),
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFF1D4ED8)
         )
