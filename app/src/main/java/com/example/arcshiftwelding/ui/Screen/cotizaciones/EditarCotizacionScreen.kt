@@ -20,6 +20,17 @@ import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 
 @Composable
 fun EditarCotizacionScreen(
@@ -50,6 +61,31 @@ fun EditarCotizacionScreen(
     var anticipo by remember { mutableStateOf("50") }
     var observaciones by remember { mutableStateOf("") }
 
+    var conceptos by remember {
+        mutableStateOf(
+            listOf(
+                ConceptoEditarCotizacionForm(
+                    descripcion = "",
+                    cantidad = "1",
+                    unidad = "Servicio",
+                    precioUnitario = "0"
+                )
+            )
+        )
+    }
+
+    var archivosAdjuntos by remember {
+        mutableStateOf<List<ArchivoEditarCotizacionForm>>(emptyList())
+    }
+
+    val subtotalCalculado = conceptos.sumOf { it.total }
+    val descuentoCalculado = subtotalCalculado * ((descuento.toDoubleOrNull() ?: 0.0) / 100.0)
+    val subtotalConDescuento = subtotalCalculado - descuentoCalculado
+    val ivaCalculado = subtotalConDescuento * ((iva.toDoubleOrNull() ?: 0.0) / 100.0)
+    val totalCalculado = subtotalConDescuento + ivaCalculado
+    val anticipoCalculado = totalCalculado * ((anticipo.toDoubleOrNull() ?: 0.0) / 100.0)
+    val saldoCalculado = totalCalculado - anticipoCalculado
+
     LaunchedEffect(cotizacionEntity) {
         if (cotizacionEntity != null && !datosCargados) {
             clienteSeleccionadoId = cotizacionEntity!!.clienteId
@@ -58,6 +94,16 @@ fun EditarCotizacionScreen(
             folio = cotizacionEntity!!.folio
             descripcion = cotizacionEntity!!.descripcionTrabajo
             iva = "16"
+
+            conceptos = listOf(
+                ConceptoEditarCotizacionForm(
+                    descripcion = cotizacionEntity!!.descripcionTrabajo.ifBlank { "Trabajo cotizado" },
+                    cantidad = "1",
+                    unidad = "Servicio",
+                    precioUnitario = cotizacionEntity!!.subtotal.toString()
+                )
+            )
+
             datosCargados = true
         }
     }
@@ -141,11 +187,18 @@ fun EditarCotizacionScreen(
             }
 
             item {
-                SeccionConceptosEditarCotizacion()
+                SeccionConceptosEditarCotizacion(
+                    conceptos = conceptos,
+                    onConceptosChange = { conceptos = it }
+                )
             }
 
             item {
                 SeccionResumenEditarCotizacion(
+                    subtotal = subtotalCalculado,
+                    total = totalCalculado,
+                    anticipoSugerido = anticipoCalculado,
+                    saldoRestante = saldoCalculado,
                     descuento = descuento,
                     onDescuentoChange = { descuento = it },
                     iva = iva,
@@ -156,7 +209,10 @@ fun EditarCotizacionScreen(
             }
 
             item {
-                SeccionArchivosEditarCotizacion()
+                SeccionArchivosEditarCotizacion(
+                    archivos = archivosAdjuntos,
+                    onArchivosChange = { archivosAdjuntos = it }
+                )
             }
 
             item {
@@ -179,20 +235,25 @@ fun EditarCotizacionScreen(
                             return@BotonesEditarCotizacion
                         }
 
-                        val subtotalCalculado = cotizacionEntity?.subtotal ?: 0.0
-                        val ivaPorcentaje = iva.toDoubleOrNull() ?: 16.0
-                        val ivaCalculado = subtotalCalculado * (ivaPorcentaje / 100.0)
-                        val totalCalculado = subtotalCalculado + ivaCalculado
+                        val detallesActualizados = conceptos
+                            .filter {
+                                it.descripcion.isNotBlank() &&
+                                        it.cantidadNumero > 0.0 &&
+                                        it.precioNumero > 0.0
+                            }
+                            .map { concepto ->
+                                DetalleCotizacionEntity(
+                                    cotizacionId = cotizacionId,
+                                    descripcion = concepto.descripcion,
+                                    cantidad = concepto.cantidadNumero,
+                                    precioUnitario = concepto.precioNumero,
+                                    total = concepto.total
+                                )
+                            }
 
-                        val detallesActualizados = listOf(
-                            DetalleCotizacionEntity(
-                                cotizacionId = cotizacionId,
-                                descripcion = descripcion.ifBlank { "Trabajo cotizado" },
-                                cantidad = 1.0,
-                                precioUnitario = subtotalCalculado,
-                                total = subtotalCalculado
-                            )
-                        )
+                        if (detallesActualizados.isEmpty()) {
+                            return@BotonesEditarCotizacion
+                        }
 
                         viewModel.actualizarCotizacion(
                             cotizacion = CotizacionEntity(
@@ -309,22 +370,18 @@ fun SeccionInformacionGeneralEditarCotizacion(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CampoEditarCotizacion(
+            CampoFechaEditarCotizacion(
                 titulo = "Fecha *",
                 valor = fecha,
-                placeholder = "Fecha",
-                onValueChange = onFechaChange,
-                modifier = Modifier.weight(1f),
-                leadingIcon = Icons.Default.CalendarMonth
+                onFechaSeleccionada = onFechaChange,
+                modifier = Modifier.weight(1f)
             )
 
-            CampoEditarCotizacion(
+            CampoFechaEditarCotizacion(
                 titulo = "Vigencia *",
                 valor = vigencia,
-                placeholder = "Vigencia",
-                onValueChange = onVigenciaChange,
-                modifier = Modifier.weight(1f),
-                leadingIcon = Icons.Default.CalendarMonth
+                onFechaSeleccionada = onVigenciaChange,
+                modifier = Modifier.weight(1f)
             )
         }
 
@@ -344,8 +401,20 @@ fun SeccionInformacionGeneralEditarCotizacion(
     }
 }
 
+
 @Composable
-fun SeccionConceptosEditarCotizacion() {
+fun SeccionConceptosEditarCotizacion(
+    conceptos: List<ConceptoEditarCotizacionForm>,
+    onConceptosChange: (List<ConceptoEditarCotizacionForm>) -> Unit
+) {
+    var categoriaSeleccionada by remember { mutableStateOf("Materiales") }
+
+    val categorias = listOf(
+        "Materiales",
+        "Mano de obra",
+        "Gastos adicionales"
+    )
+
     CardSeccionEditarCotizacion(
         titulo = "Conceptos",
         icono = Icons.Default.FormatListBulleted
@@ -357,55 +426,55 @@ fun SeccionConceptosEditarCotizacion() {
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            TabEditarCotizacion(
-                texto = "Materiales",
-                seleccionado = true,
-                modifier = Modifier.weight(1f)
-            )
-
-            TabEditarCotizacion(
-                texto = "Mano de obra",
-                seleccionado = false,
-                modifier = Modifier.weight(1f)
-            )
-
-            TabEditarCotizacion(
-                texto = "Gastos adicionales",
-                seleccionado = false,
-                modifier = Modifier.weight(1f)
-            )
+            categorias.forEach { categoria ->
+                TabEditarCotizacion(
+                    texto = categoria,
+                    seleccionado = categoriaSeleccionada == categoria,
+                    onClick = {
+                        categoriaSeleccionada = categoria
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         EncabezadoConceptosEditarCotizacion()
 
-        ConceptoEditarCotizacionItem(
-            concepto = "PTR 2x2 Cal. 14",
-            cantidad = "12",
-            unidad = "Pza",
-            precio = "$450.00",
-            importe = "$5,400.00"
-        )
-
-        ConceptoEditarCotizacionItem(
-            concepto = "Soldadura",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$2,000.00",
-            importe = "$2,000.00"
-        )
-
-        ConceptoEditarCotizacionItem(
-            concepto = "Pintura anticorrosiva",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$1,500.00",
-            importe = "$1,500.00"
-        )
+        conceptos.forEachIndexed { index, concepto ->
+            ConceptoEditarCotizacionItem(
+                concepto = concepto,
+                onConceptoChange = { conceptoActualizado ->
+                    onConceptosChange(
+                        conceptos.toMutableList().also {
+                            it[index] = conceptoActualizado
+                        }
+                    )
+                },
+                onEliminarClick = {
+                    if (conceptos.size > 1) {
+                        onConceptosChange(
+                            conceptos.toMutableList().also {
+                                it.removeAt(index)
+                            }
+                        )
+                    }
+                }
+            )
+        }
 
         TextButton(
-            onClick = { }
+            onClick = {
+                onConceptosChange(
+                    conceptos + ConceptoEditarCotizacionForm(
+                        descripcion = "",
+                        cantidad = "1",
+                        unidad = "Pza",
+                        precioUnitario = ""
+                    )
+                )
+            }
         ) {
             Icon(
                 imageVector = Icons.Default.AddCircleOutline,
@@ -425,15 +494,20 @@ fun SeccionConceptosEditarCotizacion() {
     }
 }
 
+
 @Composable
 fun TabEditarCotizacion(
     texto: String,
     seleccionado: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .height(30.dp)
+            .clickable {
+                onClick()
+            }
             .background(
                 color = if (seleccionado) Color.White else Color.Transparent,
                 shape = RoundedCornerShape(6.dp)
@@ -502,11 +576,9 @@ fun EncabezadoConceptosEditarCotizacion() {
 
 @Composable
 fun ConceptoEditarCotizacionItem(
-    concepto: String,
-    cantidad: String,
-    unidad: String,
-    precio: String,
-    importe: String
+    concepto: ConceptoEditarCotizacionForm,
+    onConceptoChange: (ConceptoEditarCotizacionForm) -> Unit,
+    onEliminarClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -514,33 +586,49 @@ fun ConceptoEditarCotizacionItem(
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CajaTextoEditarCotizacion(
-            texto = concepto,
+        CampoMiniEditableEditarCotizacion(
+            valor = concepto.descripcion,
+            onValueChange = {
+                onConceptoChange(concepto.copy(descripcion = it))
+            },
+            placeholder = "Concepto",
             modifier = Modifier.weight(1.3f)
         )
 
-        CajaTextoEditarCotizacion(
-            texto = cantidad,
+        CampoMiniEditableEditarCotizacion(
+            valor = concepto.cantidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(cantidad = it))
+            },
+            placeholder = "Cant.",
             modifier = Modifier.weight(0.5f)
         )
 
-        CajaTextoEditarCotizacion(
-            texto = unidad,
+        CampoMiniEditableEditarCotizacion(
+            valor = concepto.unidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(unidad = it))
+            },
+            placeholder = "Unidad",
             modifier = Modifier.weight(0.7f)
         )
 
-        CajaTextoEditarCotizacion(
-            texto = precio,
+        CampoMiniEditableEditarCotizacion(
+            valor = concepto.precioUnitario,
+            onValueChange = {
+                onConceptoChange(concepto.copy(precioUnitario = it))
+            },
+            placeholder = "Precio",
             modifier = Modifier.weight(0.8f)
         )
 
         CajaTextoEditarCotizacion(
-            texto = importe,
+            texto = concepto.total.formatoMonedaEditarCotizacion(),
             modifier = Modifier.weight(0.8f)
         )
 
         IconButton(
-            onClick = { },
+            onClick = onEliminarClick,
             modifier = Modifier.size(24.dp)
         ) {
             Icon(
@@ -551,6 +639,33 @@ fun ConceptoEditarCotizacionItem(
             )
         }
     }
+}
+
+@Composable
+fun CampoMiniEditableEditarCotizacion(
+    valor: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .height(36.dp)
+            .padding(horizontal = 2.dp),
+        placeholder = {
+            Text(
+                text = placeholder,
+                fontSize = 8.sp
+            )
+        },
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            fontSize = 8.sp
+        ),
+        shape = RoundedCornerShape(5.dp)
+    )
 }
 
 @Composable
@@ -579,6 +694,10 @@ fun CajaTextoEditarCotizacion(
 
 @Composable
 fun SeccionResumenEditarCotizacion(
+    subtotal: Double,
+    total: Double,
+    anticipoSugerido: Double,
+    saldoRestante: Double,
     descuento: String,
     onDescuentoChange: (String) -> Unit,
     iva: String,
@@ -586,6 +705,8 @@ fun SeccionResumenEditarCotizacion(
     anticipo: String,
     onAnticipoChange: (String) -> Unit
 ) {
+    val opcionesIva = listOf("0", "8", "16")
+
     CardSeccionEditarCotizacion(
         titulo = "Resumen de la cotización",
         icono = Icons.Default.ReceiptLong
@@ -599,9 +720,10 @@ fun SeccionResumenEditarCotizacion(
             ) {
                 CampoEditarCotizacion(
                     titulo = "Subtotal",
-                    valor = "$8,900.00",
+                    valor = subtotal.formatoMonedaEditarCotizacion(),
                     placeholder = "",
-                    onValueChange = { }
+                    onValueChange = { },
+                    readOnly = true
                 )
 
                 CampoEditarCotizacion(
@@ -622,10 +744,11 @@ fun SeccionResumenEditarCotizacion(
                     onValueChange = onDescuentoChange
                 )
 
-                CampoEditarCotizacion(
+                CampoDropdownEditarCotizacion(
                     titulo = "IVA (%)",
                     valor = iva,
-                    placeholder = "16",
+                    opciones = opcionesIva,
+                    placeholder = "IVA",
                     onValueChange = onIvaChange
                 )
             }
@@ -640,7 +763,7 @@ fun SeccionResumenEditarCotizacion(
                 )
 
                 Text(
-                    text = "$10,324.00",
+                    text = total.formatoMonedaEditarCotizacion(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF16A34A)
@@ -665,7 +788,7 @@ fun SeccionResumenEditarCotizacion(
                         )
 
                         Text(
-                            text = "$5,162.00",
+                            text = anticipoSugerido.formatoMonedaEditarCotizacion(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF15803D)
@@ -682,7 +805,7 @@ fun SeccionResumenEditarCotizacion(
                 )
 
                 Text(
-                    text = "$5,162.00",
+                    text = saldoRestante.formatoMonedaEditarCotizacion(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -693,30 +816,70 @@ fun SeccionResumenEditarCotizacion(
 }
 
 @Composable
-fun SeccionArchivosEditarCotizacion() {
+fun SeccionArchivosEditarCotizacion(
+    archivos: List<ArchivoEditarCotizacionForm>,
+    onArchivosChange: (List<ArchivoEditarCotizacionForm>) -> Unit
+) {
+    val context = LocalContext.current
+
+    val launcherImagen = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onArchivosChange(
+                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
+            )
+        }
+    }
+
+    val launcherPdf = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onArchivosChange(
+                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
+            )
+        }
+    }
+
+    val launcherArchivo = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onArchivosChange(
+                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
+            )
+        }
+    }
+
     CardSeccionEditarCotizacion(
         titulo = "Archivos adjuntos",
         icono = Icons.Default.AttachFile
     ) {
-        ArchivoEditarCotizacionItem(
-            nombre = "plano_estructura.pdf",
-            detalle = "245 KB",
-            icono = Icons.Default.PictureAsPdf,
-            color = Color(0xFFDC2626),
-            fondo = Color(0xFFFEE2E2)
-        )
+        if (archivos.isEmpty()) {
+            Text(
+                text = "No hay archivos adjuntos.",
+                fontSize = 10.sp,
+                color = Color.Gray
+            )
 
-        Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+        } else {
+            archivos.forEachIndexed { index, archivo ->
+                ArchivoEditarCotizacionItem(
+                    archivo = archivo,
+                    onEliminarClick = {
+                        onArchivosChange(
+                            archivos.toMutableList().also {
+                                it.removeAt(index)
+                            }
+                        )
+                    }
+                )
 
-        ArchivoEditarCotizacionItem(
-            nombre = "referencia.jpg",
-            detalle = "1.2 MB",
-            icono = Icons.Default.Image,
-            color = Color(0xFF2563EB),
-            fondo = Color(0xFFEFF6FF)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+            }
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -725,19 +888,28 @@ fun SeccionArchivosEditarCotizacion() {
             BotonArchivoEditarCotizacion(
                 texto = "Agregar imagen",
                 icono = Icons.Default.Image,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    launcherImagen.launch("image/*")
+                }
             )
 
             BotonArchivoEditarCotizacion(
                 texto = "Adjuntar archivo",
                 icono = Icons.Default.AttachFile,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    launcherArchivo.launch("*/*")
+                }
             )
 
             BotonArchivoEditarCotizacion(
                 texto = "Subir PDF",
                 icono = Icons.Default.Description,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    launcherPdf.launch("application/pdf")
+                }
             )
         }
     }
@@ -745,12 +917,30 @@ fun SeccionArchivosEditarCotizacion() {
 
 @Composable
 fun ArchivoEditarCotizacionItem(
-    nombre: String,
-    detalle: String,
-    icono: ImageVector,
-    color: Color,
-    fondo: Color
+    archivo: ArchivoEditarCotizacionForm,
+    onEliminarClick: () -> Unit
 ) {
+    val esPdf = archivo.tipoMime.contains("pdf", ignoreCase = true)
+    val esImagen = archivo.tipoMime.startsWith("image", ignoreCase = true)
+
+    val icono = when {
+        esPdf -> Icons.Default.PictureAsPdf
+        esImagen -> Icons.Default.Image
+        else -> Icons.Default.AttachFile
+    }
+
+    val color = when {
+        esPdf -> Color(0xFFDC2626)
+        esImagen -> Color(0xFF2563EB)
+        else -> Color(0xFF334155)
+    }
+
+    val fondo = when {
+        esPdf -> Color(0xFFFEE2E2)
+        esImagen -> Color(0xFFEFF6FF)
+        else -> Color(0xFFF1F5F9)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -781,7 +971,7 @@ fun ArchivoEditarCotizacionItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = nombre,
+                text = archivo.nombre,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
@@ -789,14 +979,14 @@ fun ArchivoEditarCotizacionItem(
             )
 
             Text(
-                text = detalle,
+                text = archivo.detalle,
                 fontSize = 8.sp,
                 color = Color.Gray
             )
         }
 
         IconButton(
-            onClick = { },
+            onClick = onEliminarClick,
             modifier = Modifier.size(26.dp)
         ) {
             Icon(
@@ -813,10 +1003,11 @@ fun ArchivoEditarCotizacionItem(
 fun BotonArchivoEditarCotizacion(
     texto: String,
     icono: ImageVector,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     OutlinedButton(
-        onClick = { },
+        onClick = onClick,
         modifier = modifier.height(46.dp),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(4.dp)
@@ -840,7 +1031,6 @@ fun BotonArchivoEditarCotizacion(
         }
     }
 }
-
 @Composable
 fun SeccionObservacionesEditarCotizacion(
     observaciones: String,
@@ -969,7 +1159,8 @@ fun CampoEditarCotizacion(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
-    trailingIcon: ImageVector? = null
+    trailingIcon: ImageVector? = null,
+    readOnly: Boolean = false
 ) {
     Column(
         modifier = modifier.padding(bottom = 8.dp)
@@ -987,6 +1178,7 @@ fun CampoEditarCotizacion(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
+            readOnly = readOnly,
             placeholder = {
                 Text(
                     text = placeholder,
@@ -1055,5 +1247,291 @@ fun CampoTextoLargoEditarCotizacion(
             shape = RoundedCornerShape(7.dp),
             maxLines = 3
         )
+    }
+}
+
+data class ConceptoEditarCotizacionForm(
+    val descripcion: String = "",
+    val cantidad: String = "",
+    val unidad: String = "Pza",
+    val precioUnitario: String = ""
+) {
+    val cantidadNumero: Double
+        get() = cantidad.replace(",", ".").toDoubleOrNull() ?: 0.0
+
+    val precioNumero: Double
+        get() = precioUnitario.replace(",", ".").toDoubleOrNull() ?: 0.0
+
+    val total: Double
+        get() = cantidadNumero * precioNumero
+}
+
+data class ArchivoEditarCotizacionForm(
+    val uri: String,
+    val nombre: String,
+    val detalle: String,
+    val tipoMime: String
+)
+
+fun Double.formatoMonedaEditarCotizacion(): String {
+    return "$ ${"%,.2f".format(this)}"
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoFechaEditarCotizacion(
+    titulo: String,
+    valor: String,
+    onFechaSeleccionada: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    mostrarCalendario = true
+                }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                placeholder = {
+                    Text(
+                        text = "Seleccionar fecha",
+                        fontSize = 10.sp
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Seleccionar fecha",
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 10.sp
+                ),
+                shape = RoundedCornerShape(7.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color.Black,
+                    disabledBorderColor = Color(0xFFE0E0E0),
+                    disabledContainerColor = Color.White,
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledTrailingIconColor = Color.DarkGray
+                )
+            )
+        }
+    }
+
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = {
+                mostrarCalendario = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val fechaSeleccionada = datePickerState.selectedDateMillis
+
+                        if (fechaSeleccionada != null) {
+                            val formato = SimpleDateFormat(
+                                "dd/MM/yyyy",
+                                Locale.getDefault()
+                            )
+
+                            onFechaSeleccionada(
+                                formato.format(Date(fechaSeleccionada))
+                            )
+                        }
+
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoDropdownEditarCotizacion(
+    titulo: String,
+    valor: String,
+    opciones: List<String>,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expandido,
+            onExpandedChange = {
+                expandido = !expandido
+            }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(48.dp),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        fontSize = 10.sp
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandido
+                    )
+                },
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 10.sp
+                ),
+                shape = RoundedCornerShape(7.dp)
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandido,
+                onDismissRequest = {
+                    expandido = false
+                }
+            ) {
+                opciones.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = opcion,
+                                fontSize = 12.sp
+                            )
+                        },
+                        onClick = {
+                            onValueChange(opcion)
+                            expandido = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun crearArchivoEditarCotizacionDesdeUri(
+    context: Context,
+    uri: Uri
+): ArchivoEditarCotizacionForm {
+    val nombre = obtenerNombreArchivoEditarCotizacion(context, uri)
+    val tamano = obtenerTamanoArchivoEditarCotizacion(context, uri)
+    val tipoMime = context.contentResolver.getType(uri) ?: "archivo"
+
+    return ArchivoEditarCotizacionForm(
+        uri = uri.toString(),
+        nombre = nombre,
+        detalle = tamano,
+        tipoMime = tipoMime
+    )
+}
+
+fun obtenerNombreArchivoEditarCotizacion(
+    context: Context,
+    uri: Uri
+): String {
+    var nombre = "Archivo adjunto"
+
+    val cursor = context.contentResolver.query(
+        uri,
+        null,
+        null,
+        null,
+        null
+    )
+
+    cursor?.use {
+        val indiceNombre = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+
+        if (indiceNombre >= 0 && it.moveToFirst()) {
+            nombre = it.getString(indiceNombre)
+        }
+    }
+
+    return nombre
+}
+
+fun obtenerTamanoArchivoEditarCotizacion(
+    context: Context,
+    uri: Uri
+): String {
+    var bytes = 0L
+
+    val cursor = context.contentResolver.query(
+        uri,
+        null,
+        null,
+        null,
+        null
+    )
+
+    cursor?.use {
+        val indiceTamano = it.getColumnIndex(OpenableColumns.SIZE)
+
+        if (indiceTamano >= 0 && it.moveToFirst()) {
+            bytes = it.getLong(indiceTamano)
+        }
+    }
+
+    return when {
+        bytes <= 0L -> "Tamaño desconocido"
+        bytes < 1024L -> "$bytes B"
+        bytes < 1024L * 1024L -> "${bytes / 1024L} KB"
+        else -> "${"%.1f".format(bytes / (1024.0 * 1024.0))} MB"
     }
 }

@@ -204,7 +204,7 @@ fun EditarClienteScreen(
                 )
             }
 
-            item {
+            item {/*
                 SeccionConfiguracionNuevoCliente(
                     clienteActivo = clienteActivo,
                     onClienteActivoChange = { clienteActivo = it },
@@ -216,7 +216,7 @@ fun EditarClienteScreen(
                     onContactoLlamadasChange = { contactoLlamadas = it },
                     contactoCorreo = contactoCorreo,
                     onContactoCorreoChange = { contactoCorreo = it }
-                )
+                )*/
             }
 
             item {

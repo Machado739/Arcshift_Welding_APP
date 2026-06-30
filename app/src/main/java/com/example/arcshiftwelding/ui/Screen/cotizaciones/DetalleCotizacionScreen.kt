@@ -109,7 +109,8 @@ fun DetalleCotizacionScreen(
 
                 IconButton(
                     onClick = {
-                        navController.navigate(AppRoutes.editarCotizacion(cotizacionId))                    }
+                        navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -313,16 +314,6 @@ fun CardPrincipalDetalleCotizacion(
                         color = Color.Gray
                     )
                 }
-            }
-
-            IconButton(
-                onClick = { },
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreHoriz,
-                    contentDescription = "Opciones"
-                )
             }
         }
     }
@@ -719,14 +710,14 @@ fun SeccionAccionesRapidasCotizacion(
                 onClick = onEditarClick,
                 modifier = Modifier.weight(1f)
             )
-
+/*
             BotonAccionCotizacion(
                 texto = "Duplicar",
                 icono = Icons.Default.ContentCopy,
                 color = Color(0xFF64748B),
                 onClick = { },
                 modifier = Modifier.weight(1f)
-            )
+            )*/
 
             BotonAccionCotizacion(
                 texto = "PDF",
@@ -759,13 +750,13 @@ fun SeccionAccionesRapidasCotizacion(
                 modifier = Modifier.weight(1f)
             )
 
-            BotonAccionCotizacion(
+           /* BotonAccionCotizacion(
                 texto = "Ingreso",
                 icono = Icons.Default.AttachMoney,
                 color = Color(0xFF15803D),
                 onClick = onConvertirIngresoClick,
                 modifier = Modifier.weight(1f)
-            )
+            )*/
         }
     }
 }

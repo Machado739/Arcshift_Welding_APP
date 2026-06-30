@@ -538,10 +538,10 @@ fun ItemEmpleado(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                InfoEmpleadoLinea(
+             /*   InfoEmpleadoLinea(
                     icono = Icons.Default.Work,
                     texto = "Trabajo: ${empleado.trabajo}"
-                )
+                )*/
 
                 InfoEmpleadoLinea(
                     icono = Icons.Default.Badge,

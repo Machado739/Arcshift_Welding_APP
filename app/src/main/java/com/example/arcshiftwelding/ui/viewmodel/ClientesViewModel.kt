@@ -16,10 +16,12 @@ class ClientesViewModel(
 ) : ViewModel() {
 
     val clientes: StateFlow<List<ClienteUI>> =
-        clienteDao.obtenerClientesActivos()
+        clienteDao.obtenerClientesConCantidadCotizaciones()
             .map { lista ->
-                lista.map { cliente ->
-                    cliente.toUi()
+                lista.map { item ->
+                    item.cliente.toUi(
+                        cantidadCotizaciones = item.cantidadCotizaciones
+                    )
                 }
             }
             .stateIn(

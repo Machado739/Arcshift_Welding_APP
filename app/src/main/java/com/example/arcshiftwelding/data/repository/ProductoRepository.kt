@@ -8,12 +8,14 @@ class ProductoRepository(
     private val productoDao: ProductoDao
 ) {
 
-    val productos: Flow<List<ProductoEntity>> = productoDao.obtenerProductos()
+    val productos: Flow<List<ProductoEntity>> =
+        productoDao.obtenerProductos()
 
-    val productosBajoStock: Flow<List<ProductoEntity>> = productoDao.obtenerProductosBajoStock()
+    val productosBajoStock: Flow<List<ProductoEntity>> =
+        productoDao.obtenerProductosBajoStock()
 
-    val productosInactivos: Flow<List<ProductoEntity>> = productoDao.obtenerProductosInactivos()
-
+    val productosInactivos: Flow<List<ProductoEntity>> =
+        productoDao.obtenerProductosInactivos()
 
     fun buscarProductos(texto: String): Flow<List<ProductoEntity>> {
         return productoDao.buscarProductos(texto)
@@ -43,6 +45,10 @@ class ProductoRepository(
         productoDao.desactivarProducto(productoId)
     }
 
+    suspend fun activarProducto(productoId: Int) {
+        productoDao.activarProducto(productoId)
+    }
+
     suspend fun reponerStock(productoId: Int, cantidad: Int) {
         productoDao.reponerStock(productoId, cantidad)
     }
@@ -51,7 +57,27 @@ class ProductoRepository(
         productoDao.reportarSalida(productoId, cantidad)
     }
 
-    suspend fun activarProducto(productoId: Int) {
-        productoDao.activarProducto(productoId)
+    suspend fun obtenerSiguienteCodigoPorCategoria(categoria: String): String {
+        val prefijo = obtenerPrefijoPorCategoria(categoria)
+
+        val ultimoCodigo = productoDao.obtenerUltimoCodigoPorPrefijo(prefijo)
+
+        val ultimoNumero = ultimoCodigo
+            ?.substringAfter("-")
+            ?.toIntOrNull() ?: 0
+
+        val siguienteNumero = ultimoNumero + 1
+
+        return "$prefijo-${siguienteNumero.toString().padStart(4, '0')}"
+    }
+
+    private fun obtenerPrefijoPorCategoria(categoria: String): String {
+        return when (categoria.trim()) {
+            "Materiales" -> "MAT"
+            "Herramientas" -> "HER"
+            "Consumibles" -> "CON"
+            "Seguridad" -> "SEG"
+            else -> "PRO"
+        }
     }
 }

@@ -106,4 +106,12 @@ interface ProductoDao {
     fun obtenerMovimientosConRelacionesPorProducto(
         productoId: Int
     ): Flow<List<MovimientoInventarioConRelaciones>>
+
+    @Query("""
+    SELECT codigo FROM productos
+    WHERE codigo LIKE :prefijo || '-%'
+    ORDER BY CAST(SUBSTR(codigo, LENGTH(:prefijo) + 2) AS INTEGER) DESC
+    LIMIT 1
+""")
+    suspend fun obtenerUltimoCodigoPorPrefijo(prefijo: String): String?
 }

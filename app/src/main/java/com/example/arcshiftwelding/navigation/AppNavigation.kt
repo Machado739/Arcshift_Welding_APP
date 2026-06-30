@@ -389,10 +389,16 @@ fun AppNavigation() {
                 )
             }
 
-            composable("${AppRoutes.DETALLE_COTIZACION}/{cotizacionId}") { backStackEntry ->
-                val cotizacionId = backStackEntry.arguments
-                    ?.getString("cotizacionId")
-                    ?.toIntOrNull() ?: 0
+            composable(
+                route = AppRoutes.DETALLE_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
 
                 DetalleCotizacionScreen(
                     navController = navController,
@@ -401,10 +407,16 @@ fun AppNavigation() {
                 )
             }
 
-            composable("${AppRoutes.EDITAR_COTIZACION}/{cotizacionId}") { backStackEntry ->
-                val cotizacionId = backStackEntry.arguments
-                    ?.getString("cotizacionId")
-                    ?.toIntOrNull() ?: 0
+            composable(
+                route = AppRoutes.EDITAR_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val cotizacionId = backStackEntry.arguments?.getInt("cotizacionId") ?: 0
 
                 EditarCotizacionScreen(
                     navController = navController,

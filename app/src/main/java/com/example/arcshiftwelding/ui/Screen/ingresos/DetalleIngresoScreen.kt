@@ -368,12 +368,12 @@ fun SeccionDetalleRelacionadoIngreso(
             valor = ingreso.cotizacion.ifBlank { "Sin cotización" }
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
+      /*  Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLinkIngreso(
             titulo = "Orden de trabajo:",
             valor = ingreso.ordenTrabajo.ifBlank { "Sin orden" }
-        )
+        )*/
 
         Spacer(modifier = Modifier.height(6.dp))
 

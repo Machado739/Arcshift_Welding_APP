@@ -178,7 +178,7 @@ fun DetalleEmpleadoScreen(
 
             SeccionInformacionLaboralEmpleado(empleado = empleado)
 
-            SeccionTrabajosAsignadosEmpleado(trabajos = trabajosAsignados)
+        /*    SeccionTrabajosAsignadosEmpleado(trabajos = trabajosAsignados)*/
 
             SeccionAccionesRapidasEmpleado(
                 onLlamarClick = { },
@@ -315,7 +315,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Teléfono",
             valor = empleado.telefono,
-            accion = "Llamar",
+         /*   accion = "Llamar",*/
             icono = Icons.Default.Phone,
             color = Color(0xFF2563EB),
             modifier = Modifier.weight(1f)
@@ -324,7 +324,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Correo",
             valor = empleado.correo,
-            accion = "Enviar",
+          /*  accion = "Enviar",*/
             icono = Icons.Default.Email,
             color = Color(0xFF7C3AED),
             modifier = Modifier.weight(1f)
@@ -333,7 +333,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Dirección",
             valor = empleado.direccion,
-            accion = "Ver",
+           /* accion = "Ver",*/
             icono = Icons.Default.LocationOn,
             color = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
@@ -345,13 +345,13 @@ fun CardsContactoEmpleado(
 fun CardContactoEmpleado(
     titulo: String,
     valor: String,
-    accion: String,
+  /*  accion: String,*/
     icono: ImageVector,
     color: Color,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(92.dp),
+        modifier = modifier.height(60.dp),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -393,13 +393,13 @@ fun CardContactoEmpleado(
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
+/*
             Text(
                 text = accion,
                 style = MaterialTheme.typography.labelSmall,
                 color = color,
                 fontWeight = FontWeight.Bold
-            )
+            )*/
         }
     }
 }
@@ -506,13 +506,13 @@ fun SeccionInformacionLaboralEmpleado(
             )
 
             Divider(color = Color(0xFFE5E7EB))
-
+/*
             ItemInfoEmpleado(
                 icono = Icons.Default.AttachMoney,
                 titulo = "Pago total semana",
                 valor = empleado.pagoTotalSemana
             )
-
+*/
             Divider(color = Color(0xFFE5E7EB))
 
             ItemInfoEmpleado(

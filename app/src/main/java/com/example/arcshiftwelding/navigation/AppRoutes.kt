@@ -93,13 +93,18 @@ object AppRoutes {
     const val EDITAR_COTIZACION = "editar_cotizacion/{cotizacionId}"
     const val ELIMINAR_COTIZACION = "eliminar_cotizacion/{cotizacionId}"
 
-    fun detalleCotizacion(cotizacionId: Int): String{
+    fun detalleCotizacion(cotizacionId: Int): String {
         return "detalle_cotizacion/$cotizacionId"
     }
-    fun editarCotizacion(cotizacionId: Int) =
-        "editar_cotizacion/$cotizacionId"
-    fun eliminarCotizacion(cotizacionId: Int) =
-        "eliminar_cotizacion/$cotizacionId"
+
+    fun editarCotizacion(cotizacionId: Int): String {
+        return "editar_cotizacion/$cotizacionId"
+    }
+
+    fun eliminarCotizacion(cotizacionId: Int): String {
+        return "eliminar_cotizacion/$cotizacionId"
+    }
+
 
 
 ///                     EMPLEADOS

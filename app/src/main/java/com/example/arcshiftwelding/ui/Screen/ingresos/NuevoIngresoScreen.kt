@@ -17,6 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import androidx.compose.foundation.clickable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun NuevoIngresoScreen(
@@ -119,18 +123,31 @@ fun NuevoIngresoScreen(
     }
 }
 
+
 @Composable
 fun SeccionIngresoInformacionFinanciera(
     form: IngresoFormState,
     onChange: (IngresoFormState) -> Unit
 ) {
-    val subtotalNumero = form.subtotal.aDouble()
-    val ivaNumero = if (form.iva.isBlank()) {
-        subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
-    } else {
-        form.iva.aDouble()
-    }
+    val opcionesIva = listOf("0", "8", "16")
 
+    val metodosPago = listOf(
+        "Efectivo",
+        "Tarjeta",
+        "Transferencia",
+        "Cheque",
+        "Crédito"
+    )
+
+    val formasPago = listOf(
+        "Contado",
+        "Crédito",
+        "Anticipo",
+        "Parcialidad"
+    )
+
+    val subtotalNumero = form.subtotal.aDouble()
+    val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
     val totalNumero = subtotalNumero + ivaNumero
     val pendienteNumero = totalNumero - form.anticipo.aDouble()
 
@@ -146,29 +163,43 @@ fun SeccionIngresoInformacionFinanciera(
                 titulo = "Subtotal *",
                 valor = form.subtotal,
                 placeholder = "$ 0.00",
-                onValueChange = {
-                    onChange(form.copy(subtotal = it))
+                onValueChange = { nuevoSubtotal ->
+                    val nuevoIva = nuevoSubtotal.aDouble() * (form.ivaPorcentaje.aDouble() / 100)
+
+                    onChange(
+                        form.copy(
+                            subtotal = nuevoSubtotal,
+                            iva = nuevoIva.toString()
+                        )
+                    )
                 },
                 modifier = Modifier.weight(1f)
             )
 
-            CampoTextoIngreso(
+            CampoDropdownIngreso(
                 titulo = "IVA (%)",
                 valor = form.ivaPorcentaje,
-                placeholder = "16",
-                onValueChange = {
-                    onChange(form.copy(ivaPorcentaje = it))
+                opciones = opcionesIva,
+                placeholder = "IVA",
+                onValueChange = { nuevoIvaPorcentaje ->
+                    val nuevoIva = form.subtotal.aDouble() * (nuevoIvaPorcentaje.aDouble() / 100)
+
+                    onChange(
+                        form.copy(
+                            ivaPorcentaje = nuevoIvaPorcentaje,
+                            iva = nuevoIva.toString()
+                        )
+                    )
                 },
                 modifier = Modifier.weight(1f)
             )
 
             CampoTextoIngreso(
                 titulo = "IVA",
-                valor = form.iva,
+                valor = ivaNumero.formatoDinero(),
                 placeholder = "Auto",
-                onValueChange = {
-                    onChange(form.copy(iva = it))
-                },
+                onValueChange = {},
+                readOnly = true,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -225,20 +256,22 @@ fun SeccionIngresoInformacionFinanciera(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampoTextoIngreso(
+            CampoDropdownIngreso(
                 titulo = "Método de pago *",
                 valor = form.metodoPago,
-                placeholder = "Efectivo, transferencia, tarjeta",
+                opciones = metodosPago,
+                placeholder = "Método",
                 onValueChange = {
                     onChange(form.copy(metodoPago = it))
                 },
                 modifier = Modifier.weight(1f)
             )
 
-            CampoTextoIngreso(
+            CampoDropdownIngreso(
                 titulo = "Forma de pago",
                 valor = form.formaPago,
-                placeholder = "Contado / crédito",
+                opciones = formasPago,
+                placeholder = "Forma",
                 onValueChange = {
                     onChange(form.copy(formaPago = it))
                 },
@@ -290,6 +323,14 @@ fun SeccionIngresoRelacionado(
     cotizaciones: List<CotizacionEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
+    val proyectos = listOf(
+        "Portón metálico",
+        "Estructura para techo",
+        "Reparación de remolque",
+        "Escalera industrial",
+        "Sin proyecto"
+    )
+
     TarjetaNuevoIngreso(
         titulo = "Relacionado con opcional",
         icono = Icons.Default.Link
@@ -311,7 +352,7 @@ fun SeccionIngresoRelacionado(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
-
+/*
         CampoTextoIngreso(
             titulo = "Orden de trabajo",
             valor = form.ordenTrabajo,
@@ -321,13 +362,14 @@ fun SeccionIngresoRelacionado(
             },
             modifier = Modifier.fillMaxWidth()
         )
-
+*/
         Spacer(modifier = Modifier.height(10.dp))
 
-        CampoTextoIngreso(
+        CampoDropdownIngreso(
             titulo = "Proyecto",
             valor = form.proyecto,
-            placeholder = "Nombre del proyecto",
+            opciones = proyectos,
+            placeholder = "Seleccionar proyecto",
             onValueChange = {
                 onChange(form.copy(proyecto = it))
             },
@@ -378,17 +420,14 @@ fun SeccionIngresoInformacionGeneral(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampoTextoIngreso(
+            CampoFechaIngreso(
                 titulo = "Fecha *",
                 valor = form.fecha,
-                placeholder = "dd/mm/aaaa",
-                onValueChange = {
+                onFechaSeleccionada = {
                     onChange(form.copy(fecha = it))
                 },
-                leadingIcon = Icons.Default.CalendarToday,
                 modifier = Modifier.weight(1f)
             )
-
             CampoTextoIngreso(
                 titulo = "Trabajo",
                 valor = form.trabajo,
@@ -516,7 +555,8 @@ fun CampoTextoIngreso(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    readOnly: Boolean = false
 ) {
     Column(
         modifier = modifier
@@ -532,6 +572,7 @@ fun CampoTextoIngreso(
 
         OutlinedTextField(
             value = valor,
+            readOnly = readOnly,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
@@ -559,6 +600,197 @@ fun CampoTextoIngreso(
                 unfocusedContainerColor = Color.White
             )
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoDropdownIngreso(
+    titulo: String,
+    valor: String,
+    opciones: List<String>,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.DarkGray,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        ExposedDropdownMenuBox(
+            expanded = expandido,
+            onExpandedChange = {
+                expandido = !expandido
+            }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandido
+                    )
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                textStyle = MaterialTheme.typography.bodySmall,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2563EB),
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandido,
+                onDismissRequest = {
+                    expandido = false
+                }
+            ) {
+                opciones.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = opcion,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        },
+                        onClick = {
+                            onValueChange(opcion)
+                            expandido = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoFechaIngreso(
+    titulo: String,
+    valor: String,
+    onFechaSeleccionada: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.DarkGray,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    mostrarCalendario = true
+                }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        text = "Seleccionar fecha",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarToday,
+                        contentDescription = "Seleccionar fecha",
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                textStyle = MaterialTheme.typography.bodySmall,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color.Black,
+                    disabledBorderColor = Color(0xFFE0E0E0),
+                    disabledContainerColor = Color.White,
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledTrailingIconColor = Color.DarkGray
+                )
+            )
+        }
+    }
+
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = {
+                mostrarCalendario = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val fechaSeleccionada = datePickerState.selectedDateMillis
+
+                        if (fechaSeleccionada != null) {
+                            val formato = SimpleDateFormat(
+                                "dd/MM/yyyy",
+                                Locale.getDefault()
+                            )
+
+                            onFechaSeleccionada(
+                                formato.format(Date(fechaSeleccionada))
+                            )
+                        }
+
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
     }
 }
 

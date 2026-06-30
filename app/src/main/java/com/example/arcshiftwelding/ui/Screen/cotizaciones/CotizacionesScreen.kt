@@ -524,16 +524,7 @@ fun ItemCotizacion(
                     color = Color(0xFF2563EB)
                 )
 
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Opciones",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+
             }
         }
     }

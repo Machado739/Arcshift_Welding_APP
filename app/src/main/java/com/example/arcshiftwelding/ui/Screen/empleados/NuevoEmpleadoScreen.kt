@@ -169,7 +169,7 @@ fun NuevoEmpleadoScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-
+/*
             SeccionConfiguracionNuevoEmpleado(
                 empleadoActivo = empleadoActivo,
                 onEmpleadoActivoChange = { empleadoActivo = it },
@@ -177,7 +177,7 @@ fun NuevoEmpleadoScreen(
                 onAsignarTrabajosChange = { asignarTrabajos = it },
                 pagoSemanalActivo = pagoSemanalActivo,
                 onPagoSemanalActivoChange = { pagoSemanalActivo = it }
-            )
+            )*/
 
             BotonesFormularioEmpleado(
                 onCancelarClick = {
@@ -404,7 +404,7 @@ fun SeccionInformacionLaboralNuevoEmpleado(
             leadingIcon = Icons.Default.Work
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+      /*  Spacer(modifier = Modifier.height(10.dp))
 
         CampoTextoEmpleado(
             valor = pagoSemanal,
@@ -413,7 +413,7 @@ fun SeccionInformacionLaboralNuevoEmpleado(
             placeholder = "Ej. ${'$'}980",
             requerido = false,
             leadingIcon = Icons.Default.AttachMoney
-        )
+        )*/
     }
 }
 

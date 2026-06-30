@@ -232,13 +232,13 @@ fun TarjetaPrincipalGasto(
 
             Column(
                 horizontalAlignment = Alignment.End
-            ) {
+            ) {/*
                 IconButton(onClick = { }) {
                     Icon(
                         imageVector = Icons.Default.MoreHoriz,
                         contentDescription = "Más opciones"
                     )
-                }
+                }*/
 
                 AssistChip(
                     onClick = { },
@@ -554,7 +554,7 @@ fun SeccionDetalleRelacionado(
         icono = Icons.Default.Link,
         modifier = modifier
     ) {
-        ItemDatoConLink(
+       ItemDatoConLink(
             titulo = "Proyecto:",
             valor = gasto.proyecto.ifBlank { "Sin proyecto" }
         )

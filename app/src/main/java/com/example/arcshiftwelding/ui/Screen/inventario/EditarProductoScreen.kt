@@ -279,8 +279,10 @@ fun EditarProductoScreen(
 
                     OutlinedTextField(
                         value = codigo,
-                        onValueChange = { codigo = it },
-                        label = { Text("Código / SKU *") },
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text("Código automático") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -413,7 +415,7 @@ fun EditarProductoScreen(
                     )
                 }
             }
-
+/*
             FormularioCard(
                 titulo = "Opciones",
                 icono = Icons.Default.Settings
@@ -455,7 +457,8 @@ fun EditarProductoScreen(
                         }
                     }
                 }
-            }
+            }*/
+
             if (mensajeError.isNotBlank()) {
                 Text(
                     text = mensajeError,
@@ -503,10 +506,7 @@ fun EditarProductoScreen(
                             return@Button
                         }
 
-                        if (codigo.isBlank()) {
-                            mensajeError = "El código del producto es obligatorio"
-                            return@Button
-                        }
+
 
                         if (ubicacion.isBlank()) {
                             mensajeError = "La ubicación es obligatoria"

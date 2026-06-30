@@ -14,4 +14,7 @@ data class ClienteConCotizaciones(
         entityColumn = "clienteId"
     )
     val cotizaciones: List<CotizacionEntity>
-)
+) {
+    val totalCotizaciones: Int
+        get() = cotizaciones.size
+}

@@ -6,14 +6,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-fun ClienteEntity.toUi(): ClienteUI {
+fun ClienteEntity.toUi(
+    cantidadCotizaciones: Int = 0
+): ClienteUI {
     return ClienteUI(
         id = id,
         nombre = nombre,
         telefono = telefono.ifBlank { "Sin teléfono" },
         ubicacion = direccion.ifBlank { "Sin dirección" },
         correo = correo.ifBlank { "Sin correo" },
-        cotizaciones = 0,
+        cotizaciones = cantidadCotizaciones,
         estado = estatus,
         tipo = "Cliente desde: ${fechaRegistro.formatearFechaCliente()}",
         color = obtenerColorCliente(estatus)

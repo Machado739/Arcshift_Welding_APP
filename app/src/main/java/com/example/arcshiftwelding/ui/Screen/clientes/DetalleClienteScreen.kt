@@ -208,7 +208,7 @@ fun DetalleClienteScreen(
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCliente(clienteActual.id))
                 },
-                onWhatsappClick = { },
+           /*     onWhatsappClick = { },*/
                 onLlamarClick = { },
                 onNuevaCotizacionClick = {
                     navController.navigate(AppRoutes.NUEVA_COTIZACION)
@@ -385,7 +385,7 @@ fun CardsContactoCliente(
         CardContactoCliente(
             titulo = "Teléfono",
             valor = cliente.telefono,
-            accion = "Llamar",
+        /*    accion = "Llamar",*/
             icono = Icons.Default.Phone,
             color = Color(0xFF2563EB),
             modifier = Modifier.weight(1f)
@@ -394,7 +394,7 @@ fun CardsContactoCliente(
         CardContactoCliente(
             titulo = "Correo",
             valor = cliente.correo,
-            accion = "Enviar",
+        /*    accion = "Enviar",*/
             icono = Icons.Default.Email,
             color = Color(0xFF7C3AED),
             modifier = Modifier.weight(1f)
@@ -403,7 +403,7 @@ fun CardsContactoCliente(
         CardContactoCliente(
             titulo = "Dirección",
             valor = cliente.direccion,
-            accion = "Ver en mapa",
+           /* accion = "Ver en mapa",*/
             icono = Icons.Default.LocationOn,
             color = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
@@ -415,13 +415,13 @@ fun CardsContactoCliente(
 fun CardContactoCliente(
     titulo: String,
     valor: String,
-    accion: String,
+  /*  accion: String,*/
     icono: ImageVector,
     color: Color,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(92.dp),
+        modifier = modifier.height(60.dp),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -462,13 +462,13 @@ fun CardContactoCliente(
             )
 
             Spacer(modifier = Modifier.weight(1f))
-
+            /*
             Text(
                 text = accion,
                 style = MaterialTheme.typography.labelSmall,
                 color = color,
                 fontWeight = FontWeight.Bold
-            )
+            )*/
         }
     }
 }
@@ -608,14 +608,14 @@ fun SeccionHistorialCliente(
                     color = Color(0xFF7C3AED),
                     modifier = Modifier.weight(1f)
                 )
-
+                /*
                 CardResumenActividad(
                     titulo = "Total facturado",
                     valor = "$ ${String.format("%,.2f", cliente.totalFacturado)}",
                     icono = Icons.Default.InsertChart,
                     color = Color(0xFF16A34A),
                     modifier = Modifier.weight(1.2f)
-                )
+                )*/
             }
         }
     }
@@ -810,7 +810,7 @@ fun BadgeCotizacionEstado(
 @Composable
 fun SeccionAccionesRapidasCliente(
     onEditarClick: () -> Unit,
-    onWhatsappClick: () -> Unit,
+   /* onWhatsappClick: () -> Unit,*/
     onLlamarClick: () -> Unit,
     onNuevaCotizacionClick: () -> Unit,
     onEliminarClick: () -> Unit
@@ -846,13 +846,13 @@ fun SeccionAccionesRapidasCliente(
                     modifier = Modifier.weight(1f)
                 )
 
-                BotonAccionCliente(
+              /*  BotonAccionCliente(
                     texto = "WhatsApp",
                     icono = Icons.Default.Whatsapp,
                     color = Color(0xFF16A34A),
                     onClick = onWhatsappClick,
                     modifier = Modifier.weight(1f)
-                )
+                )*/
 
                 BotonAccionCliente(
                     texto = "Llamar",

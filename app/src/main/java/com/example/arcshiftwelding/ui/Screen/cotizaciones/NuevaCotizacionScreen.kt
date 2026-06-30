@@ -19,6 +19,30 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.foundation.clickable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+data class ConceptoCotizacionForm(
+    val descripcion: String = "",
+    val cantidad: String = "",
+    val unidad: String = "Pza",
+    val precioUnitario: String = ""
+) {
+    val cantidadNumero: Double
+        get() = cantidad.replace(",", ".").toDoubleOrNull() ?: 0.0
+
+    val precioNumero: Double
+        get() = precioUnitario.replace(",", ".").toDoubleOrNull() ?: 0.0
+
+    val total: Double
+        get() = cantidadNumero * precioNumero
+}
+
+fun Double.formatoMonedaCotizacion(): String {
+    return "$ ${"%,.2f".format(this)}"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +64,27 @@ fun NuevaCotizacionScreen(
     var iva by remember { mutableStateOf("16") }
     var anticipo by remember { mutableStateOf("50") }
     var observaciones by remember { mutableStateOf("") }
+
+    var conceptos by remember {
+        mutableStateOf(
+            listOf(
+                ConceptoCotizacionForm(
+                    descripcion = "PTR 2x2 Cal. 14",
+                    cantidad = "12",
+                    unidad = "Pza",
+                    precioUnitario = "450"
+                )
+            )
+        )
+    }
+
+    val subtotalCalculado = conceptos.sumOf { it.total }
+    val descuentoCalculado = subtotalCalculado * ((descuento.toDoubleOrNull() ?: 0.0) / 100.0)
+    val subtotalConDescuento = subtotalCalculado - descuentoCalculado
+    val ivaCalculado = subtotalConDescuento * ((iva.toDoubleOrNull() ?: 0.0) / 100.0)
+    val totalCalculado = subtotalConDescuento + ivaCalculado
+    val anticipoCalculado = totalCalculado * ((anticipo.toDoubleOrNull() ?: 0.0) / 100.0)
+    val saldoCalculado = totalCalculado - anticipoCalculado
 
 
 
@@ -82,11 +127,18 @@ fun NuevaCotizacionScreen(
         }
 
         item {
-            SeccionConceptosNuevaCotizacion()
+            SeccionConceptosNuevaCotizacion(
+                conceptos = conceptos,
+                onConceptosChange = { conceptos = it }
+            )
         }
 
         item {
             SeccionResumenNuevaCotizacion(
+                subtotal = subtotalCalculado,
+                total = totalCalculado,
+                anticipoSugerido = anticipoCalculado,
+                saldoRestante = saldoCalculado,
                 descuento = descuento,
                 onDescuentoChange = { descuento = it },
                 iva = iva,
@@ -120,20 +172,25 @@ fun NuevaCotizacionScreen(
                         return@BotonesNuevaCotizacion
                     }
 
-                    val detallesCotizacion = listOf(
-                        DetalleCotizacionEntity(
-                            cotizacionId = 0,
-                            descripcion = descripcion.ifBlank { "Trabajo cotizado" },
-                            cantidad = 1.0,
-                            precioUnitario = 8900.0,
-                            total = 8900.0
-                        )
-                    )
+                    val detallesCotizacion = conceptos
+                        .filter {
+                            it.descripcion.isNotBlank() &&
+                                    it.cantidadNumero > 0.0 &&
+                                    it.precioNumero > 0.0
+                        }
+                        .map { concepto ->
+                            DetalleCotizacionEntity(
+                                cotizacionId = 0,
+                                descripcion = concepto.descripcion,
+                                cantidad = concepto.cantidadNumero,
+                                precioUnitario = concepto.precioNumero,
+                                total = concepto.total
+                            )
+                        }
 
-                    val subtotalCalculado = detallesCotizacion.sumOf { it.total }
-                    val ivaPorcentaje = iva.toDoubleOrNull() ?: 16.0
-                    val ivaCalculado = subtotalCalculado * (ivaPorcentaje / 100.0)
-                    val totalCalculado = subtotalCalculado + ivaCalculado
+                    if (detallesCotizacion.isEmpty()) {
+                        return@BotonesNuevaCotizacion
+                    }
 
                     viewModel.guardarCotizacion(
                         folio = folio,
@@ -272,22 +329,18 @@ fun SeccionInformacionGeneralNuevaCotizacion(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CampoFormularioCotizacion(
+            CampoFechaCotizacion(
                 titulo = "Fecha *",
                 valor = fecha,
-                placeholder = "Fecha",
-                onValueChange = onFechaChange,
-                modifier = Modifier.weight(1f),
-                leadingIcon = Icons.Default.CalendarMonth
+                onFechaSeleccionada = onFechaChange,
+                modifier = Modifier.weight(1f)
             )
 
-            CampoFormularioCotizacion(
+            CampoFechaCotizacion(
                 titulo = "Vigencia *",
                 valor = vigencia,
-                placeholder = "Vigencia",
-                onValueChange = onVigenciaChange,
-                modifier = Modifier.weight(1f),
-                leadingIcon = Icons.Default.CalendarMonth
+                onFechaSeleccionada = onVigenciaChange,
+                modifier = Modifier.weight(1f)
             )
         }
 
@@ -422,7 +475,18 @@ fun SelectorClienteCotizacion(
 }
 
 @Composable
-fun SeccionConceptosNuevaCotizacion() {
+fun SeccionConceptosNuevaCotizacion(
+    conceptos: List<ConceptoCotizacionForm>,
+    onConceptosChange: (List<ConceptoCotizacionForm>) -> Unit
+) {
+    var categoriaSeleccionada by remember { mutableStateOf("Materiales") }
+
+    val categorias = listOf(
+        "Materiales",
+        "Mano de obra",
+        "Gastos adicionales"
+    )
+
     CardSeccionFormularioCotizacion(
         titulo = "Conceptos",
         icono = Icons.Default.FormatListBulleted
@@ -434,55 +498,55 @@ fun SeccionConceptosNuevaCotizacion() {
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            TabConceptoCotizacion(
-                texto = "Materiales",
-                seleccionado = true,
-                modifier = Modifier.weight(1f)
-            )
-
-            TabConceptoCotizacion(
-                texto = "Mano de obra",
-                seleccionado = false,
-                modifier = Modifier.weight(1f)
-            )
-
-            TabConceptoCotizacion(
-                texto = "Gastos adicionales",
-                seleccionado = false,
-                modifier = Modifier.weight(1f)
-            )
+            categorias.forEach { categoria ->
+                TabConceptoCotizacion(
+                    texto = categoria,
+                    seleccionado = categoriaSeleccionada == categoria,
+                    onClick = {
+                        categoriaSeleccionada = categoria
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         EncabezadoNuevaCotizacionConceptos()
 
-        ConceptoNuevaCotizacionItem(
-            concepto = "PTR 2x2 Cal. 14",
-            cantidad = "12",
-            unidad = "Pza",
-            precio = "$450.00",
-            importe = "$5,400.00"
-        )
-
-        ConceptoNuevaCotizacionItem(
-            concepto = "Soldadura",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$2,000.00",
-            importe = "$2,000.00"
-        )
-
-        ConceptoNuevaCotizacionItem(
-            concepto = "Pintura anticorrosiva",
-            cantidad = "1",
-            unidad = "Servicio",
-            precio = "$1,500.00",
-            importe = "$1,500.00"
-        )
+        conceptos.forEachIndexed { index, concepto ->
+            ConceptoNuevaCotizacionItem(
+                concepto = concepto,
+                onConceptoChange = { conceptoActualizado ->
+                    onConceptosChange(
+                        conceptos.toMutableList().also {
+                            it[index] = conceptoActualizado
+                        }
+                    )
+                },
+                onEliminarClick = {
+                    if (conceptos.size > 1) {
+                        onConceptosChange(
+                            conceptos.toMutableList().also {
+                                it.removeAt(index)
+                            }
+                        )
+                    }
+                }
+            )
+        }
 
         TextButton(
-            onClick = { }
+            onClick = {
+                onConceptosChange(
+                    conceptos + ConceptoCotizacionForm(
+                        descripcion = "",
+                        cantidad = "1",
+                        unidad = "Pza",
+                        precioUnitario = ""
+                    )
+                )
+            }
         ) {
             Icon(
                 imageVector = Icons.Default.AddCircleOutline,
@@ -506,11 +570,15 @@ fun SeccionConceptosNuevaCotizacion() {
 fun TabConceptoCotizacion(
     texto: String,
     seleccionado: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .height(30.dp)
+            .clickable {
+                onClick()
+            }
             .background(
                 color = if (seleccionado) Color.White else Color.Transparent,
                 shape = RoundedCornerShape(6.dp)
@@ -579,11 +647,9 @@ fun EncabezadoNuevaCotizacionConceptos() {
 
 @Composable
 fun ConceptoNuevaCotizacionItem(
-    concepto: String,
-    cantidad: String,
-    unidad: String,
-    precio: String,
-    importe: String
+    concepto: ConceptoCotizacionForm,
+    onConceptoChange: (ConceptoCotizacionForm) -> Unit,
+    onEliminarClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -591,36 +657,63 @@ fun ConceptoNuevaCotizacionItem(
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = concepto,
-            fontSize = 8.sp,
-            color = Color.Black,
-            maxLines = 1,
+        CampoMiniEditableCotizacion(
+            valor = concepto.descripcion,
+            onValueChange = {
+                onConceptoChange(concepto.copy(descripcion = it))
+            },
+            placeholder = "Concepto",
             modifier = Modifier.weight(1.3f)
         )
 
-        CampoMiniCotizacion(
-            texto = cantidad,
+        CampoMiniEditableCotizacion(
+            valor = concepto.cantidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(cantidad = it))
+            },
+            placeholder = "Cant.",
             modifier = Modifier.weight(0.5f)
         )
 
-        CampoMiniCotizacion(
-            texto = unidad,
+        CampoMiniEditableCotizacion(
+            valor = concepto.unidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(unidad = it))
+            },
+            placeholder = "Unidad",
             modifier = Modifier.weight(0.7f)
         )
 
-        CampoMiniCotizacion(
-            texto = precio,
+        CampoMiniEditableCotizacion(
+            valor = concepto.precioUnitario,
+            onValueChange = {
+                onConceptoChange(concepto.copy(precioUnitario = it))
+            },
+            placeholder = "Precio",
             modifier = Modifier.weight(0.8f)
         )
 
-        CampoMiniCotizacion(
-            texto = importe,
-            modifier = Modifier.weight(0.8f)
-        )
+        Box(
+            modifier = Modifier
+                .weight(0.8f)
+                .height(28.dp)
+                .padding(horizontal = 2.dp)
+                .background(
+                    color = Color(0xFFF8FAFC),
+                    shape = RoundedCornerShape(5.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = concepto.total.formatoMonedaCotizacion(),
+                fontSize = 8.sp,
+                color = Color.Black,
+                maxLines = 1
+            )
+        }
 
         IconButton(
-            onClick = { },
+            onClick = onEliminarClick,
             modifier = Modifier.size(24.dp)
         ) {
             Icon(
@@ -658,7 +751,38 @@ fun CampoMiniCotizacion(
 }
 
 @Composable
+fun CampoMiniEditableCotizacion(
+    valor: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onValueChange,
+        modifier = modifier
+            .height(36.dp)
+            .padding(horizontal = 2.dp),
+        placeholder = {
+            Text(
+                text = placeholder,
+                fontSize = 8.sp
+            )
+        },
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            fontSize = 8.sp
+        ),
+        shape = RoundedCornerShape(5.dp)
+    )
+}
+
+@Composable
 fun SeccionResumenNuevaCotizacion(
+    subtotal: Double,
+    total: Double,
+    anticipoSugerido: Double,
+    saldoRestante: Double,
     descuento: String,
     onDescuentoChange: (String) -> Unit,
     iva: String,
@@ -666,6 +790,8 @@ fun SeccionResumenNuevaCotizacion(
     anticipo: String,
     onAnticipoChange: (String) -> Unit
 ) {
+    val opcionesIva = listOf("0", "8", "16")
+
     CardSeccionFormularioCotizacion(
         titulo = "Resumen de la cotización",
         icono = Icons.Default.ReceiptLong
@@ -679,9 +805,10 @@ fun SeccionResumenNuevaCotizacion(
             ) {
                 CampoFormularioCotizacion(
                     titulo = "Subtotal",
-                    valor = "$8,900.00",
+                    valor = subtotal.formatoMonedaCotizacion(),
                     placeholder = "",
-                    onValueChange = { }
+                    onValueChange = { },
+                    readOnly = true
                 )
 
                 CampoFormularioCotizacion(
@@ -702,10 +829,11 @@ fun SeccionResumenNuevaCotizacion(
                     onValueChange = onDescuentoChange
                 )
 
-                CampoFormularioCotizacion(
+                CampoDropdownCotizacion(
                     titulo = "IVA (%)",
                     valor = iva,
-                    placeholder = "16",
+                    opciones = opcionesIva,
+                    placeholder = "IVA",
                     onValueChange = onIvaChange
                 )
             }
@@ -720,7 +848,7 @@ fun SeccionResumenNuevaCotizacion(
                 )
 
                 Text(
-                    text = "$10,324.00",
+                    text = total.formatoMonedaCotizacion(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF16A34A)
@@ -745,7 +873,7 @@ fun SeccionResumenNuevaCotizacion(
                         )
 
                         Text(
-                            text = "$5,162.00",
+                            text = anticipoSugerido.formatoMonedaCotizacion(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF15803D)
@@ -762,7 +890,7 @@ fun SeccionResumenNuevaCotizacion(
                 )
 
                 Text(
-                    text = "$5,162.00",
+                    text = saldoRestante.formatoMonedaCotizacion(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -975,7 +1103,8 @@ fun CampoFormularioCotizacion(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
-    trailingIcon: ImageVector? = null
+    trailingIcon: ImageVector? = null,
+    readOnly: Boolean = false
 ) {
     Column(
         modifier = modifier.padding(bottom = 8.dp)
@@ -993,6 +1122,7 @@ fun CampoFormularioCotizacion(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
+            readOnly = readOnly,
             placeholder = {
                 Text(
                     text = placeholder,
@@ -1061,5 +1191,193 @@ fun CampoTextoLargoCotizacion(
             shape = RoundedCornerShape(7.dp),
             maxLines = 3
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoFechaCotizacion(
+    titulo: String,
+    valor: String,
+    onFechaSeleccionada: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    mostrarCalendario = true
+                }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                placeholder = {
+                    Text(
+                        text = "Seleccionar fecha",
+                        fontSize = 10.sp
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Seleccionar fecha",
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 10.sp
+                ),
+                shape = RoundedCornerShape(7.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color.Black,
+                    disabledBorderColor = Color(0xFFE0E0E0),
+                    disabledContainerColor = Color.White,
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledTrailingIconColor = Color.DarkGray
+                )
+            )
+        }
+    }
+
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = {
+                mostrarCalendario = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val fechaSeleccionada = datePickerState.selectedDateMillis
+
+                        if (fechaSeleccionada != null) {
+                            val formato = SimpleDateFormat(
+                                "dd/MM/yyyy",
+                                Locale.getDefault()
+                            )
+
+                            onFechaSeleccionada(
+                                formato.format(Date(fechaSeleccionada))
+                            )
+                        }
+
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoDropdownCotizacion(
+    titulo: String,
+    valor: String,
+    opciones: List<String>,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expandido,
+            onExpandedChange = {
+                expandido = !expandido
+            }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(48.dp),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        fontSize = 10.sp
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandido
+                    )
+                },
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 10.sp
+                ),
+                shape = RoundedCornerShape(7.dp)
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandido,
+                onDismissRequest = {
+                    expandido = false
+                }
+            ) {
+                opciones.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = opcion,
+                                fontSize = 12.sp
+                            )
+                        },
+                        onClick = {
+                            onValueChange(opcion)
+                            expandido = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }

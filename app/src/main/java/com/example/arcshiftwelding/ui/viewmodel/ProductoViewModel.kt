@@ -18,6 +18,11 @@ class ProductoViewModel(
     private val _textoBusqueda = MutableStateFlow("")
     val textoBusqueda: StateFlow<String> = _textoBusqueda
 
+
+    private val _codigoSiguiente = MutableStateFlow("")
+    val codigoSiguiente: StateFlow<String> = _codigoSiguiente
+
+
     val productos: StateFlow<List<ProductoEntity>> =
         _textoBusqueda.flatMapLatest { texto ->
             if (texto.isBlank()) {
@@ -105,6 +110,32 @@ class ProductoViewModel(
     fun activarProducto(productoId: Int) {
         viewModelScope.launch {
             repository.activarProducto(productoId)
+        }
+    }
+    fun generarCodigoPorCategoria(categoria: String) {
+        if (categoria.isBlank()) {
+            _codigoSiguiente.value = ""
+            return
+        }
+
+        viewModelScope.launch {
+            _codigoSiguiente.value = repository.obtenerSiguienteCodigoPorCategoria(categoria)
+        }
+    }
+
+    fun insertarProductoConCodigo(
+        producto: ProductoEntity,
+        onProductoInsertado: (Long) -> Unit
+    ) {
+        viewModelScope.launch {
+            val codigoGenerado = repository.obtenerSiguienteCodigoPorCategoria(producto.categoria)
+
+            val productoConCodigo = producto.copy(
+                codigo = codigoGenerado
+            )
+
+            val id = repository.insertarProducto(productoConCodigo)
+            onProductoInsertado(id)
         }
     }
 

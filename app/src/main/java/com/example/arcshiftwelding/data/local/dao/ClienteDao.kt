@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.relation.ClienteConCotizaciones
+import com.example.arcshiftwelding.data.local.relation.ClienteConCantidadCotizaciones
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -75,5 +76,21 @@ interface ClienteDao {
 
     @Query("SELECT COUNT(*) FROM cotizaciones WHERE clienteId = :clienteId")
     fun contarCotizacionesPorCliente(clienteId: Int): Flow<Int>
+
+
+
+    @Query("""
+    SELECT 
+        c.*,
+        COUNT(co.id) AS cantidadCotizaciones
+    FROM clientes c
+    LEFT JOIN cotizaciones co 
+        ON co.clienteId = c.id
+    WHERE c.eliminado = 0
+    GROUP BY c.id
+    ORDER BY c.id DESC
+""")
+    fun obtenerClientesConCantidadCotizaciones(): Flow<List<ClienteConCantidadCotizaciones>>
+
 }
 

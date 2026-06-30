@@ -181,7 +181,7 @@ fun EditarEmpleadoScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-
+/*
             SeccionConfiguracionNuevoEmpleado(
                 empleadoActivo = empleadoActivo,
                 onEmpleadoActivoChange = { empleadoActivo = it },
@@ -189,7 +189,7 @@ fun EditarEmpleadoScreen(
                 onAsignarTrabajosChange = { asignarTrabajos = it },
                 pagoSemanalActivo = pagoSemanalActivo,
                 onPagoSemanalActivoChange = { pagoSemanalActivo = it }
-            )
+            )*/
 
             BotonesFormularioEditarEmpleado(
                 onCancelarClick = {

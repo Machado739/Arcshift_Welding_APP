@@ -363,11 +363,11 @@ fun SeccionEditarIngresoRelacionado() {
                 modifier = Modifier.weight(1f)
             )
 
-            CampoSeleccionIngreso(
+         /*   CampoSeleccionIngreso(
                 titulo = "Orden de trabajo",
                 valor = "OT-0095",
                 modifier = Modifier.weight(1f)
-            )
+            )*/
 
             CampoSeleccionIngreso(
                 titulo = "Cliente",

@@ -123,6 +123,12 @@ fun NuevoGastoScreen(
         "Sin proyecto"
     )
 
+    val opcionesIva = listOf(
+        "0",
+        "8",
+        "16"
+    )
+
 
 
     Scaffold(
@@ -254,11 +260,12 @@ fun NuevoGastoScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    CampoFinancieroCompacto(
+                    CampoDropdownCompacto(
                         label = "IVA (%)",
                         value = ivaPorcentaje,
+                        opciones = opcionesIva,
                         onValueChange = { ivaPorcentaje = it },
-                        placeholder = "16",
+                        placeholder = "IVA",
                         modifier = Modifier.weight(1f)
                     )
 

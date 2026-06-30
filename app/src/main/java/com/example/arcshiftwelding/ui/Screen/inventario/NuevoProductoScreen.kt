@@ -58,6 +58,8 @@ fun NuevoProductoScreen(
         factory = ProductoViewModelFactory(repository)
     )
 
+    val codigoGenerado by productoViewModel.codigoSiguiente.collectAsState()
+
     val movimientoRepository = remember {
         MovimientoInventarioRepository(database.movimientoInventarioDao())
     }
@@ -67,7 +69,6 @@ fun NuevoProductoScreen(
     )
 
     var nombre by remember { mutableStateOf("") }
-    var codigo by remember { mutableStateOf("") }
     var ubicacion by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
 
@@ -138,14 +139,17 @@ fun NuevoProductoScreen(
             SeccionInformacionGeneral(
                 nombre = nombre,
                 onNombreChange = { nombre = it },
-                codigo = codigo,
-                onCodigoChange = { codigo = it },
+                codigo = codigoGenerado,
+                onCodigoChange = {},
                 ubicacion = ubicacion,
                 onUbicacionChange = { ubicacion = it },
                 descripcion = descripcion,
                 onDescripcionChange = { descripcion = it },
                 categoria = categoria,
-                onCategoriaChange = { categoria = it },
+                onCategoriaChange = {
+                    categoria = it
+                    productoViewModel.generarCodigoPorCategoria(it)
+                },
                 unidad = unidad,
                 onUnidadChange = { unidad = it },
                 imagenUri = imagenUri,
@@ -175,14 +179,14 @@ fun NuevoProductoScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-
+/*
             SeccionOpciones(
                 permitirStockNegativo = permitirStockNegativo,
                 onPermitirStockNegativoChange = { permitirStockNegativo = it },
                 productoActivo = productoActivo,
                 onProductoActivoChange = { productoActivo = it }
             )
-
+*/
             if (mensajeError.isNotBlank()) {
                 Text(
                     text = mensajeError,
@@ -197,10 +201,7 @@ fun NuevoProductoScreen(
                     navController.popBackStack()
                 },
                 onGuardar = {
-                    if (nombre.isBlank()) {
-                        mensajeError = "El nombre del producto es obligatorio"
-                        return@BotonesFormulario
-                    }
+
 
                     if (categoria.isBlank()) {
                         mensajeError = "Selecciona una categoría"
@@ -212,7 +213,7 @@ fun NuevoProductoScreen(
                         return@BotonesFormulario
                     }
 
-                    if (codigo.isBlank()) {
+                    if (codigoGenerado.isBlank()) {
                         mensajeError = "El código del producto es obligatorio"
                         return@BotonesFormulario
                     }
@@ -256,7 +257,7 @@ fun NuevoProductoScreen(
                     val producto = ProductoEntity(
                         nombre = nombre.trim(),
                         categoria = categoria,
-                        codigo = codigo.trim(),
+                        codigo = codigoGenerado,
                         ubicacion = ubicacion.trim(),
 
                         stock = stock,
@@ -281,7 +282,7 @@ fun NuevoProductoScreen(
                         fechaRegistro = "18/06/2026"
                     )
 
-                    productoViewModel.insertarProducto(producto) { productoIdGenerado ->
+                    productoViewModel.insertarProductoConCodigo(producto) { productoIdGenerado ->
 
                         val movimientoInicial = MovimientoInventarioEntity(
                             productoId = productoIdGenerado.toInt(),
@@ -356,7 +357,9 @@ fun FormularioCard(
             contenido()
         }
     }
-}@Composable
+}
+
+@Composable
 fun SeccionInformacionGeneral(
     nombre: String,
     onNombreChange: (String) -> Unit,
@@ -427,6 +430,17 @@ fun SeccionInformacionGeneral(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    OutlinedTextField(
+                        value = codigo,
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        label = { Text("Código automático") },
+                        placeholder = { Text("Selecciona una categoría") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
                     MenuDesplegable(
                         label = "Unidad de medida *",
                         placeholder = "Seleccionar unidad",
@@ -436,14 +450,6 @@ fun SeccionInformacionGeneral(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    OutlinedTextField(
-                        value = codigo,
-                        onValueChange = onCodigoChange,
-                        label = { Text("Código / SKU *") },
-                        placeholder = { Text("Ej. MAT-001") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
 
                     OutlinedTextField(
                         value = ubicacion,
@@ -614,7 +620,7 @@ fun SeccionInformacionAdicional(
         }
     }
 }
-
+/*
 @Composable
 fun SeccionOpciones(
     permitirStockNegativo: Boolean,
@@ -664,7 +670,7 @@ fun SeccionOpciones(
     }
 }
 
-
+*/
 
 @Composable
 fun BotonesFormulario(

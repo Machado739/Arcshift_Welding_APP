@@ -127,7 +127,7 @@ fun NuevoClienteScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-
+/*
             SeccionConfiguracionNuevoCliente(
                 clienteActivo = clienteActivo,
                 onClienteActivoChange = { clienteActivo = it },
@@ -139,7 +139,7 @@ fun NuevoClienteScreen(
                 onContactoLlamadasChange = { contactoLlamadas = it },
                 contactoCorreo = contactoCorreo,
                 onContactoCorreoChange = { contactoCorreo = it }
-            )
+            )*/
 
             BotonesFormularioCliente(
                 onCancelarClick = {
