@@ -25,7 +25,8 @@ import androidx.compose.material3.rememberDatePickerState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,8 +47,17 @@ fun NuevoGastoScreen(
     var observaciones by remember { mutableStateOf("") }
 
     var proyecto by remember { mutableStateOf("") }
-    var cotizacion by remember { mutableStateOf("") }
-    var cliente by remember { mutableStateOf("") }
+    var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var cotizacionSeleccionadaId by remember { mutableStateOf<Int?>(null) }
+
+    val clientesDb by viewModel.clientesActivos.collectAsState(initial = emptyList())
+    val cotizacionesDb by viewModel.cotizaciones.collectAsState(initial = emptyList())
+
+    val cotizacionesFiltradas = if (clienteSeleccionadoId != null) {
+        cotizacionesDb.filter { it.clienteId == clienteSeleccionadoId }
+    } else {
+        cotizacionesDb
+    }
 
     var mostrarError by remember { mutableStateOf(false) }
 
@@ -113,20 +123,7 @@ fun NuevoGastoScreen(
         "Sin proyecto"
     )
 
-    val cotizaciones = listOf(
-        "COT-001 - Portón metálico",
-        "COT-002 - Estructura para techo",
-        "COT-003 - Reparación de remolque",
-        "Sin cotización"
-    )
 
-    val clientes = listOf(
-        "Eduardo Barrios",
-        "Jose Vera",
-        "Maria Lopez",
-        "Carlos Ruiz",
-        "Sin cliente"
-    )
 
     Scaffold(
         topBar = {
@@ -403,21 +400,39 @@ fun NuevoGastoScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    CampoDropdownCompacto(
-                        label = "Cotización",
-                        value = cotizacion,
-                        opciones = cotizaciones,
-                        onValueChange = { cotizacion = it },
-                        placeholder = "Seleccionar cotización",
+                    CampoSelectorClienteNuevoGasto(
+                        label = "Cliente",
+                        clientes = clientesDb,
+                        clienteSeleccionadoId = clienteSeleccionadoId,
+                        onClienteSeleccionado = { nuevoClienteId ->
+                            clienteSeleccionadoId = nuevoClienteId
+
+                            val cotizacionActual = cotizacionesDb.firstOrNull {
+                                it.id == cotizacionSeleccionadaId
+                            }
+
+                            if (nuevoClienteId == null || cotizacionActual?.clienteId != nuevoClienteId) {
+                                cotizacionSeleccionadaId = null
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    CampoDropdownCompacto(
-                        label = "Cliente",
-                        value = cliente,
-                        opciones = clientes,
-                        onValueChange = { cliente = it },
-                        placeholder = "Seleccionar cliente",
+                    CampoSelectorCotizacionNuevoGasto(
+                        label = "Cotización",
+                        cotizaciones = cotizacionesFiltradas,
+                        cotizacionSeleccionadaId = cotizacionSeleccionadaId,
+                        onCotizacionSeleccionada = { nuevaCotizacionId ->
+                            cotizacionSeleccionadaId = nuevaCotizacionId
+
+                            val cotizacionSeleccionada = cotizacionesDb.firstOrNull {
+                                it.id == nuevaCotizacionId
+                            }
+
+                            if (cotizacionSeleccionada != null) {
+                                clienteSeleccionadoId = cotizacionSeleccionada.clienteId
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -452,13 +467,13 @@ fun NuevoGastoScreen(
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = formaPago,
-                                telefonoProveedor = telefonoProveedor,
-                                correoProveedor = correoProveedor,
-                                rfcProveedor = rfcProveedor,
-                                observaciones = observaciones,
-                                proyecto = proyecto,
-                                cotizacion = cotizacion,
-                                cliente = cliente
+                                telefonoProveedor = telefonoProveedor.ifBlank { null },
+                                correoProveedor = correoProveedor.ifBlank { null },
+                                rfcProveedor = rfcProveedor.ifBlank { null },
+                                observaciones = observaciones.ifBlank { null },
+                                proyecto = proyecto.ifBlank { null },
+                                clienteId = clienteSeleccionadoId,
+                                cotizacionId = cotizacionSeleccionadaId
                             )
 
                             navController.popBackStack()
@@ -479,7 +494,146 @@ fun NuevoGastoScreen(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoSelectorClienteNuevoGasto(
+    label: String,
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
 
+    val clienteSeleccionado = clientes.firstOrNull {
+        it.id == clienteSeleccionadoId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = clienteSeleccionado?.nombre ?: "Sin cliente",
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin cliente") },
+                onClick = {
+                    onClienteSeleccionado(null)
+                    expanded = false
+                }
+            )
+
+            clientes.forEach { cliente ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(cliente.nombre, fontWeight = FontWeight.SemiBold)
+                            if (cliente.empresa.isNotBlank()) {
+                                Text(
+                                    cliente.empresa,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onClienteSeleccionado(cliente.id)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoSelectorCotizacionNuevoGasto(
+    label: String,
+    cotizaciones: List<CotizacionEntity>,
+    cotizacionSeleccionadaId: Int?,
+    onCotizacionSeleccionada: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val cotizacionSeleccionada = cotizaciones.firstOrNull {
+        it.id == cotizacionSeleccionadaId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = cotizacionSeleccionada?.folio ?: "Sin cotización",
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin cotización") },
+                onClick = {
+                    onCotizacionSeleccionada(null)
+                    expanded = false
+                }
+            )
+
+            cotizaciones.forEach { cotizacion ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(cotizacion.folio, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                cotizacion.descripcionTrabajo,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+                    },
+                    onClick = {
+                        onCotizacionSeleccionada(cotizacion.id)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun CampoFinancieroCompacto(

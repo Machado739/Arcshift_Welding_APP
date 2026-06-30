@@ -321,6 +321,8 @@ fun ReportarSalidaScreen(
 
                         val movimientoSalida = MovimientoInventarioEntity(
                             productoId = producto.id,
+                            clienteId = null,
+                            cotizacionId = null,
                             tipo = "Salida",
                             cantidad = cantidad,
                             stockAnterior = stockActual,

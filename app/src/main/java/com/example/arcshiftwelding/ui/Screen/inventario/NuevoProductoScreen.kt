@@ -285,6 +285,8 @@ fun NuevoProductoScreen(
 
                         val movimientoInicial = MovimientoInventarioEntity(
                             productoId = productoIdGenerado.toInt(),
+                            clienteId = null,
+                            cotizacionId = null,
                             tipo = "Registro inicial",
                             cantidad = stock,
                             stockAnterior = 0,

@@ -293,6 +293,8 @@ fun ReponerStockScreen(
 
                         val movimientoEntrada = MovimientoInventarioEntity(
                             productoId = producto.id,
+                            clienteId = null,
+                            cotizacionId = null,
                             tipo = "Entrada",
                             cantidad = cantidad,
                             stockAnterior = stockActual,

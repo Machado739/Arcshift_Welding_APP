@@ -83,12 +83,18 @@ fun AppNavigation() {
     )
 
     val gastosViewModel: GastosViewModel = viewModel(
-        factory = GastosViewModelFactory(database.gastoDao())
+        factory = GastosViewModelFactory(
+            gastoDao = database.gastoDao(),
+            clienteDao = database.clienteDao(),
+            cotizacionDao = database.cotizacionDao()
+        )
     )
 
     val ingresosViewModel: IngresosViewModel = viewModel(
         factory = IngresosViewModelFactory(
-            database.ingresoDao()
+            ingresoDao = database.ingresoDao(),
+            clienteDao = database.clienteDao(),
+            cotizacionDao = database.cotizacionDao()
         )
     )
 
@@ -254,38 +260,16 @@ fun AppNavigation() {
 ///                     GASTOS
 
             composable(AppRoutes.GASTOS) {
-                val context = LocalContext.current
-
-                val database = ArcshiftWeldingDatabase.getDatabase(context)
-
-                val viewModel: GastosViewModel = viewModel(
-                    factory = GastosViewModelFactory(
-                        gastoDao = database.gastoDao()
-                    )
-                )
-
                 GastosScreen(
                     navController = navController,
-                    viewModel = viewModel
+                    viewModel = gastosViewModel
                 )
-
-
             }
 
             composable(AppRoutes.NUEVO_GASTO) {
-                val context = LocalContext.current
-
-                val database = ArcshiftWeldingDatabase.getDatabase(context)
-
-                val viewModel: GastosViewModel = viewModel(
-                    factory = GastosViewModelFactory(
-                        gastoDao = database.gastoDao()
-                    )
-                )
-
                 NuevoGastoScreen(
                     navController = navController,
-                    viewModel = viewModel
+                    viewModel = gastosViewModel
                 )
             }
 
@@ -311,15 +295,6 @@ fun AppNavigation() {
                 route = AppRoutes.DETALLE_GASTO
             ) { backStackEntry ->
 
-                val context = LocalContext.current
-                val database = ArcshiftWeldingDatabase.getDatabase(context)
-
-                val viewModel: GastosViewModel = viewModel(
-                    factory = GastosViewModelFactory(
-                        gastoDao = database.gastoDao()
-                    )
-                )
-
                 val gastoId = backStackEntry.arguments
                     ?.getString("gastoId")
                     ?.toIntOrNull() ?: 0
@@ -327,7 +302,7 @@ fun AppNavigation() {
                 DetalleGastoScreen(
                     navController = navController,
                     gastoId = gastoId,
-                    viewModel = viewModel
+                    viewModel = gastosViewModel
                 )
             }
 

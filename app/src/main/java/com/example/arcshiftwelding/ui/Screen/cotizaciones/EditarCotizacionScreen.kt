@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 
 @Composable
 fun EditarCotizacionScreen(
@@ -33,7 +34,11 @@ fun EditarCotizacionScreen(
 
     var datosCargados by remember { mutableStateOf(false) }
 
-    var cliente by remember { mutableStateOf("") }
+    val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
+
+    var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var errorCliente by remember { mutableStateOf(false) }
+
     var proyecto by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("") }
     var vigencia by remember { mutableStateOf("") }
@@ -47,7 +52,7 @@ fun EditarCotizacionScreen(
 
     LaunchedEffect(cotizacionEntity) {
         if (cotizacionEntity != null && !datosCargados) {
-            cliente = cotizacionEntity!!.cliente
+            clienteSeleccionadoId = cotizacionEntity!!.clienteId
             fecha = cotizacionEntity!!.fecha
             vigencia = cotizacionEntity!!.fecha
             folio = cotizacionEntity!!.folio
@@ -115,8 +120,13 @@ fun EditarCotizacionScreen(
 
             item {
                 SeccionInformacionGeneralEditarCotizacion(
-                    cliente = cliente,
-                    onClienteChange = { cliente = it },
+                    clientes = clientes,
+                    clienteSeleccionadoId = clienteSeleccionadoId,
+                    onClienteSeleccionado = {
+                        clienteSeleccionadoId = it
+                        errorCliente = false
+                    },
+                    errorCliente = errorCliente,
                     proyecto = proyecto,
                     onProyectoChange = { proyecto = it },
                     fecha = fecha,
@@ -162,31 +172,41 @@ fun EditarCotizacionScreen(
                         navController.popBackStack()
                     },
                     onActualizarClick = {
+                        val clienteId = clienteSeleccionadoId
+
+                        if (clienteId == null) {
+                            errorCliente = true
+                            return@BotonesEditarCotizacion
+                        }
+
                         val subtotalCalculado = cotizacionEntity?.subtotal ?: 0.0
-                        val ivaCalculado = subtotalCalculado * 0.16
+                        val ivaPorcentaje = iva.toDoubleOrNull() ?: 16.0
+                        val ivaCalculado = subtotalCalculado * (ivaPorcentaje / 100.0)
                         val totalCalculado = subtotalCalculado + ivaCalculado
+
+                        val detallesActualizados = listOf(
+                            DetalleCotizacionEntity(
+                                cotizacionId = cotizacionId,
+                                descripcion = descripcion.ifBlank { "Trabajo cotizado" },
+                                cantidad = 1.0,
+                                precioUnitario = subtotalCalculado,
+                                total = subtotalCalculado
+                            )
+                        )
 
                         viewModel.actualizarCotizacion(
                             cotizacion = CotizacionEntity(
                                 id = cotizacionId,
                                 folio = folio,
-                                cliente = cliente,
-                                descripcionTrabajo = descripcion,
+                                clienteId = clienteId,
+                                descripcionTrabajo = descripcion.ifBlank { "Trabajo cotizado" },
                                 subtotal = subtotalCalculado,
                                 iva = ivaCalculado,
                                 total = totalCalculado,
                                 fecha = fecha,
                                 estado = cotizacionEntity?.estado ?: "Pendiente"
                             ),
-                            detalles = listOf(
-                                DetalleCotizacionEntity(
-                                    cotizacionId = cotizacionId,
-                                    concepto = descripcion.ifBlank { "Trabajo cotizado" },
-                                    cantidad = 1.0,
-                                    precioUnitario = subtotalCalculado,
-                                    importe = subtotalCalculado
-                                )
-                            ),
+                            detalles = detallesActualizados,
                             onFinish = {
                                 navController.popBackStack()
                             }
@@ -248,10 +268,13 @@ fun CardAvisoEditarCotizacion() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeccionInformacionGeneralEditarCotizacion(
-    cliente: String,
-    onClienteChange: (String) -> Unit,
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int) -> Unit,
+    errorCliente: Boolean,
     proyecto: String,
     onProyectoChange: (String) -> Unit,
     fecha: String,
@@ -267,12 +290,11 @@ fun SeccionInformacionGeneralEditarCotizacion(
         titulo = "Información general",
         icono = Icons.Default.Info
     ) {
-        CampoEditarCotizacion(
-            titulo = "Cliente *",
-            valor = cliente,
-            placeholder = "Seleccionar cliente",
-            onValueChange = onClienteChange,
-            trailingIcon = Icons.Default.KeyboardArrowDown
+        SelectorClienteCotizacion(
+            clientes = clientes,
+            clienteSeleccionadoId = clienteSeleccionadoId,
+            onClienteSeleccionado = onClienteSeleccionado,
+            mostrarError = errorCliente
         )
 
         CampoEditarCotizacion(

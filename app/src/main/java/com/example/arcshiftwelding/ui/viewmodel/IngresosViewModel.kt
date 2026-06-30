@@ -3,8 +3,13 @@ package com.example.arcshiftwelding.ui.Screen.ingresos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.arcshiftwelding.data.local.dao.ClienteDao
+import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.IngresoDao
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
+import com.example.arcshiftwelding.data.local.relation.IngresoConRelaciones
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +25,7 @@ import java.util.Locale
 data class IngresoUI(
     val id: Int,
     val cliente: String,
+    val clienteId: Int?,
     val trabajo: String,
     val folio: String,
     val total: String,
@@ -35,6 +41,7 @@ data class IngresoUI(
     val formaPago: String,
     val observaciones: String,
     val cotizacion: String,
+    val cotizacionId: Int?,
     val ordenTrabajo: String,
     val proyecto: String,
     val totalNumero: Double,
@@ -45,7 +52,9 @@ data class IngresoUI(
 data class IngresoFormState(
     val id: Int = 0,
     val concepto: String = "",
-    val cliente: String = "",
+    val clienteId: Int? = null,
+    val cotizacionId: Int? = null,
+
     val trabajo: String = "",
     val folio: String = "",
     val fecha: String = fechaActual(),
@@ -59,19 +68,28 @@ data class IngresoFormState(
     val formaPago: String = "Contado",
 
     val observaciones: String = "",
-    val cotizacion: String = "",
     val ordenTrabajo: String = "",
     val proyecto: String = ""
 )
 
 class IngresosViewModel(
-    private val ingresoDao: IngresoDao
+    private val ingresoDao: IngresoDao,
+    private val clienteDao: ClienteDao,
+    private val cotizacionDao: CotizacionDao
 ) : ViewModel() {
 
+    val clientesActivos: Flow<List<ClienteEntity>> =
+        clienteDao.obtenerClientesActivos()
+
+    val cotizaciones: Flow<List<CotizacionEntity>> =
+        cotizacionDao.obtenerCotizaciones()
+
     val ingresos: StateFlow<List<IngresoUI>> =
-        ingresoDao.obtenerIngresosActivos()
+        ingresoDao.obtenerIngresosConRelaciones()
             .map { lista ->
-                lista.map { it.toUi() }
+                lista.map { ingresoConRelaciones ->
+                    ingresoConRelaciones.toUi()
+                }
             }
             .stateIn(
                 scope = viewModelScope,
@@ -83,8 +101,10 @@ class IngresosViewModel(
     val formState: StateFlow<IngresoFormState> = _formState
 
     fun obtenerIngreso(ingresoId: Int): Flow<IngresoUI?> {
-        return ingresoDao.obtenerIngresoPorId(ingresoId)
-            .map { it?.toUi() }
+        return ingresoDao.obtenerIngresoConRelaciones(ingresoId)
+            .map { ingresoConRelaciones ->
+                ingresoConRelaciones?.toUi()
+            }
     }
 
     fun actualizarFormulario(nuevoEstado: IngresoFormState) {
@@ -98,6 +118,7 @@ class IngresosViewModel(
     fun cargarIngresoParaEditar(ingresoId: Int) {
         viewModelScope.launch {
             val ingreso = ingresoDao.obtenerIngresoPorIdDirecto(ingresoId)
+
             if (ingreso != null) {
                 _formState.value = ingreso.toForm()
             }
@@ -107,7 +128,7 @@ class IngresosViewModel(
     fun guardarIngreso(onGuardado: () -> Unit) {
         val form = _formState.value
 
-        if (form.concepto.isBlank() || form.cliente.isBlank()) {
+        if (form.concepto.isBlank()) {
             return
         }
 
@@ -121,7 +142,7 @@ class IngresosViewModel(
     fun actualizarIngreso(onActualizado: () -> Unit) {
         val form = _formState.value
 
-        if (form.id == 0 || form.concepto.isBlank() || form.cliente.isBlank()) {
+        if (form.id == 0 || form.concepto.isBlank()) {
             return
         }
 
@@ -144,49 +165,59 @@ class IngresosViewModel(
 }
 
 class IngresosViewModelFactory(
-    private val ingresoDao: IngresoDao
+    private val ingresoDao: IngresoDao,
+    private val clienteDao: ClienteDao,
+    private val cotizacionDao: CotizacionDao
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(IngresosViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return IngresosViewModel(ingresoDao) as T
+            return IngresosViewModel(
+                ingresoDao = ingresoDao,
+                clienteDao = clienteDao,
+                cotizacionDao = cotizacionDao
+            ) as T
         }
 
         throw IllegalArgumentException("ViewModel desconocido")
     }
 }
 
-fun IngresoEntity.toUi(): IngresoUI {
+fun IngresoConRelaciones.toUi(): IngresoUI {
+    val ingresoActual = ingreso
+
     val categoria = when {
-        pendiente <= 0.0 -> "Pagados"
-        anticipo > 0.0 -> "Anticipos"
+        ingresoActual.pendiente <= 0.0 -> "Pagados"
+        ingresoActual.anticipo > 0.0 -> "Anticipos"
         else -> "Pendientes"
     }
 
     return IngresoUI(
-        id = id,
-        cliente = cliente,
-        trabajo = trabajo.ifBlank { concepto },
-        folio = folio,
-        total = total.formatoDinero(),
-        anticipo = anticipo.formatoDinero(),
-        pendiente = pendiente.formatoDinero(),
+        id = ingresoActual.id,
+        cliente = cliente?.nombre ?: "Sin cliente",
+        clienteId = ingresoActual.clienteId,
+        trabajo = ingresoActual.trabajo.ifBlank { ingresoActual.concepto },
+        folio = ingresoActual.folio,
+        total = ingresoActual.total.formatoDinero(),
+        anticipo = ingresoActual.anticipo.formatoDinero(),
+        pendiente = ingresoActual.pendiente.formatoDinero(),
         categoria = categoria,
-        fecha = fecha,
-        concepto = concepto,
-        subtotal = subtotal.formatoDinero(),
-        iva = iva.formatoDinero(),
-        ivaPorcentaje = ivaPorcentaje.toString(),
-        metodoPago = metodoPago,
-        formaPago = formaPago,
-        observaciones = observaciones,
-        cotizacion = cotizacion,
-        ordenTrabajo = ordenTrabajo,
-        proyecto = proyecto,
-        totalNumero = total,
-        anticipoNumero = anticipo,
-        pendienteNumero = pendiente
+        fecha = ingresoActual.fecha,
+        concepto = ingresoActual.concepto,
+        subtotal = ingresoActual.subtotal.formatoDinero(),
+        iva = ingresoActual.iva.formatoDinero(),
+        ivaPorcentaje = ingresoActual.ivaPorcentaje.toString(),
+        metodoPago = ingresoActual.metodoPago,
+        formaPago = ingresoActual.formaPago,
+        observaciones = ingresoActual.observaciones,
+        cotizacion = cotizacion?.folio ?: "Sin cotización",
+        cotizacionId = ingresoActual.cotizacionId,
+        ordenTrabajo = ingresoActual.ordenTrabajo,
+        proyecto = ingresoActual.proyecto,
+        totalNumero = ingresoActual.total,
+        anticipoNumero = ingresoActual.anticipo,
+        pendienteNumero = ingresoActual.pendiente
     )
 }
 
@@ -194,7 +225,8 @@ fun IngresoEntity.toForm(): IngresoFormState {
     return IngresoFormState(
         id = id,
         concepto = concepto,
-        cliente = cliente,
+        clienteId = clienteId,
+        cotizacionId = cotizacionId,
         trabajo = trabajo,
         folio = folio,
         fecha = fecha,
@@ -205,7 +237,6 @@ fun IngresoEntity.toForm(): IngresoFormState {
         metodoPago = metodoPago,
         formaPago = formaPago,
         observaciones = observaciones,
-        cotizacion = cotizacion,
         ordenTrabajo = ordenTrabajo,
         proyecto = proyecto
     )
@@ -228,7 +259,8 @@ fun IngresoFormState.toEntity(): IngresoEntity {
     return IngresoEntity(
         id = id,
         concepto = concepto.trim(),
-        cliente = cliente.trim(),
+        clienteId = clienteId,
+        cotizacionId = cotizacionId,
         trabajo = trabajo.trim(),
         folio = folio.trim(),
         fecha = fecha.trim(),
@@ -241,7 +273,6 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         metodoPago = metodoPago.trim(),
         formaPago = formaPago.trim(),
         observaciones = observaciones.trim(),
-        cotizacion = cotizacion.trim(),
         ordenTrabajo = ordenTrabajo.trim(),
         proyecto = proyecto.trim(),
         activo = true

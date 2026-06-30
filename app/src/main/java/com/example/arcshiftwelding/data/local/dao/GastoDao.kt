@@ -35,7 +35,7 @@ interface GastoDao {
     fun obtenerGastosConRelaciones(): Flow<List<GastoConRelaciones>>
 
     @Transaction
-    @Query("SELECT * FROM gastos WHERE id = :gastoId")
+    @Query("SELECT * FROM gastos WHERE id = :gastoId LIMIT 1")
     fun obtenerGastoConRelaciones(gastoId: Int): Flow<GastoConRelaciones?>
 
     @Query("SELECT * FROM gastos WHERE clienteId = :clienteId ORDER BY id DESC")
@@ -43,5 +43,7 @@ interface GastoDao {
 
     @Query("SELECT * FROM gastos WHERE cotizacionId = :cotizacionId ORDER BY id DESC")
     fun obtenerGastosPorCotizacion(cotizacionId: Int): Flow<List<GastoEntity>>
+
+
 
 }

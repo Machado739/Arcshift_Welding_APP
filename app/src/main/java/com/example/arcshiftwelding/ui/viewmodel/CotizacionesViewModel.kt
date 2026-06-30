@@ -9,6 +9,7 @@ import com.example.arcshiftwelding.data.local.dao.DetalleCotizacionDao
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
+import com.example.arcshiftwelding.data.local.relation.CotizacionCompleta
 import com.example.arcshiftwelding.data.local.relation.CotizacionConCliente
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+
+
 
 class CotizacionesViewModel(
     private val cotizacionDao: CotizacionDao,
@@ -135,6 +138,10 @@ class CotizacionesViewModel(
             cotizacionDao.actualizarEstado(id, "Rechazada")
         }
     }
+
+    fun obtenerCotizacionCompleta(cotizacionId: Int): Flow<CotizacionCompleta?> {
+        return cotizacionDao.obtenerCotizacionCompleta(cotizacionId)
+    }
 }
 
 private fun CotizacionConCliente.toUi(): CotizacionUI {
@@ -154,6 +161,8 @@ fun Double.formatoMoneda(): String {
     val formato = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
     return formato.format(this)
 }
+
+
 
 class CotizacionesViewModelFactory(
     private val cotizacionDao: CotizacionDao,

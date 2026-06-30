@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,20 +88,8 @@ fun EditarGastoScreen(
         "Sin proyecto"
     )
 
-    val cotizaciones = listOf(
-        "COT-0456",
-        "COT-0457",
-        "COT-0458",
-        "Sin cotización"
-    )
-
-    val clientes = listOf(
-        "Cliente XYZ",
-        "Eduardo Barrios",
-        "Jose Vera",
-        "Maria Lopez",
-        "Sin cliente"
-    )
+    val clientesDb by viewModel.clientesActivos.collectAsState(initial = emptyList())
+    val cotizacionesDb by viewModel.cotizaciones.collectAsState(initial = emptyList())
 
     var concepto by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
@@ -118,14 +108,20 @@ fun EditarGastoScreen(
     var observaciones by remember { mutableStateOf("") }
 
     var proyecto by remember { mutableStateOf("") }
-    var cotizacion by remember { mutableStateOf("") }
-    var cliente by remember { mutableStateOf("") }
+    var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var cotizacionSeleccionadaId by remember { mutableStateOf<Int?>(null) }
+
 
     val subtotalValor = subtotal.replace(",", ".").toDoubleOrNull() ?: 0.0
     val ivaValor = ivaPorcentaje.replace(",", ".").toDoubleOrNull() ?: 0.0
     val ivaCalculado = subtotalValor * (ivaValor / 100.0)
     val totalCalculado = subtotalValor + ivaCalculado
 
+    val cotizacionesFiltradas = if (clienteSeleccionadoId != null) {
+        cotizacionesDb.filter { it.clienteId == clienteSeleccionadoId }
+    } else {
+        cotizacionesDb
+    }
 
     LaunchedEffect(gastoActual) {
         gastoActual?.let { gasto ->
@@ -146,8 +142,8 @@ fun EditarGastoScreen(
             observaciones = gasto.observaciones ?: ""
 
             proyecto = gasto.proyecto ?: ""
-            cotizacion = gasto.cotizacion ?: ""
-            cliente = gasto.cliente ?: ""
+            clienteSeleccionadoId = gasto.clienteId
+            cotizacionSeleccionadaId = gasto.cotizacionId
         }
     }
 
@@ -455,21 +451,41 @@ fun EditarGastoScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                CampoSelectorEditar(
-                    label = "Cotización",
-                    value = cotizacion,
-                    opciones = cotizaciones,
-                    onValueChange = { cotizacion = it },
+                CampoSelectorClienteGasto(
+                    label = "Cliente",
+                    clientes = clientesDb,
+                    clienteSeleccionadoId = clienteSeleccionadoId,
+                    onClienteSeleccionado = { nuevoClienteId ->
+                        clienteSeleccionadoId = nuevoClienteId
+
+                        val cotizacionActual = cotizacionesDb.firstOrNull {
+                            it.id == cotizacionSeleccionadaId
+                        }
+
+                        if (nuevoClienteId == null || cotizacionActual?.clienteId != nuevoClienteId) {
+                            cotizacionSeleccionadaId = null
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                CampoSelectorEditar(
-                    label = "Cliente",
-                    value = cliente,
-                    opciones = clientes,
-                    onValueChange = { cliente = it },
+                CampoSelectorCotizacionGasto(
+                    label = "Cotización",
+                    cotizaciones = cotizacionesFiltradas,
+                    cotizacionSeleccionadaId = cotizacionSeleccionadaId,
+                    onCotizacionSeleccionada = { nuevaCotizacionId ->
+                        cotizacionSeleccionadaId = nuevaCotizacionId
+
+                        val cotizacionSeleccionada = cotizacionesDb.firstOrNull {
+                            it.id == nuevaCotizacionId
+                        }
+
+                        if (cotizacionSeleccionada != null) {
+                            clienteSeleccionadoId = cotizacionSeleccionada.clienteId
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -505,13 +521,13 @@ fun EditarGastoScreen(
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = formaPago,
-                                telefonoProveedor = telefonoProveedor,
-                                correoProveedor = correoProveedor,
-                                rfcProveedor = rfcProveedor,
-                                observaciones = observaciones,
-                                proyecto = proyecto,
-                                cotizacion = cotizacion,
-                                cliente = cliente
+                                telefonoProveedor = telefonoProveedor.ifBlank { null },
+                                correoProveedor = correoProveedor.ifBlank { null },
+                                rfcProveedor = rfcProveedor.ifBlank { null },
+                                observaciones = observaciones.ifBlank { null },
+                                proyecto = proyecto.ifBlank { null },
+                                clienteId = clienteSeleccionadoId,
+                                cotizacionId = cotizacionSeleccionadaId
                             )
 
                             viewModel.actualizarGasto(gastoEditado) {
@@ -531,6 +547,181 @@ fun EditarGastoScreen(
                 }
             }
 
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoSelectorClienteGasto(
+    label: String,
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val clienteSeleccionado = clientes.firstOrNull {
+        it.id == clienteSeleccionadoId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = {
+            expandido = !expandido
+        },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = clienteSeleccionado?.nombre ?: "Sin cliente",
+            onValueChange = {},
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            label = {
+                Text(label)
+            },
+            readOnly = true,
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expandido
+                )
+            }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = {
+                expandido = false
+            }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Sin cliente")
+                },
+                onClick = {
+                    onClienteSeleccionado(null)
+                    expandido = false
+                }
+            )
+
+            clientes.forEach { cliente ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = cliente.nombre,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            if (cliente.empresa.isNotBlank()) {
+                                Text(
+                                    text = cliente.empresa,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onClienteSeleccionado(cliente.id)
+                        expandido = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoSelectorCotizacionGasto(
+    label: String,
+    cotizaciones: List<CotizacionEntity>,
+    cotizacionSeleccionadaId: Int?,
+    onCotizacionSeleccionada: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val cotizacionSeleccionada = cotizaciones.firstOrNull {
+        it.id == cotizacionSeleccionadaId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = {
+            expandido = !expandido
+        },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = cotizacionSeleccionada?.folio ?: "Sin cotización",
+            onValueChange = {},
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            label = {
+                Text(label)
+            },
+            readOnly = true,
+            singleLine = true,
+            shape = RoundedCornerShape(10.dp),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expandido
+                )
+            }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = {
+                expandido = false
+            }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Sin cotización")
+                },
+                onClick = {
+                    onCotizacionSeleccionada(null)
+                    expandido = false
+                }
+            )
+
+            cotizaciones.forEach { cotizacion ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = cotizacion.folio,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            Text(
+                                text = cotizacion.descripcionTrabajo,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                maxLines = 1
+                            )
+
+                            Text(
+                                text = "$ ${"%.2f".format(cotizacion.total)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF2E7D32)
+                            )
+                        }
+                    },
+                    onClick = {
+                        onCotizacionSeleccionada(cotizacion.id)
+                        expandido = false
+                    }
+                )
+            }
         }
     }
 }

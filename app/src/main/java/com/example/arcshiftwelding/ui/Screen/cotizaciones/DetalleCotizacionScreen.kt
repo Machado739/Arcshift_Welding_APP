@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
+import com.example.arcshiftwelding.data.local.relation.CotizacionCompleta
 import com.example.arcshiftwelding.navigation.AppRoutes
 
 data class CotizacionDetalleUI(
@@ -54,15 +55,11 @@ fun DetalleCotizacionScreen(
     cotizacionId: Int,
     viewModel: CotizacionesViewModel
 ) {
-    val cotizacion by viewModel
-        .observarCotizacion(cotizacionId)
+    val cotizacionCompleta by viewModel
+        .obtenerCotizacionCompleta(cotizacionId)
         .collectAsState(initial = null)
 
-    val detalles by viewModel
-        .observarDetalles(cotizacionId)
-        .collectAsState(initial = emptyList())
-
-    if (cotizacion == null) {
+    if (cotizacionCompleta == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -74,7 +71,9 @@ fun DetalleCotizacionScreen(
         return
     }
 
-    val cotizacionUi = cotizacion!!.toDetalleUi()
+    val cotizacionActual = cotizacionCompleta!!
+    val cotizacionUi = cotizacionActual.toDetalleUi()
+    val detalles = cotizacionActual.detalles
 
     Scaffold(
         topBar = {
@@ -168,26 +167,29 @@ fun DetalleCotizacionScreen(
     }
 }
 
-private fun CotizacionEntity.toDetalleUi(): CotizacionDetalleUI {
+private fun CotizacionCompleta.toDetalleUi(): CotizacionDetalleUI {
+    val cotizacionActual = cotizacion
+    val clienteActual = cliente
+
     return CotizacionDetalleUI(
-        id = id,
-        folio = folio,
-        cliente = cliente,
-        contacto = "",
-        telefono = "",
-        correo = "",
-        trabajo = descripcionTrabajo,
-        descripcion = descripcionTrabajo,
+        id = cotizacionActual.id,
+        folio = cotizacionActual.folio,
+        cliente = clienteActual?.nombre ?: "Cliente no encontrado",
+        contacto = clienteActual?.personaContacto ?: "",
+        telefono = clienteActual?.telefono ?: "",
+        correo = clienteActual?.correo ?: "",
+        trabajo = cotizacionActual.descripcionTrabajo,
+        descripcion = cotizacionActual.descripcionTrabajo,
         proyecto = "",
         registradoPor = "Administrador",
-        fecha = fecha,
-        vigencia = fecha,
-        estado = estado,
-        subtotal = subtotal.formatoMoneda(),
-        iva = iva.formatoMoneda(),
-        total = total.formatoMoneda(),
-        anticipo = (total * 0.50).formatoMoneda(),
-        saldo = (total * 0.50).formatoMoneda(),
+        fecha = cotizacionActual.fecha,
+        vigencia = cotizacionActual.fecha,
+        estado = cotizacionActual.estado,
+        subtotal = cotizacionActual.subtotal.formatoMoneda(),
+        iva = cotizacionActual.iva.formatoMoneda(),
+        total = cotizacionActual.total.formatoMoneda(),
+        anticipo = (cotizacionActual.total * 0.50).formatoMoneda(),
+        saldo = (cotizacionActual.total * 0.50).formatoMoneda(),
         observaciones = "Sin observaciones registradas."
     )
 }
@@ -436,11 +438,11 @@ fun SeccionConceptosCotizados(
 
         detalles.forEach { detalle ->
             ConceptoCotizacionItem(
-                concepto = detalle.concepto,
+                concepto = detalle.descripcion,
                 cantidad = detalle.cantidad.toString(),
                 unidad = "Pza",
                 precio = detalle.precioUnitario.formatoMoneda(),
-                importe = detalle.importe.formatoMoneda()
+                importe = detalle.total.formatoMoneda()
             )
         }
 
@@ -451,7 +453,7 @@ fun SeccionConceptosCotizados(
 
         FilaMontoCotizacion(
             titulo = "Total",
-            valor = detalles.sumOf { it.importe }.formatoMoneda(),
+            valor = detalles.sumOf { it.total }.formatoMoneda(),
             color = Color(0xFF16A34A),
             negrita = true
         )

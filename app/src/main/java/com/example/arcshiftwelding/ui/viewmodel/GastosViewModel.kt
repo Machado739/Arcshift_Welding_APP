@@ -11,30 +11,42 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
+import com.example.arcshiftwelding.data.local.dao.ClienteDao
+import com.example.arcshiftwelding.data.local.dao.CotizacionDao
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import com.example.arcshiftwelding.data.local.relation.GastoConRelaciones
 
 
 class GastosViewModel(
-    private val gastoDao: GastoDao
+    private val gastoDao: GastoDao,
+    private val clienteDao: ClienteDao,
+    private val cotizacionDao: CotizacionDao
 ) : ViewModel() {
 
+    val clientesActivos: Flow<List<ClienteEntity>> =
+        clienteDao.obtenerClientesActivos()
+
+    val cotizaciones: Flow<List<CotizacionEntity>> =
+        cotizacionDao.obtenerCotizaciones()
+
     val gastos: StateFlow<List<GastoUi>> =
-        gastoDao.obtenerGastosActivos()
+        gastoDao.obtenerGastosConRelaciones()
             .map { lista ->
-                lista.map { gastoEntity ->
-                    gastoEntity.toUi()
+                lista.map { gastoConRelaciones ->
+                    gastoConRelaciones.toUi()
                 }
             }
             .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
             )
 
     fun obtenerDetalleGasto(gastoId: Int): StateFlow<GastoUi?> {
-        return gastoDao.obtenerGastoPorIdFlow(gastoId)
-            .map { gastoEntity ->
-                gastoEntity?.toUi()
+        return gastoDao.obtenerGastoConRelaciones(gastoId)
+            .map { gastoConRelaciones ->
+                gastoConRelaciones?.toUi()
             }
             .stateIn(
                 scope = viewModelScope,
@@ -54,13 +66,14 @@ class GastosViewModel(
         total: Double,
         metodoPago: String,
         formaPago: String,
-        telefonoProveedor: String,
-        correoProveedor: String,
-        rfcProveedor: String,
-        observaciones: String,
-        proyecto: String,
-        cotizacion: String,
-        cliente: String
+        telefonoProveedor: String?,
+        correoProveedor: String?,
+        rfcProveedor: String?,
+        observaciones: String?,
+        proyecto: String?,
+        clienteId: Int?,
+        cotizacionId: Int?,
+        onFinish: () -> Unit = {}
     ) {
         viewModelScope.launch {
             val nuevoGasto = GastoEntity(
@@ -79,11 +92,12 @@ class GastosViewModel(
                 rfcProveedor = rfcProveedor,
                 observaciones = observaciones,
                 proyecto = proyecto,
-                cotizacion = cotizacion,
-                cliente = cliente
+                clienteId = clienteId,
+                cotizacionId = cotizacionId
             )
 
             gastoDao.insertarGasto(nuevoGasto)
+            onFinish()
         }
     }
 
@@ -114,38 +128,40 @@ class GastosViewModel(
 }
 
 class GastosViewModelFactory(
-    private val gastoDao: GastoDao
+    private val gastoDao: GastoDao,
+    private val clienteDao: ClienteDao,
+    private val cotizacionDao: CotizacionDao
 ) : ViewModelProvider.Factory {
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(GastosViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return GastosViewModel(gastoDao) as T
-        }
-
-        throw IllegalArgumentException("ViewModel desconocido")
+        return GastosViewModel(
+            gastoDao = gastoDao,
+            clienteDao = clienteDao,
+            cotizacionDao = cotizacionDao
+        ) as T
     }
 }
 
-fun GastoEntity.toUi(): GastoUi {
+fun GastoConRelaciones.toUi(): GastoUi {
     return GastoUi(
-        id = id,
-        concepto = concepto,
-        categoria = categoria,
-        fecha = fecha,
-        proveedor = proveedor,
-        subtotal = subtotal,
-        ivaPorcentaje = ivaPorcentaje,
-        iva = iva,
-        total = total,
-        metodoPago = metodoPago,
-        formaPago = formaPago,
-        telefonoProveedor = telefonoProveedor ?: "",
-        correoProveedor = correoProveedor ?: "",
-        rfcProveedor = rfcProveedor ?: "",
-        observaciones = observaciones ?: "",
-        proyecto = proyecto ?: "",
-        cotizacion = cotizacion ?: "",
-        cliente = cliente ?: ""
+        id = gasto.id,
+        concepto = gasto.concepto,
+        categoria = gasto.categoria,
+        fecha = gasto.fecha,
+        proveedor = gasto.proveedor,
+        subtotal = gasto.subtotal,
+        ivaPorcentaje = gasto.ivaPorcentaje,
+        iva = gasto.iva,
+        total = gasto.total,
+        metodoPago = gasto.metodoPago,
+        formaPago = gasto.formaPago,
+        telefonoProveedor = gasto.telefonoProveedor ?: "",
+        correoProveedor = gasto.correoProveedor ?: "",
+        rfcProveedor = gasto.rfcProveedor ?: "",
+        observaciones = gasto.observaciones ?: "",
+        proyecto = gasto.proyecto ?: "",
+        cotizacion = cotizacion?.folio ?: "Sin cotización",
+        cliente = cliente?.nombre ?: "Sin cliente"
     )
 }

@@ -605,8 +605,10 @@ fun EditarProductoScreen(
 
                             val movimientoAjuste = MovimientoInventarioEntity(
                                 productoId = productoOriginal.id,
+                                clienteId = null,
+                                cotizacionId = null,
                                 tipo = "Ajuste",
-                                cantidad = abs(diferenciaStock),
+                                cantidad = kotlin.math.abs(diferenciaStock),
                                 stockAnterior = stockAnterior,
                                 stockNuevo = stockNuevo,
                                 unidad = unidad,

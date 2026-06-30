@@ -25,6 +25,15 @@ fun EditarIngresoScreen(
 ) {
     val form by viewModel.formState.collectAsState()
 
+    val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
+    val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
+
+    val cotizacionesFiltradas = if (form.clienteId != null) {
+        cotizaciones.filter { it.clienteId == form.clienteId }
+    } else {
+        cotizaciones
+    }
+
     LaunchedEffect(ingresoId) {
         viewModel.cargarIngresoParaEditar(ingresoId)
     }
@@ -76,6 +85,7 @@ fun EditarIngresoScreen(
         ) {
             SeccionIngresoInformacionGeneral(
                 form = form,
+                clientes = clientes,
                 onChange = viewModel::actualizarFormulario
             )
 
@@ -91,6 +101,7 @@ fun EditarIngresoScreen(
 
             SeccionIngresoRelacionado(
                 form = form,
+                cotizaciones = cotizacionesFiltradas,
                 onChange = viewModel::actualizarFormulario
             )
 

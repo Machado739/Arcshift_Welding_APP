@@ -61,11 +61,11 @@ fun EliminarCotizacionScreen(
     cotizacionId: Int,
     viewModel: CotizacionesViewModel
 ) {
-    val cotizacionEntity by viewModel
-        .observarCotizacion(cotizacionId)
+    val cotizacionCompleta by viewModel
+        .obtenerCotizacionCompleta(cotizacionId)
         .collectAsState(initial = null)
 
-    if (cotizacionEntity == null) {
+    if (cotizacionCompleta == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,16 +77,24 @@ fun EliminarCotizacionScreen(
         return
     }
 
+    val cotizacionActual = cotizacionCompleta!!.cotizacion
+    val clienteActual = cotizacionCompleta!!.cliente
+    val detalles = cotizacionCompleta!!.detalles
+
     val cotizacion = CotizacionEliminarUI(
-        id = cotizacionEntity!!.id,
-        folio = cotizacionEntity!!.folio,
-        cliente = cotizacionEntity!!.cliente,
-        trabajo = cotizacionEntity!!.descripcionTrabajo,
-        total = cotizacionEntity!!.total.formatoMoneda(),
-        estado = cotizacionEntity!!.estado,
-        fecha = cotizacionEntity!!.fecha,
-        vigencia = cotizacionEntity!!.fecha,
-        conceptos = "Conceptos relacionados"
+        id = cotizacionActual.id,
+        folio = cotizacionActual.folio,
+        cliente = clienteActual?.nombre ?: "Cliente no encontrado",
+        trabajo = cotizacionActual.descripcionTrabajo,
+        total = cotizacionActual.total.formatoMoneda(),
+        estado = cotizacionActual.estado,
+        fecha = cotizacionActual.fecha,
+        vigencia = cotizacionActual.fecha,
+        conceptos = if (detalles.isEmpty()) {
+            "Sin conceptos registrados"
+        } else {
+            "${detalles.size} concepto(s) relacionado(s)"
+        }
     )
 
     LazyColumn(

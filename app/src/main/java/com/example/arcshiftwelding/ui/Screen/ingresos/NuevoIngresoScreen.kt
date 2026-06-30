@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 
 @Composable
 fun NuevoIngresoScreen(
@@ -22,6 +24,15 @@ fun NuevoIngresoScreen(
     viewModel: IngresosViewModel
 ) {
     val form by viewModel.formState.collectAsState()
+
+    val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
+    val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
+
+    val cotizacionesFiltradas = if (form.clienteId != null) {
+        cotizaciones.filter { it.clienteId == form.clienteId }
+    } else {
+        cotizaciones
+    }
 
     LaunchedEffect(Unit) {
         viewModel.limpiarFormulario()
@@ -74,6 +85,7 @@ fun NuevoIngresoScreen(
         ) {
             SeccionIngresoInformacionGeneral(
                 form = form,
+                clientes = clientes,
                 onChange = viewModel::actualizarFormulario
             )
 
@@ -89,6 +101,7 @@ fun NuevoIngresoScreen(
 
             SeccionIngresoRelacionado(
                 form = form,
+                cotizaciones = cotizacionesFiltradas,
                 onChange = viewModel::actualizarFormulario
             )
 
@@ -274,18 +287,25 @@ fun SeccionIngresoComprobante(
 @Composable
 fun SeccionIngresoRelacionado(
     form: IngresoFormState,
+    cotizaciones: List<CotizacionEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
     TarjetaNuevoIngreso(
         titulo = "Relacionado con opcional",
         icono = Icons.Default.Link
     ) {
-        CampoTextoIngreso(
-            titulo = "Cotización",
-            valor = form.cotizacion,
-            placeholder = "Ej. COT-001",
-            onValueChange = {
-                onChange(form.copy(cotizacion = it))
+        SelectorCotizacionIngreso(
+            cotizaciones = cotizaciones,
+            cotizacionSeleccionadaId = form.cotizacionId,
+            onCotizacionSeleccionada = { cotizacion ->
+                onChange(
+                    form.copy(
+                        cotizacionId = cotizacion?.id,
+                        clienteId = cotizacion?.clienteId ?: form.clienteId,
+                        folio = cotizacion?.folio ?: form.folio,
+                        trabajo = cotizacion?.descripcionTrabajo ?: form.trabajo
+                    )
+                )
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -319,6 +339,7 @@ fun SeccionIngresoRelacionado(
 @Composable
 fun SeccionIngresoInformacionGeneral(
     form: IngresoFormState,
+    clientes: List<ClienteEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
     TarjetaNuevoIngreso(
@@ -337,12 +358,16 @@ fun SeccionIngresoInformacionGeneral(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        CampoTextoIngreso(
-            titulo = "Cliente *",
-            valor = form.cliente,
-            placeholder = "Nombre del cliente",
-            onValueChange = {
-                onChange(form.copy(cliente = it))
+        SelectorClienteIngreso(
+            clientes = clientes,
+            clienteSeleccionadoId = form.clienteId,
+            onClienteSeleccionado = { clienteId ->
+                onChange(
+                    form.copy(
+                        clienteId = clienteId,
+                        cotizacionId = null
+                    )
+                )
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -626,6 +651,132 @@ fun BotonArchivoIngreso(
                 color = Color.Gray,
                 maxLines = 1
             )
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectorClienteIngreso(
+    clientes: List<ClienteEntity>,
+    clienteSeleccionadoId: Int?,
+    onClienteSeleccionado: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val clienteSeleccionado = clientes.firstOrNull {
+        it.id == clienteSeleccionadoId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = { expandido = !expandido },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = clienteSeleccionado?.nombre ?: "Sin cliente",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Cliente *") },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = { expandido = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin cliente") },
+                onClick = {
+                    onClienteSeleccionado(null)
+                    expandido = false
+                }
+            )
+
+            clientes.forEach { cliente ->
+                DropdownMenuItem(
+                    text = { Text(cliente.nombre) },
+                    onClick = {
+                        onClienteSeleccionado(cliente.id)
+                        expandido = false
+                    }
+                )
+            }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectorCotizacionIngreso(
+    cotizaciones: List<CotizacionEntity>,
+    cotizacionSeleccionadaId: Int?,
+    onCotizacionSeleccionada: (CotizacionEntity?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val cotizacionSeleccionada = cotizaciones.firstOrNull {
+        it.id == cotizacionSeleccionadaId
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = { expandido = !expandido },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = cotizacionSeleccionada?.folio ?: "Sin cotización",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Cotización") },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = { expandido = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin cotización") },
+                onClick = {
+                    onCotizacionSeleccionada(null)
+                    expandido = false
+                }
+            )
+
+            cotizaciones.forEach { cotizacion ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = cotizacion.folio,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            Text(
+                                text = cotizacion.descripcionTrabajo,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+                    },
+                    onClick = {
+                        onCotizacionSeleccionada(cotizacion)
+                        expandido = false
+                    }
+                )
+            }
         }
     }
 }
