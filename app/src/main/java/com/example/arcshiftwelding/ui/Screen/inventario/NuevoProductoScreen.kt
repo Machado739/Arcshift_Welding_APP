@@ -271,7 +271,7 @@ fun NuevoProductoScreen(
                         precioVenta = 0.0,
 
                         descripcion = descripcion.trim(),
-                        proveedor = proveedor,
+                        proveedor = proveedor.trim(),
                         notas = notas.trim(),
 
                         imagenUri = rutaImagenInterna,
@@ -596,13 +596,18 @@ fun SeccionInformacionAdicional(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            MenuDesplegable(
-                label = "Proveedor",
-                placeholder = "Seleccionar proveedor",
-                opciones = listOf("Proveedor 1", "Proveedor 2", "Proveedor 3"),
-                valorSeleccionado = proveedor,
-                onSeleccionar = onProveedorChange,
-                modifier = Modifier.fillMaxWidth()
+            OutlinedTextField(
+                value = proveedor,
+                onValueChange = {
+                    if (it.length <= 80) onProveedorChange(it)
+                },
+                label = { Text("Proveedor") },
+                placeholder = { Text("Ej. Aceros del Norte") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = {
+                    Text("${proveedor.length}/80")
+                }
             )
 
             OutlinedTextField(

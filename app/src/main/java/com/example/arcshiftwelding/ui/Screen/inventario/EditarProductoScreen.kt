@@ -393,15 +393,19 @@ fun EditarProductoScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MenuDesplegable(
-                        label = "Proveedor",
-                        placeholder = "Seleccionar proveedor",
-                        opciones = listOf("Proveedor 1", "Proveedor 2", "Proveedor 3"),
-                        valorSeleccionado = proveedor,
-                        onSeleccionar = { proveedor = it },
-                        modifier = Modifier.fillMaxWidth()
+                    OutlinedTextField(
+                        value = proveedor,
+                        onValueChange = {
+                            if (it.length <= 80) proveedor = it
+                        },
+                        label = { Text("Proveedor") },
+                        placeholder = { Text("Ej. Aceros del Norte") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        supportingText = {
+                            Text("${proveedor.length}/80")
+                        }
                     )
-
                     OutlinedTextField(
                         value = notas,
                         onValueChange = {
@@ -579,7 +583,7 @@ fun EditarProductoScreen(
                             precioVenta = productoOriginal.precioVenta,
 
                             descripcion = descripcion.trim(),
-                            proveedor = proveedor,
+                            proveedor = proveedor.trim(),
                             notas = notas.trim(),
 
                             imagenUri = rutaImagenInterna,
