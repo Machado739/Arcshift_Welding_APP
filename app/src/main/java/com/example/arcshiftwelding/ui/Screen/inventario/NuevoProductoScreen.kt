@@ -424,7 +424,7 @@ fun SeccionInformacionGeneral(
                     MenuDesplegable(
                         label = "Categoría *",
                         placeholder = "Seleccionar categoría",
-                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad"),
+                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad","Equipos", "Otros"),
                         valorSeleccionado = categoria,
                         onSeleccionar = onCategoriaChange,
                         modifier = Modifier.fillMaxWidth()
@@ -444,7 +444,7 @@ fun SeccionInformacionGeneral(
                     MenuDesplegable(
                         label = "Unidad de medida *",
                         placeholder = "Seleccionar unidad",
-                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros"),
+                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros", "Hojas", "Litros", "Otros"),
                         valorSeleccionado = unidad,
                         onSeleccionar = onUnidadChange,
                         modifier = Modifier.fillMaxWidth()

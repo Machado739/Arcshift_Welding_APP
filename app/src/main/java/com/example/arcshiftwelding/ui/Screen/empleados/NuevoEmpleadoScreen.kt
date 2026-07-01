@@ -1,5 +1,9 @@
 package com.example.arcshiftwelding.ui.Screen.empleados
 
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,6 +33,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +46,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +63,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 
@@ -169,15 +176,15 @@ fun NuevoEmpleadoScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-/*
-            SeccionConfiguracionNuevoEmpleado(
-                empleadoActivo = empleadoActivo,
-                onEmpleadoActivoChange = { empleadoActivo = it },
-                asignarTrabajos = asignarTrabajos,
-                onAsignarTrabajosChange = { asignarTrabajos = it },
-                pagoSemanalActivo = pagoSemanalActivo,
-                onPagoSemanalActivoChange = { pagoSemanalActivo = it }
-            )*/
+            /*
+                        SeccionConfiguracionNuevoEmpleado(
+                            empleadoActivo = empleadoActivo,
+                            onEmpleadoActivoChange = { empleadoActivo = it },
+                            asignarTrabajos = asignarTrabajos,
+                            onAsignarTrabajosChange = { asignarTrabajos = it },
+                            pagoSemanalActivo = pagoSemanalActivo,
+                            onPagoSemanalActivoChange = { pagoSemanalActivo = it }
+                        )*/
 
             BotonesFormularioEmpleado(
                 onCancelarClick = {
@@ -186,13 +193,17 @@ fun NuevoEmpleadoScreen(
                 },
                 onGuardarClick = {
                     val empleado = EmpleadoEntity(
-                        nombre = nombre,
-                        telefono = telefono,
-                        correo = correo,
-                        puesto = puesto,
+                        nombre = nombre.trim(),
+                        telefono = telefono.trim(),
+                        correo = correo.trim(),
+                        puesto = puesto.trim(),
                         salario = pagoSemanal.aDoubleMoneda(),
-                        fechaIngreso = fechaIngreso,
-                        activo = empleadoActivo && estatus == "Activo"
+                        fechaIngreso = fechaIngreso.trim(),
+                        activo = empleadoActivo && estatus == "Activo",
+                        direccion = direccion.trim(),
+                        porcentajeContrato = porcentajeContrato.trim(),
+                        trabajoActual = trabajoActual.trim(),
+                        notas = notas.trim()
                     )
 
                     viewModel.insertarEmpleado(empleado)
@@ -372,13 +383,12 @@ fun SeccionInformacionLaboralNuevoEmpleado(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            CampoTextoEmpleado(
+            CampoFechaEmpleado(
                 valor = fechaIngreso,
                 onValorChange = onFechaIngresoChange,
                 titulo = "Fecha ingreso",
-                placeholder = "10/05/2026",
+                placeholder = "Seleccionar fecha",
                 requerido = true,
-                leadingIcon = Icons.Default.CalendarMonth,
                 modifier = Modifier.weight(1f)
             )
 
@@ -404,16 +414,16 @@ fun SeccionInformacionLaboralNuevoEmpleado(
             leadingIcon = Icons.Default.Work
         )
 
-      /*  Spacer(modifier = Modifier.height(10.dp))
+        /*  Spacer(modifier = Modifier.height(10.dp))
 
-        CampoTextoEmpleado(
-            valor = pagoSemanal,
-            onValorChange = onPagoSemanalChange,
-            titulo = "Pago total semana",
-            placeholder = "Ej. ${'$'}980",
-            requerido = false,
-            leadingIcon = Icons.Default.AttachMoney
-        )*/
+          CampoTextoEmpleado(
+              valor = pagoSemanal,
+              onValorChange = onPagoSemanalChange,
+              titulo = "Pago total semana",
+              placeholder = "Ej. ${'$'}980",
+              requerido =false,
+              leadingIcon = Icons.Default.AttachMoney
+          )*/
     }
 }
 
@@ -585,6 +595,139 @@ fun CardFormularioEmpleado(
             Spacer(modifier = Modifier.height(12.dp))
 
             content()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoFechaEmpleado(
+    valor: String,
+    onValorChange: (String) -> Unit,
+    titulo: String,
+    placeholder: String,
+    requerido: Boolean,
+    modifier: Modifier = Modifier
+) {
+    var mostrarCalendario by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+
+    Column(
+        modifier = modifier
+    ) {
+        Row {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (requerido) {
+                Text(
+                    text = " *",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 54.dp)
+                .clickable {
+                    mostrarCalendario = true
+                }
+        ) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = { },
+                readOnly = true,
+                enabled = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 54.dp),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color.Gray
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                },
+                shape = RoundedCornerShape(10.dp),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodySmall,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color.Black,
+                    disabledBorderColor = Color(0xFFE5E7EB),
+                    disabledLabelColor = Color.DarkGray,
+                    disabledTrailingIconColor = Color.DarkGray,
+                    disabledPlaceholderColor = Color.Gray,
+                    disabledContainerColor = Color.White,
+                    disabledLeadingIconColor = Color.Gray
+                )
+            )
+        }
+    }
+
+    if (mostrarCalendario) {
+        DatePickerDialog(
+            onDismissRequest = {
+                mostrarCalendario = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val fechaSeleccionada = datePickerState.selectedDateMillis
+
+                        if (fechaSeleccionada != null) {
+                            val formato = SimpleDateFormat(
+                                "dd/MM/yyyy",
+                                Locale.getDefault()
+                            )
+                            formato.timeZone = TimeZone.getTimeZone("UTC")
+
+                            onValorChange(
+                                formato.format(Date(fechaSeleccionada))
+                            )
+                        }
+
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarCalendario = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(
+                state = datePickerState
+            )
         }
     }
 }

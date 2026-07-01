@@ -42,7 +42,7 @@ fun NuevoGastoScreen(
     var subtotal by remember { mutableStateOf("") }
     var ivaPorcentaje by remember { mutableStateOf("16") }
     var metodoPago by remember { mutableStateOf("") }
-    var formaPago by remember { mutableStateOf("") }
+//    var formaPago by remember { mutableStateOf("") }
 
     var observaciones by remember { mutableStateOf("") }
 
@@ -75,7 +75,7 @@ fun NuevoGastoScreen(
         concepto.isNotBlank() &&
                 categoria.isNotBlank() &&
                 fecha.isNotBlank() &&
-                proveedor.isNotBlank() &&
+                proveedor.trim().isNotBlank() &&
                 subtotalValor > 0.0 &&
                 metodoPago.isNotBlank()
 
@@ -89,17 +89,6 @@ fun NuevoGastoScreen(
         "Otros"
     )
 
-    val proveedores = listOf(
-        "Aceros del Norte",
-        "Gasolinera PEMEX",
-        "Taller Mecánico JR",
-        "CFE",
-        "Ferretería Industrial",
-        "Infra",
-        "JMAS",
-        "Otro"
-    )
-
     val metodosPago = listOf(
         "Efectivo",
         "Tarjeta",
@@ -108,12 +97,6 @@ fun NuevoGastoScreen(
         "Crédito"
     )
 
-    val formasPago = listOf(
-        "Contado",
-        "Crédito",
-        "Anticipo",
-        "Parcialidad"
-    )
 
     val proyectos = listOf(
         "Portón metálico",
@@ -233,12 +216,13 @@ fun NuevoGastoScreen(
                         modifier = Modifier.weight(0.9f)
                     )
 
-                    CampoDropdownCompacto(
+                    CampoTextoCompacto(
                         label = "Proveedor *",
                         value = proveedor,
-                        opciones = proveedores,
-                        onValueChange = { proveedor = it },
-                        placeholder = "Proveedor",
+                        onValueChange = {
+                            if (it.length <= 80) proveedor = it
+                        },
+                        placeholder = "Ej. Aceros del Norte",
                         modifier = Modifier.weight(1.1f)
                     )
                 }
@@ -315,17 +299,8 @@ fun NuevoGastoScreen(
                         value = metodoPago,
                         opciones = metodosPago,
                         onValueChange = { metodoPago = it },
-                        placeholder = "Método",
-                        modifier = Modifier.weight(1.1f)
-                    )
-
-                    CampoDropdownCompacto(
-                        label = "Forma de pago",
-                        value = formaPago,
-                        opciones = formasPago,
-                        onValueChange = { formaPago = it },
-                        placeholder = "Forma",
-                        modifier = Modifier.weight(0.9f)
+                        placeholder = "Método de pago",
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -467,13 +442,13 @@ fun NuevoGastoScreen(
                                 concepto = concepto,
                                 categoria = categoria,
                                 fecha = fecha,
-                                proveedor = proveedor,
+                                proveedor = proveedor.trim(),
                                 subtotal = subtotalValor,
                                 ivaPorcentaje = ivaValor,
                                 iva = ivaCalculado,
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
-                                formaPago = formaPago,
+                                formaPago = "",
                                 telefonoProveedor = telefonoProveedor.ifBlank { null },
                                 correoProveedor = correoProveedor.ifBlank { null },
                                 rfcProveedor = rfcProveedor.ifBlank { null },
@@ -858,7 +833,7 @@ fun CampoDropdown(
         }
     }
 }
-
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoFecha(
@@ -937,7 +912,7 @@ fun CampoFecha(
         }
     }
 }
-
+*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoDropdownCompacto(

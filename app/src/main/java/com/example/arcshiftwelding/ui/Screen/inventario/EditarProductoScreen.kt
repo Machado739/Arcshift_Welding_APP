@@ -262,7 +262,7 @@ fun EditarProductoScreen(
                     MenuDesplegable(
                         label = "Categoría *",
                         placeholder = "Seleccionar categoría",
-                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad"),
+                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad", "Equipos", "Otros"),
                         valorSeleccionado = categoria,
                         onSeleccionar = { categoria = it },
                         modifier = Modifier.fillMaxWidth()
@@ -271,7 +271,7 @@ fun EditarProductoScreen(
                     MenuDesplegable(
                         label = "Unidad de medida *",
                         placeholder = "Seleccionar unidad",
-                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros"),
+                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros", "Hojas", "Litros", "Otros"),
                         valorSeleccionado = unidad,
                         onSeleccionar = { unidad = it },
                         modifier = Modifier.fillMaxWidth()

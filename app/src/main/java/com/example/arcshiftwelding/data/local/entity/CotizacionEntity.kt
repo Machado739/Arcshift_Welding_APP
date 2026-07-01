@@ -25,9 +25,12 @@ data class CotizacionEntity(
     val folio: String,
     val clienteId: Int,
     val descripcionTrabajo: String,
+    val proyecto: String = "",
     val subtotal: Double,
     val iva: Double,
     val total: Double,
-    val estado: String,
-    val fecha: String
+    val fecha: String,
+    val vigencia: String = "",
+    val observaciones: String = "",
+    val estado: String
 )

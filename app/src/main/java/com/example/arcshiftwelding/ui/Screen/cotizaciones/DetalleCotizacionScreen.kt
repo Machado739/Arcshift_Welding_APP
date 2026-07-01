@@ -26,6 +26,7 @@ import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.data.local.relation.CotizacionCompleta
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 
 data class CotizacionDetalleUI(
     val id: Int,
@@ -151,9 +152,6 @@ fun DetalleCotizacionScreen(
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
                 },
-                onEliminarClick = {
-                    navController.navigate(AppRoutes.eliminarCotizacion(cotizacionId))
-                },
                 onAprobarClick = {
                     viewModel.aprobarCotizacion(cotizacionId)
                 },
@@ -161,7 +159,6 @@ fun DetalleCotizacionScreen(
                     viewModel.rechazarCotizacion(cotizacionId)
                 },
                 onGenerarPdfClick = { },
-                onConvertirIngresoClick = { }
             )
 
         }
@@ -181,33 +178,20 @@ private fun CotizacionCompleta.toDetalleUi(): CotizacionDetalleUI {
         correo = clienteActual?.correo ?: "",
         trabajo = cotizacionActual.descripcionTrabajo,
         descripcion = cotizacionActual.descripcionTrabajo,
-        proyecto = "",
+        proyecto = cotizacionActual.proyecto.ifBlank { "Sin proyecto" },
         registradoPor = "Administrador",
         fecha = cotizacionActual.fecha,
-        vigencia = cotizacionActual.fecha,
+        vigencia = cotizacionActual.vigencia.ifBlank { "Sin vigencia" },
         estado = cotizacionActual.estado,
         subtotal = cotizacionActual.subtotal.formatoMoneda(),
         iva = cotizacionActual.iva.formatoMoneda(),
         total = cotizacionActual.total.formatoMoneda(),
         anticipo = (cotizacionActual.total * 0.50).formatoMoneda(),
         saldo = (cotizacionActual.total * 0.50).formatoMoneda(),
-        observaciones = "Sin observaciones registradas."
+        observaciones = cotizacionActual.observaciones.ifBlank {
+            "Sin observaciones registradas."
+        }
     )
-}
-
-@Composable
-fun HeaderDetalleCotizacion(
-    navController: NavController
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-    }
 }
 
 @Composable
@@ -689,74 +673,66 @@ fun HistorialCotizacionItem(
 @Composable
 fun SeccionAccionesRapidasCotizacion(
     onEditarClick: () -> Unit,
-    onEliminarClick: () -> Unit,
     onAprobarClick: () -> Unit,
     onRechazarClick: () -> Unit,
     onGenerarPdfClick: () -> Unit,
-    onConvertirIngresoClick: () -> Unit
 ) {
-    CardSeccionCotizacion(
-        titulo = "Acciones rápidas",
-        icono = Icons.Default.TouchApp
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        Column(
+            modifier = Modifier.padding(12.dp)
         ) {
-            BotonAccionCotizacion(
-                texto = "Editar",
-                icono = Icons.Default.Edit,
-                color = Color(0xFF2563EB),
-                onClick = onEditarClick,
-                modifier = Modifier.weight(1f)
+
+            TituloSeccionCotizacion(
+                titulo = "Acciones rápidas",
+                icono = Icons.Default.Bolt,
+                color = Color(0xFF2563EB)
             )
-/*
-            BotonAccionCotizacion(
-                texto = "Duplicar",
-                icono = Icons.Default.ContentCopy,
-                color = Color(0xFF64748B),
-                onClick = { },
-                modifier = Modifier.weight(1f)
-            )*/
+            Spacer(modifier = Modifier.height(10.dp))
 
-            BotonAccionCotizacion(
-                texto = "PDF",
-                icono = Icons.Default.PictureAsPdf,
-                color = Color(0xFFDC2626),
-                onClick = onGenerarPdfClick,
-                modifier = Modifier.weight(1f)
-            )
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                BotonAccionCotizacion(
+                    texto = "Editar",
+                    icono = Icons.Default.Edit,
+                    color = Color(0xFF2563EB),
+                    onClick = onEditarClick,
+                    modifier = Modifier.weight(1f)
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                BotonAccionCotizacion(
+                    texto = "PDF",
+                    icono = Icons.Default.PictureAsPdf,
+                    color = Color(0xFFDC2626),
+                    onClick = onGenerarPdfClick,
+                    modifier = Modifier.weight(1f)
+                )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            BotonAccionCotizacion(
-                texto = "Aprobar",
-                icono = Icons.Default.CheckCircle,
-                color = Color(0xFF16A34A),
-                onClick = onAprobarClick,
-                modifier = Modifier.weight(1f)
-            )
+                BotonAccionCotizacion(
+                    texto = "Aprobar",
+                    icono = Icons.Default.CheckCircle,
+                    color = Color(0xFF16A34A),
+                    onClick = onAprobarClick,
+                    modifier = Modifier.weight(1f)
+                )
 
-            BotonAccionCotizacion(
-                texto = "Rechazar",
-                icono = Icons.Default.Cancel,
-                color = Color(0xFFDC2626),
-                onClick = onRechazarClick,
-                modifier = Modifier.weight(1f)
-            )
+                BotonAccionCotizacion(
+                    texto = "Rechazar",
+                    icono = Icons.Default.Cancel,
+                    color = Color(0xFFDC2626),
+                    onClick = onRechazarClick,
+                    modifier = Modifier.weight(1f)
+                )
 
-           /* BotonAccionCotizacion(
-                texto = "Ingreso",
-                icono = Icons.Default.AttachMoney,
-                color = Color(0xFF15803D),
-                onClick = onConvertirIngresoClick,
-                modifier = Modifier.weight(1f)
-            )*/
+            }
         }
     }
 }
@@ -891,6 +867,32 @@ fun FilaMontoCotizacion(
             fontSize = 10.sp,
             color = color,
             fontWeight = if (negrita) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun TituloSeccionCotizacion(
+    titulo: String,
+    icono: ImageVector,
+    color: Color
+){
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icono,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(18.dp)
+        )
+
+        Spacer(modifier = Modifier.width(6.dp))
+
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
         )
     }
 }

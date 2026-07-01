@@ -810,7 +810,6 @@ fun BadgeCotizacionEstado(
 @Composable
 fun SeccionAccionesRapidasCliente(
     onEditarClick: () -> Unit,
-   /* onWhatsappClick: () -> Unit,*/
     onLlamarClick: () -> Unit,
     onNuevaCotizacionClick: () -> Unit,
     onEliminarClick: () -> Unit

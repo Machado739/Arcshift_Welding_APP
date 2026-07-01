@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,11 +19,14 @@ import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 data class ConceptoCotizacionForm(
+    val tipo: String = "Materiales",
     val descripcion: String = "",
     val cantidad: String = "",
     val unidad: String = "Pza",
@@ -43,7 +45,50 @@ data class ConceptoCotizacionForm(
 fun Double.formatoMonedaCotizacion(): String {
     return "$ ${"%,.2f".format(this)}"
 }
+fun unidadDefaultConcepto(tipo: String): String {
+    return when (tipo) {
+        "Materiales" -> "Pza"
+        "Mano de obra" -> "Servicio"
+        "Gastos adicionales" -> "Gasto"
+        else -> "Pza"
+    }
+}
 
+fun tituloTipoConcepto(tipo: String): String {
+    return when (tipo) {
+        "Materiales" -> "Material"
+        "Mano de obra" -> "Mano de obra"
+        "Gastos adicionales" -> "Gasto adicional"
+        else -> "Concepto"
+    }
+}
+
+fun placeholderDescripcionConcepto(tipo: String): String {
+    return when (tipo) {
+        "Materiales" -> "Ej. PTR 2x2 Cal. 14"
+        "Mano de obra" -> "Ej. Fabricación e instalación"
+        "Gastos adicionales" -> "Ej. Flete, viáticos o consumibles"
+        else -> "Descripción del concepto"
+    }
+}
+
+fun colorConceptoCotizacion(tipo: String): Color {
+    return when (tipo) {
+        "Materiales" -> Color(0xFF15803D)
+        "Mano de obra" -> Color(0xFF2563EB)
+        "Gastos adicionales" -> Color(0xFFF59E0B)
+        else -> Color(0xFF334155)
+    }
+}
+
+fun fondoConceptoCotizacion(tipo: String): Color {
+    return when (tipo) {
+        "Materiales" -> Color(0xFFEAF7EE)
+        "Mano de obra" -> Color(0xFFEFF6FF)
+        "Gastos adicionales" -> Color(0xFFFFF7E6)
+        else -> Color(0xFFF1F5F9)
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevaCotizacionScreen(
@@ -66,16 +111,7 @@ fun NuevaCotizacionScreen(
     var observaciones by remember { mutableStateOf("") }
 
     var conceptos by remember {
-        mutableStateOf(
-            listOf(
-                ConceptoCotizacionForm(
-                    descripcion = "PTR 2x2 Cal. 14",
-                    cantidad = "12",
-                    unidad = "Pza",
-                    precioUnitario = "450"
-                )
-            )
-        )
+        mutableStateOf<List<ConceptoCotizacionForm>>(emptyList())
     }
 
     val subtotalCalculado = conceptos.sumOf { it.total }
@@ -87,184 +123,171 @@ fun NuevaCotizacionScreen(
     val saldoCalculado = totalCalculado - anticipoCalculado
 
 
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                end = 8.dp,
-                bottom = 8.dp
-            ),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            HeaderNuevaCotizacion(navController = navController)
-        }
-
-        item {
-            SeccionInformacionGeneralNuevaCotizacion(
-                clientes = clientes,
-                clienteSeleccionadoId = clienteSeleccionadoId,
-                onClienteSeleccionado = {
-                    clienteSeleccionadoId = it
-                    errorCliente = false
-                },
-                errorCliente = errorCliente,
-                proyecto = proyecto,
-                onProyectoChange = { proyecto = it },
-                fecha = fecha,
-                onFechaChange = { fecha = it },
-                vigencia = vigencia,
-                onVigenciaChange = { vigencia = it },
-                folio = folio,
-                onFolioChange = { folio = it },
-                descripcion = descripcion,
-                onDescripcionChange = { descripcion = it }
-            )
-        }
-
-        item {
-            SeccionConceptosNuevaCotizacion(
-                conceptos = conceptos,
-                onConceptosChange = { conceptos = it }
-            )
-        }
-
-        item {
-            SeccionResumenNuevaCotizacion(
-                subtotal = subtotalCalculado,
-                total = totalCalculado,
-                anticipoSugerido = anticipoCalculado,
-                saldoRestante = saldoCalculado,
-                descuento = descuento,
-                onDescuentoChange = { descuento = it },
-                iva = iva,
-                onIvaChange = { iva = it },
-                anticipo = anticipo,
-                onAnticipoChange = { anticipo = it }
-            )
-        }
-
-        item {
-            SeccionArchivosNuevaCotizacion()
-        }
-
-        item {
-            SeccionObservacionesNuevaCotizacion(
-                observaciones = observaciones,
-                onObservacionesChange = { observaciones = it }
-            )
-        }
-
-        item {
-            BotonesNuevaCotizacion(
-                onCancelarClick = {
-                    navController.popBackStack()
-                },
-                onGuardarClick = {
-                    val clienteId = clienteSeleccionadoId
-
-                    if (clienteId == null) {
-                        errorCliente = true
-                        return@BotonesNuevaCotizacion
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                IconButton(
+                    onClick = {
+                        navController.popBackStack()
                     }
-
-                    val detallesCotizacion = conceptos
-                        .filter {
-                            it.descripcion.isNotBlank() &&
-                                    it.cantidadNumero > 0.0 &&
-                                    it.precioNumero > 0.0
-                        }
-                        .map { concepto ->
-                            DetalleCotizacionEntity(
-                                cotizacionId = 0,
-                                descripcion = concepto.descripcion,
-                                cantidad = concepto.cantidadNumero,
-                                precioUnitario = concepto.precioNumero,
-                                total = concepto.total
-                            )
-                        }
-
-                    if (detallesCotizacion.isEmpty()) {
-                        return@BotonesNuevaCotizacion
-                    }
-
-                    viewModel.guardarCotizacion(
-                        folio = folio,
-                        clienteId = clienteId,
-                        descripcionTrabajo = descripcion.ifBlank { "Trabajo cotizado" },
-                        subtotal = subtotalCalculado,
-                        iva = ivaCalculado,
-                        total = totalCalculado,
-                        fecha = fecha,
-                        estado = "Pendiente",
-                        detalles = detallesCotizacion,
-                        onFinish = {
-                            navController.popBackStack()
-                        }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
                 }
-            )
-        }
-    }
-}
 
-@Composable
-fun HeaderNuevaCotizacion(
-    navController: NavController
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = {
-                navController.popBackStack()
+                Text(
+                    text = "Nueva Cotización",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
             }
+        },
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
+    ) {paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFFF8FAFC))
+                .padding(
+                    start = 8.dp,
+                    top = 0.dp,
+                    end = 8.dp,
+                    bottom = 8.dp
+                ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar"
-            )
-        }
 
-        Text(
-            text = "Nueva Cotización",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
 
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
+            item {
+                SeccionInformacionGeneralNuevaCotizacion(
+                    clientes = clientes,
+                    clienteSeleccionadoId = clienteSeleccionadoId,
+                    onClienteSeleccionado = {
+                        clienteSeleccionadoId = it
+                        errorCliente = false
+                    },
+                    errorCliente = errorCliente,
+                    proyecto = proyecto,
+                    onProyectoChange = { proyecto = it },
+                    fecha = fecha,
+                    onFechaChange = { fecha = it },
+                    vigencia = vigencia,
+                    onVigenciaChange = { vigencia = it },
+                    folio = folio,
+                    onFolioChange = { folio = it },
+                    descripcion = descripcion,
+                    onDescripcionChange = { descripcion = it }
+                )
+            }
 
-        TextButton(
-            onClick = {
-                navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(0) {
-                        inclusive = true
+            item {
+                SeccionConceptosNuevaCotizacion(
+                    conceptos = conceptos,
+                    onConceptosChange = { conceptos = it }
+                )
+            }
+
+            item {
+                SeccionResumenNuevaCotizacion(
+                    subtotal = subtotalCalculado,
+                    total = totalCalculado,
+                    anticipoSugerido = anticipoCalculado,
+                    saldoRestante = saldoCalculado,
+                    descuento = descuento,
+                    onDescuentoChange = { descuento = it },
+                    iva = iva,
+                    onIvaChange = { iva = it },
+                    anticipo = anticipo,
+                    onAnticipoChange = { anticipo = it }
+                )
+            }
+
+            item {
+                SeccionArchivosNuevaCotizacion()
+            }
+
+            item {
+                SeccionObservacionesNuevaCotizacion(
+                    observaciones = observaciones,
+                    onObservacionesChange = { observaciones = it }
+                )
+            }
+
+            item {
+                BotonesNuevaCotizacion(
+                    onCancelarClick = {
+                        navController.popBackStack()
+                    },
+                    onGuardarClick = {
+                        val clienteId = clienteSeleccionadoId
+
+                        if (clienteId == null) {
+                            errorCliente = true
+                            return@BotonesNuevaCotizacion
+                        }
+
+                        val detallesCotizacion = conceptos
+                            .filter {
+                                it.descripcion.isNotBlank() &&
+                                        it.cantidadNumero > 0.0 &&
+                                        it.precioNumero > 0.0
+                            }
+                            .map { concepto ->
+                                DetalleCotizacionEntity(
+                                    cotizacionId = 0,
+                                    descripcion = concepto.descripcion,
+                                    cantidad = concepto.cantidadNumero,
+                                    precioUnitario = concepto.precioNumero,
+                                    total = concepto.total
+                                )
+                            }
+
+                        if (detallesCotizacion.isEmpty()) {
+                            return@BotonesNuevaCotizacion
+                        }
+
+                        viewModel.guardarCotizacion(
+                            folio = folio.trim(),
+                            clienteId = clienteId,
+                            descripcionTrabajo = descripcion.trim(),
+                            proyecto = proyecto.trim(),
+                            subtotal = subtotalCalculado,
+                            iva = ivaCalculado,
+                            total = totalCalculado,
+                            fecha = fecha,
+                            vigencia = vigencia,
+                            observaciones = observaciones.trim(),
+                            estado = "Pendiente",
+                            detalles = detallesCotizacion,
+                            onFinish = {
+                                navController.popBackStack()
+                            }
+
+                        )
                     }
-                    launchSingleTop = true
-                }
+                )
             }
-        ) {
-            Text(
-                text = "Log\nOut",
-                fontSize = 9.sp,
-                lineHeight = 10.sp
-            )
         }
     }
+
+
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -474,97 +497,6 @@ fun SelectorClienteCotizacion(
     }
 }
 
-@Composable
-fun SeccionConceptosNuevaCotizacion(
-    conceptos: List<ConceptoCotizacionForm>,
-    onConceptosChange: (List<ConceptoCotizacionForm>) -> Unit
-) {
-    var categoriaSeleccionada by remember { mutableStateOf("Materiales") }
-
-    val categorias = listOf(
-        "Materiales",
-        "Mano de obra",
-        "Gastos adicionales"
-    )
-
-    CardSeccionFormularioCotizacion(
-        titulo = "Conceptos",
-        icono = Icons.Default.FormatListBulleted
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            categorias.forEach { categoria ->
-                TabConceptoCotizacion(
-                    texto = categoria,
-                    seleccionado = categoriaSeleccionada == categoria,
-                    onClick = {
-                        categoriaSeleccionada = categoria
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        EncabezadoNuevaCotizacionConceptos()
-
-        conceptos.forEachIndexed { index, concepto ->
-            ConceptoNuevaCotizacionItem(
-                concepto = concepto,
-                onConceptoChange = { conceptoActualizado ->
-                    onConceptosChange(
-                        conceptos.toMutableList().also {
-                            it[index] = conceptoActualizado
-                        }
-                    )
-                },
-                onEliminarClick = {
-                    if (conceptos.size > 1) {
-                        onConceptosChange(
-                            conceptos.toMutableList().also {
-                                it.removeAt(index)
-                            }
-                        )
-                    }
-                }
-            )
-        }
-
-        TextButton(
-            onClick = {
-                onConceptosChange(
-                    conceptos + ConceptoCotizacionForm(
-                        descripcion = "",
-                        cantidad = "1",
-                        unidad = "Pza",
-                        precioUnitario = ""
-                    )
-                )
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Default.AddCircleOutline,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = Color(0xFF16A34A)
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-                text = "Agregar concepto",
-                fontSize = 11.sp,
-                color = Color(0xFF16A34A)
-            )
-        }
-    }
-}
 
 @Composable
 fun TabConceptoCotizacion(
@@ -573,15 +505,18 @@ fun TabConceptoCotizacion(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val color = colorConceptoCotizacion(texto)
+    val fondo = fondoConceptoCotizacion(texto)
+
     Box(
         modifier = modifier
-            .height(30.dp)
+            .height(34.dp)
             .clickable {
                 onClick()
             }
             .background(
-                color = if (seleccionado) Color.White else Color.Transparent,
-                shape = RoundedCornerShape(6.dp)
+                color = if (seleccionado) fondo else Color.Transparent,
+                shape = RoundedCornerShape(7.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -589,7 +524,7 @@ fun TabConceptoCotizacion(
             text = texto,
             fontSize = 9.sp,
             fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
-            color = if (seleccionado) Color(0xFF15803D) else Color.Gray,
+            color = if (seleccionado) color else Color.Gray,
             maxLines = 1
         )
     }
@@ -644,85 +579,327 @@ fun EncabezadoNuevaCotizacionConceptos() {
         color = Color(0xFFE2E8F0)
     )
 }
+@Composable
+fun SeccionConceptosNuevaCotizacion(
+    conceptos: List<ConceptoCotizacionForm>,
+    onConceptosChange: (List<ConceptoCotizacionForm>) -> Unit
+) {
+    var categoriaSeleccionada by remember { mutableStateOf("Materiales") }
+
+    val categorias = listOf(
+        "Materiales",
+        "Mano de obra",
+        "Gastos adicionales"
+    )
+
+    CardSeccionFormularioCotizacion(
+        titulo = "Conceptos",
+        icono = Icons.Default.FormatListBulleted
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            categorias.forEach { categoria ->
+                TabConceptoCotizacion(
+                    texto = categoria,
+                    seleccionado = categoriaSeleccionada == categoria,
+                    onClick = {
+                        categoriaSeleccionada = categoria
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = when (categoriaSeleccionada) {
+                "Materiales" -> "Agrega materiales usados en el trabajo."
+                "Mano de obra" -> "Agrega costos por fabricación, instalación o servicio."
+                "Gastos adicionales" -> "Agrega fletes, viáticos, consumibles u otros gastos."
+                else -> ""
+            },
+            fontSize = 9.sp,
+            color = colorConceptoCotizacion(categoriaSeleccionada),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = fondoConceptoCotizacion(categoriaSeleccionada),
+                    shape = RoundedCornerShape(7.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (conceptos.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFFFFBEB)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Text(
+                    text = "Aún no hay conceptos agregados. Selecciona una categoría y presiona Agregar concepto.",
+                    fontSize = 10.sp,
+                    color = Color(0xFF92400E),
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        conceptos.forEachIndexed { index, concepto ->
+            ConceptoNuevaCotizacionItem(
+                numeroConcepto = index + 1,
+                concepto = concepto,
+                mostrarEliminar = conceptos.size > 1,
+                onConceptoChange = { conceptoActualizado ->
+                    onConceptosChange(
+                        conceptos.toMutableList().also {
+                            it[index] = conceptoActualizado
+                        }
+                    )
+                },
+                onEliminarClick = {
+                    onConceptosChange(
+                        conceptos.toMutableList().also {
+                            it.removeAt(index)
+                        }
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        TextButton(
+            onClick = {
+                onConceptosChange(
+                    conceptos + ConceptoCotizacionForm(
+                        tipo = categoriaSeleccionada,
+                        descripcion = "",
+                        cantidad = "1",
+                        unidad = unidadDefaultConcepto(categoriaSeleccionada),
+                        precioUnitario = ""
+                    )
+                )
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.AddCircleOutline,
+                contentDescription = null,
+                modifier = Modifier.size(17.dp),
+                tint = colorConceptoCotizacion(categoriaSeleccionada)
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Text(
+                text = "Agregar ${tituloTipoConcepto(categoriaSeleccionada).lowercase()}",
+                fontSize = 12.sp,
+                color = colorConceptoCotizacion(categoriaSeleccionada)
+            )
+        }
+    }
+}
 
 @Composable
 fun ConceptoNuevaCotizacionItem(
+    numeroConcepto: Int,
     concepto: ConceptoCotizacionForm,
+    mostrarEliminar: Boolean,
     onConceptoChange: (ConceptoCotizacionForm) -> Unit,
     onEliminarClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val colorTipo = colorConceptoCotizacion(concepto.tipo)
+    val fondoTipo = fondoConceptoCotizacion(concepto.tipo)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8FAFC)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        CampoMiniEditableCotizacion(
-            valor = concepto.descripcion,
-            onValueChange = {
-                onConceptoChange(concepto.copy(descripcion = it))
-            },
-            placeholder = "Concepto",
-            modifier = Modifier.weight(1.3f)
-        )
-
-        CampoMiniEditableCotizacion(
-            valor = concepto.cantidad,
-            onValueChange = {
-                onConceptoChange(concepto.copy(cantidad = it))
-            },
-            placeholder = "Cant.",
-            modifier = Modifier.weight(0.5f)
-        )
-
-        CampoMiniEditableCotizacion(
-            valor = concepto.unidad,
-            onValueChange = {
-                onConceptoChange(concepto.copy(unidad = it))
-            },
-            placeholder = "Unidad",
-            modifier = Modifier.weight(0.7f)
-        )
-
-        CampoMiniEditableCotizacion(
-            valor = concepto.precioUnitario,
-            onValueChange = {
-                onConceptoChange(concepto.copy(precioUnitario = it))
-            },
-            placeholder = "Precio",
-            modifier = Modifier.weight(0.8f)
-        )
-
-        Box(
+        Column(
             modifier = Modifier
-                .weight(0.8f)
-                .height(28.dp)
-                .padding(horizontal = 2.dp)
-                .background(
-                    color = Color(0xFFF8FAFC),
-                    shape = RoundedCornerShape(5.dp)
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = concepto.total.formatoMonedaCotizacion(),
-                fontSize = 8.sp,
-                color = Color.Black,
-                maxLines = 1
-            )
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Concepto $numeroConcepto",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF334155),
+                    modifier = Modifier.weight(1f)
+                )
 
-        IconButton(
-            onClick = onEliminarClick,
-            modifier = Modifier.size(24.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.DeleteOutline,
-                contentDescription = "Eliminar",
-                modifier = Modifier.size(15.dp),
-                tint = Color.Gray
+                Text(
+                    text = tituloTipoConcepto(concepto.tipo),
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorTipo,
+                    modifier = Modifier
+                        .background(
+                            color = fondoTipo,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                )
+
+                if (mostrarEliminar) {
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    IconButton(
+                        onClick = onEliminarClick,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Eliminar concepto",
+                            modifier = Modifier.size(18.dp),
+                            tint = Color(0xFFDC2626)
+                        )
+                    }
+                }
+            }
+
+            CampoConceptoCotizacion(
+                titulo = "Descripción",
+                valor = concepto.descripcion,
+                onValueChange = {
+                    onConceptoChange(concepto.copy(descripcion = it))
+                },
+                placeholder = placeholderDescripcionConcepto(concepto.tipo),
+                modifier = Modifier.fillMaxWidth()
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CampoConceptoCotizacion(
+                    titulo = "Cantidad",
+                    valor = concepto.cantidad,
+                    onValueChange = {
+                        onConceptoChange(concepto.copy(cantidad = it))
+                    },
+                    placeholder = "1",
+                    modifier = Modifier.weight(1f)
+                )
+
+                CampoConceptoCotizacion(
+                    titulo = "Unidad",
+                    valor = concepto.unidad,
+                    onValueChange = {
+                        onConceptoChange(concepto.copy(unidad = it))
+                    },
+                    placeholder = unidadDefaultConcepto(concepto.tipo),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                CampoConceptoCotizacion(
+                    titulo = "Precio unitario",
+                    valor = concepto.precioUnitario,
+                    onValueChange = {
+                        onConceptoChange(concepto.copy(precioUnitario = it))
+                    },
+                    placeholder = "0.00",
+                    modifier = Modifier.weight(1f)
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Importe",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.DarkGray
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(7.dp)
+                            )
+                            .padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = concepto.total.formatoMonedaCotizacion(),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorTipo,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun CampoConceptoCotizacion(
+    titulo: String,
+    valor: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        OutlinedTextField(
+            value = valor,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontSize = 10.sp
+                )
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 11.sp
+            ),
+            shape = RoundedCornerShape(7.dp)
+        )
     }
 }
 
@@ -750,32 +927,6 @@ fun CampoMiniCotizacion(
     }
 }
 
-@Composable
-fun CampoMiniEditableCotizacion(
-    valor: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = valor,
-        onValueChange = onValueChange,
-        modifier = modifier
-            .height(36.dp)
-            .padding(horizontal = 2.dp),
-        placeholder = {
-            Text(
-                text = placeholder,
-                fontSize = 8.sp
-            )
-        },
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            fontSize = 8.sp
-        ),
-        shape = RoundedCornerShape(5.dp)
-    )
-}
 
 @Composable
 fun SeccionResumenNuevaCotizacion(

@@ -70,12 +70,14 @@ class EmpleadosViewModelFactory(
 }
 
 fun EmpleadoEntity.toUi(): EmpleadoUI {
+    val porcentaje = porcentajeContrato.formatoPorcentajeContrato()
+
     return EmpleadoUI(
         id = id,
         nombre = nombre,
         puesto = puesto,
-        trabajo = "Sin trabajo asignado",
-        contrato = "Salario registrado",
+        trabajo = trabajoActual.ifBlank { "Sin trabajo asignado" },
+        contrato = if (porcentaje == "No registrado") "Contrato no registrado" else "Contrato $porcentaje",
         pagoTotal = salario.formatoMoneda(),
         periodoPago = "Pago total",
         estado = if (activo) "Activo" else "Inactivo",
@@ -89,14 +91,15 @@ fun EmpleadoEntity.toDetalleUi(): EmpleadoDetalleUI {
         id = id,
         nombre = nombre,
         puesto = puesto,
-        telefono = telefono,
-        fechaIngreso = fechaIngreso,
-        correo = correo,
-        direccion = "Sin dirección registrada",
-        porcentajeContrato = "No registrado",
-        trabajoActual = "Sin trabajo asignado",
+        telefono = telefono.ifBlank { "Sin teléfono registrado" },
+        fechaIngreso = fechaIngreso.ifBlank { "Sin fecha registrada" },
+        correo = correo.ifBlank { "Sin correo registrado" },
+        direccion = direccion.ifBlank { "Sin dirección registrada" },
+        porcentajeContrato = porcentajeContrato.formatoPorcentajeContrato(),
+        trabajoActual = trabajoActual.ifBlank { "Sin trabajo asignado" },
         pagoTotalSemana = salario.formatoMoneda(),
-        estado = if (activo) "Activo" else "Inactivo"
+        estado = if (activo) "Activo" else "Inactivo",
+        notas = notas.ifBlank { "Sin notas registradas" }
     )
 }
 
@@ -106,10 +109,22 @@ fun EmpleadoEntity.toEliminarUi(): EmpleadoEliminarUI {
         nombre = nombre,
         puesto = puesto,
         estado = if (activo) "Activo" else "Inactivo",
-        trabajoActual = "Sin trabajo asignado",
-        contrato = "No registrado",
+        trabajoActual = trabajoActual.ifBlank { "Sin trabajo asignado" },
+        contrato = porcentajeContrato.formatoPorcentajeContrato(),
         pagoTotal = salario.formatoMoneda()
     )
+}
+
+fun String.formatoPorcentajeContrato(): String {
+    val valor = trim()
+
+    if (valor.isBlank()) return "No registrado"
+
+    return if (valor.contains("%")) {
+        valor
+    } else {
+        "$valor%"
+    }
 }
 
 fun Double.formatoMoneda(): String {

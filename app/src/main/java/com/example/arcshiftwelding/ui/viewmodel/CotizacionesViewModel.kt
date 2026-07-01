@@ -54,10 +54,13 @@ class CotizacionesViewModel(
         folio: String,
         clienteId: Int,
         descripcionTrabajo: String,
+        proyecto: String = "",
         subtotal: Double,
         iva: Double,
         total: Double,
         fecha: String,
+        vigencia: String = "",
+        observaciones: String = "",
         estado: String = "Pendiente",
         detalles: List<DetalleCotizacionEntity> = emptyList(),
         onFinish: () -> Unit = {}
@@ -68,10 +71,13 @@ class CotizacionesViewModel(
                     folio = folio,
                     clienteId = clienteId,
                     descripcionTrabajo = descripcionTrabajo,
+                    proyecto = proyecto,
                     subtotal = subtotal,
                     iva = iva,
                     total = total,
                     fecha = fecha,
+                    vigencia = vigencia,
+                    observaciones = observaciones,
                     estado = estado
                 )
             ).toInt()

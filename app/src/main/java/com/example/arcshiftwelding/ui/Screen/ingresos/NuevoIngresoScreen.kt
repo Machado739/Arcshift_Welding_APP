@@ -138,14 +138,14 @@ fun SeccionIngresoInformacionFinanciera(
         "Cheque",
         "Crédito"
     )
-
+/*
     val formasPago = listOf(
         "Contado",
         "Crédito",
         "Anticipo",
         "Parcialidad"
     )
-
+*/
     val subtotalNumero = form.subtotal.aDouble()
     val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
     val totalNumero = subtotalNumero + ivaNumero
@@ -266,7 +266,7 @@ fun SeccionIngresoInformacionFinanciera(
                 },
                 modifier = Modifier.weight(1f)
             )
-
+/*
             CampoDropdownIngreso(
                 titulo = "Forma de pago",
                 valor = form.formaPago,
@@ -276,7 +276,7 @@ fun SeccionIngresoInformacionFinanciera(
                     onChange(form.copy(formaPago = it))
                 },
                 modifier = Modifier.weight(1f)
-            )
+            )*/
         }
 
         Spacer(modifier = Modifier.height(10.dp))

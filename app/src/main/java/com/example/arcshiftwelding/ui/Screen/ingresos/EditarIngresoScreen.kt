@@ -269,14 +269,14 @@ fun SeccionEditarIngresoInformacionFinanciera() {
                 valor = metodoPago,
                 modifier = Modifier.weight(1f)
             )
-
+/*
             CampoSeleccionIngreso(
                 titulo = "Forma de pago",
                 valor = formaPago,
                 modifier = Modifier.weight(1f)
             )
         }
-
+*/
         Spacer(modifier = Modifier.height(10.dp))
 
         CampoTextoIngreso(
@@ -288,7 +288,7 @@ fun SeccionEditarIngresoInformacionFinanciera() {
         )
     }
 }
-
+/*
 @Composable
 fun SeccionEditarIngresoComprobante() {
     var observaciones by remember {
@@ -344,7 +344,7 @@ fun SeccionEditarIngresoComprobante() {
                 .height(95.dp),
             singleLine = false
         )
-    }
+    }*/
 }
 
 @Composable

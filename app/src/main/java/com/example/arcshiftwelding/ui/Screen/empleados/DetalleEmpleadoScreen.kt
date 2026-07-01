@@ -75,7 +75,8 @@ data class EmpleadoDetalleUI(
     val porcentajeContrato: String,
     val trabajoActual: String,
     val pagoTotalSemana: String,
-    val estado: String
+    val estado: String,
+    val notas: String
 )
 
 data class TrabajoAsignadoEmpleadoUI(
@@ -178,7 +179,9 @@ fun DetalleEmpleadoScreen(
 
             SeccionInformacionLaboralEmpleado(empleado = empleado)
 
-        /*    SeccionTrabajosAsignadosEmpleado(trabajos = trabajosAsignados)*/
+            SeccionNotasDetalleEmpleado(empleado = empleado)
+
+            /*    SeccionTrabajosAsignadosEmpleado(trabajos = trabajosAsignados)*/
 
             SeccionAccionesRapidasEmpleado(
                 onLlamarClick = { },
@@ -315,7 +318,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Teléfono",
             valor = empleado.telefono,
-         /*   accion = "Llamar",*/
+            /*   accion = "Llamar",*/
             icono = Icons.Default.Phone,
             color = Color(0xFF2563EB),
             modifier = Modifier.weight(1f)
@@ -324,7 +327,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Correo",
             valor = empleado.correo,
-          /*  accion = "Enviar",*/
+            /*  accion = "Enviar",*/
             icono = Icons.Default.Email,
             color = Color(0xFF7C3AED),
             modifier = Modifier.weight(1f)
@@ -333,7 +336,7 @@ fun CardsContactoEmpleado(
         CardContactoEmpleado(
             titulo = "Dirección",
             valor = empleado.direccion,
-           /* accion = "Ver",*/
+            /* accion = "Ver",*/
             icono = Icons.Default.LocationOn,
             color = Color(0xFF16A34A),
             modifier = Modifier.weight(1f)
@@ -345,7 +348,7 @@ fun CardsContactoEmpleado(
 fun CardContactoEmpleado(
     titulo: String,
     valor: String,
-  /*  accion: String,*/
+    /*  accion: String,*/
     icono: ImageVector,
     color: Color,
     modifier: Modifier = Modifier
@@ -393,13 +396,13 @@ fun CardContactoEmpleado(
             )
 
             Spacer(modifier = Modifier.weight(1f))
-/*
-            Text(
-                text = accion,
-                style = MaterialTheme.typography.labelSmall,
-                color = color,
-                fontWeight = FontWeight.Bold
-            )*/
+            /*
+                        Text(
+                            text = accion,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = color,
+                            fontWeight = FontWeight.Bold
+                        )*/
         }
     }
 }
@@ -493,7 +496,7 @@ fun SeccionInformacionLaboralEmpleado(
 
             ItemInfoEmpleado(
                 icono = Icons.Default.Badge,
-                titulo = "Pago por contrato",
+                titulo = "Porcentaje de contrato",
                 valor = empleado.porcentajeContrato
             )
 
@@ -506,13 +509,13 @@ fun SeccionInformacionLaboralEmpleado(
             )
 
             Divider(color = Color(0xFFE5E7EB))
-/*
-            ItemInfoEmpleado(
-                icono = Icons.Default.AttachMoney,
-                titulo = "Pago total semana",
-                valor = empleado.pagoTotalSemana
-            )
-*/
+            /*
+                        ItemInfoEmpleado(
+                            icono = Icons.Default.AttachMoney,
+                            titulo = "Pago total semana",
+                            valor = empleado.pagoTotalSemana
+                        )
+            */
             Divider(color = Color(0xFFE5E7EB))
 
             ItemInfoEmpleado(
@@ -520,6 +523,38 @@ fun SeccionInformacionLaboralEmpleado(
                 titulo = "Estado",
                 valor = empleado.estado,
                 valorColor = Color(0xFF16A34A)
+            )
+        }
+    }
+}
+
+@Composable
+fun SeccionNotasDetalleEmpleado(
+    empleado: EmpleadoDetalleUI
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            TituloSeccionEmpleado(
+                titulo = "Notas del empleado",
+                icono = Icons.Default.Message,
+                color = Color(0xFF2563EB)
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = empleado.notas,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF0F172A)
             )
         }
     }

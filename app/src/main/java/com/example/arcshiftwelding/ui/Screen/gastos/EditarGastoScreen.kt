@@ -50,15 +50,6 @@ fun EditarGastoScreen(
         "Otro"
     )
 
-    val proveedores = listOf(
-        "Aceros del Norte",
-        "Ferretería Industrial",
-        "PEMEX",
-        "CFE",
-        "Taller Mecánico JR",
-        "Jaime Lozano",
-        "Otro"
-    )
 
     val porcentajesIva = listOf(
         "0",
@@ -99,7 +90,7 @@ fun EditarGastoScreen(
     var subtotal by remember { mutableStateOf("") }
     var ivaPorcentaje by remember { mutableStateOf("16") }
     var metodoPago by remember { mutableStateOf("") }
-    var formaPago by remember { mutableStateOf("") }
+  //  var formaPago by remember { mutableStateOf("") }
 
     var telefonoProveedor by remember { mutableStateOf("") }
     var correoProveedor by remember { mutableStateOf("") }
@@ -133,7 +124,7 @@ fun EditarGastoScreen(
             subtotal = gasto.subtotal.toString()
             ivaPorcentaje = gasto.ivaPorcentaje.toString()
             metodoPago = gasto.metodoPago
-            formaPago = gasto.formaPago
+          //  formaPago = gasto.formaPago
 
             telefonoProveedor = gasto.telefonoProveedor ?: ""
             correoProveedor = gasto.correoProveedor ?: ""
@@ -232,11 +223,12 @@ fun EditarGastoScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                CampoSelectorEditar(
+                CampoTextoEditar(
                     label = "Proveedor *",
                     value = proveedor,
-                    opciones = proveedores,
-                    onValueChange = { proveedor = it },
+                    onValueChange = {
+                        if (it.length <= 80) proveedor = it
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -316,13 +308,6 @@ fun EditarGastoScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    CampoSelectorEditar(
-                        label = "Forma de pago",
-                        value = formaPago,
-                        opciones = formasPago,
-                        onValueChange = { formaPago = it },
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
 
@@ -514,13 +499,13 @@ fun EditarGastoScreen(
                                 concepto = concepto,
                                 categoria = categoria,
                                 fecha = fecha,
-                                proveedor = proveedor,
+                                proveedor = proveedor.trim(),
                                 subtotal = subtotalValor,
                                 ivaPorcentaje = ivaValor,
                                 iva = ivaCalculado,
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
-                                formaPago = formaPago,
+                                formaPago = "",
                                 telefonoProveedor = telefonoProveedor.ifBlank { null },
                                 correoProveedor = correoProveedor.ifBlank { null },
                                 rfcProveedor = rfcProveedor.ifBlank { null },

@@ -80,10 +80,14 @@ fun EditarEmpleadoScreen(
 
             telefono = empleado.telefono
             correo = empleado.correo
+            direccion = empleado.direccion
 
             fechaIngreso = empleado.fechaIngreso
+            porcentajeContrato = empleado.porcentajeContrato
+            trabajoActual = empleado.trabajoActual
             pagoSemanal = empleado.salario.toString()
 
+            notas = empleado.notas
             empleadoActivo = empleado.activo
 
             datosCargados = true
@@ -201,9 +205,13 @@ fun EditarEmpleadoScreen(
                         nombre = nombre,
                         telefono = telefono,
                         correo = correo,
+                        direccion = direccion,
                         puesto = puesto,
                         salario = pagoSemanal.aDoubleMoneda(),
                         fechaIngreso = fechaIngreso,
+                        porcentajeContrato = porcentajeContrato,
+                        trabajoActual = trabajoActual,
+                        notas = notas,
                         activo = empleadoActivo && estatus == "Activo"
                     )
 
