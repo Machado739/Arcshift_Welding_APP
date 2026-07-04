@@ -21,6 +21,8 @@ import androidx.compose.foundation.clickable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun NuevoIngresoScreen(
@@ -761,14 +763,17 @@ fun CampoFechaIngreso(
                         val fechaSeleccionada = datePickerState.selectedDateMillis
 
                         if (fechaSeleccionada != null) {
-                            val formato = SimpleDateFormat(
-                                "dd/MM/yyyy",
-                                Locale.getDefault()
-                            )
+                            val calendario = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                timeInMillis = fechaSeleccionada
+                            }
 
-                            onFechaSeleccionada(
-                                formato.format(Date(fechaSeleccionada))
-                            )
+                            val dia = calendario.get(Calendar.DAY_OF_MONTH)
+                            val mes = calendario.get(Calendar.MONTH) + 1
+                            val anio = calendario.get(Calendar.YEAR)
+
+                            val fechaFormateada = "%02d/%02d/%04d".format(dia, mes, anio)
+
+                            onFechaSeleccionada(fechaFormateada)
                         }
 
                         mostrarCalendario = false

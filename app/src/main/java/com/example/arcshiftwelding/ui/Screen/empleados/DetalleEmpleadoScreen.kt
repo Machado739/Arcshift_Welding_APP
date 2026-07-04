@@ -269,10 +269,12 @@ fun CardPrincipalEmpleado(
                         color = Color(0xFF16A34A)
                     )
 
-                    BadgeEstadoEmpleado(
-                        texto = "Contrato ${empleado.porcentajeContrato}",
-                        color = Color(0xFF2563EB)
-                    )
+                    if (empleado.porcentajeContrato.isNotBlank()) {
+                        BadgeEstadoEmpleado(
+                            texto = empleado.porcentajeContrato,
+                            color = Color(0xFF2563EB)
+                        )
+                    }
                 }
             }
         }
@@ -496,8 +498,8 @@ fun SeccionInformacionLaboralEmpleado(
 
             ItemInfoEmpleado(
                 icono = Icons.Default.Badge,
-                titulo = "Porcentaje de contrato",
-                valor = empleado.porcentajeContrato
+                titulo = "Contrato / pago",
+                valor = empleado.porcentajeContrato.ifBlank { "Sin definir" }
             )
 
             Divider(color = Color(0xFFE5E7EB))

@@ -86,9 +86,10 @@ fun NuevoEmpleadoScreen(
     var direccion by remember { mutableStateOf("") }
 
     var fechaIngreso by remember { mutableStateOf("") }
-    var porcentajeContrato by remember { mutableStateOf("") }
+
+    var tipoContrato by remember { mutableStateOf("") }
+    var valorContrato by remember { mutableStateOf("") }
     var trabajoActual by remember { mutableStateOf("") }
-    var pagoSemanal by remember { mutableStateOf("") }
 
     var notas by remember { mutableStateOf("") }
 
@@ -164,12 +165,12 @@ fun NuevoEmpleadoScreen(
             SeccionInformacionLaboralNuevoEmpleado(
                 fechaIngreso = fechaIngreso,
                 onFechaIngresoChange = { fechaIngreso = it },
-                porcentajeContrato = porcentajeContrato,
-                onPorcentajeContratoChange = { porcentajeContrato = it },
+                tipoContrato = tipoContrato,
+                onTipoContratoChange = { tipoContrato = it },
+                valorContrato = valorContrato,
+                onValorContratoChange = { valorContrato = it },
                 trabajoActual = trabajoActual,
-                onTrabajoActualChange = { trabajoActual = it },
-                pagoSemanal = pagoSemanal,
-                onPagoSemanalChange = { pagoSemanal = it }
+                onTrabajoActualChange = { trabajoActual = it }
             )
 
             SeccionNotasNuevoEmpleado(
@@ -197,11 +198,11 @@ fun NuevoEmpleadoScreen(
                         telefono = telefono.trim(),
                         correo = correo.trim(),
                         puesto = puesto.trim(),
-                        salario = pagoSemanal.aDoubleMoneda(),
+                        salario = obtenerSalarioEmpleado(tipoContrato, valorContrato),
                         fechaIngreso = fechaIngreso.trim(),
                         activo = empleadoActivo && estatus == "Activo",
                         direccion = direccion.trim(),
-                        porcentajeContrato = porcentajeContrato.trim(),
+                        porcentajeContrato = construirContratoEmpleado(tipoContrato, valorContrato),
                         trabajoActual = trabajoActual.trim(),
                         notas = notas.trim()
                     )
@@ -367,39 +368,74 @@ fun SeccionInformacionContactoEmpleado(
 fun SeccionInformacionLaboralNuevoEmpleado(
     fechaIngreso: String,
     onFechaIngresoChange: (String) -> Unit,
-    porcentajeContrato: String,
-    onPorcentajeContratoChange: (String) -> Unit,
+    tipoContrato: String,
+    onTipoContratoChange: (String) -> Unit,
+    valorContrato: String,
+    onValorContratoChange: (String) -> Unit,
     trabajoActual: String,
-    onTrabajoActualChange: (String) -> Unit,
-    pagoSemanal: String,
-    onPagoSemanalChange: (String) -> Unit
+    onTrabajoActualChange: (String) -> Unit
 ) {
+    val mostrarValorContrato =
+        tipoContrato.isNotBlank() && tipoContrato != "Sin definir"
+
+    val tituloValorContrato = when (tipoContrato) {
+        "% por trabajo" -> "Porcentaje"
+        "Pago por día" -> "Pago por día"
+        "Pago por semana" -> "Pago por semana"
+        else -> "Valor"
+    }
+
+    val placeholderValorContrato = when (tipoContrato) {
+        "% por trabajo" -> "Ej. 20%"
+        "Pago por día" -> "Ej. $500"
+        "Pago por semana" -> "Ej. $2500"
+        else -> "Opcional"
+    }
+
     CardFormularioEmpleado(
         titulo = "Información laboral",
         icono = Icons.Default.Work,
         color = Color(0xFF2563EB)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CampoFechaEmpleado(
-                valor = fechaIngreso,
-                onValorChange = onFechaIngresoChange,
-                titulo = "Fecha ingreso",
-                placeholder = "Seleccionar fecha",
-                requerido = true,
-                modifier = Modifier.weight(1f)
-            )
+        CampoFechaEmpleado(
+            valor = fechaIngreso,
+            onValorChange = onFechaIngresoChange,
+            titulo = "Fecha ingreso",
+            placeholder = "Seleccionar fecha",
+            requerido = true
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        SelectorSimpleEmpleado(
+            titulo = "Contrato / pago",
+            valor = tipoContrato,
+            opciones = listOf(
+                "Sin definir",
+                "% por trabajo",
+                "Pago por día",
+                "Pago por semana"
+            ),
+            onValorChange = { opcion ->
+                onTipoContratoChange(opcion)
+
+                if (opcion == "Sin definir") {
+                    onValorContratoChange("")
+                }
+            },
+            requerido = false
+        )
+
+        if (mostrarValorContrato) {
+            Spacer(modifier = Modifier.height(10.dp))
 
             CampoTextoEmpleado(
-                valor = porcentajeContrato,
-                onValorChange = onPorcentajeContratoChange,
-                titulo = "Contrato",
-                placeholder = "20%",
-                requerido = true,
-                leadingIcon = Icons.Default.Badge,
-                modifier = Modifier.weight(1f)
+                valor = valorContrato,
+                onValorChange = onValorContratoChange,
+                titulo = tituloValorContrato,
+                placeholder = placeholderValorContrato,
+                requerido = false,
+                leadingIcon = Icons.Default.AttachMoney
             )
         }
 
@@ -413,17 +449,6 @@ fun SeccionInformacionLaboralNuevoEmpleado(
             requerido = false,
             leadingIcon = Icons.Default.Work
         )
-
-        /*  Spacer(modifier = Modifier.height(10.dp))
-
-          CampoTextoEmpleado(
-              valor = pagoSemanal,
-              onValorChange = onPagoSemanalChange,
-              titulo = "Pago total semana",
-              placeholder = "Ej. ${'$'}980",
-              requerido =false,
-              leadingIcon = Icons.Default.AttachMoney
-          )*/
     }
 }
 
@@ -929,4 +954,68 @@ fun OpcionCheckEmpleado(
             )
         }
     }
+}
+
+
+fun construirContratoEmpleado(
+    tipoContrato: String,
+    valorContrato: String
+): String {
+    val tipo = tipoContrato.trim()
+    val valor = valorContrato.trim()
+
+    if (tipo.isBlank() || tipo == "Sin definir") {
+        return ""
+    }
+
+    return if (valor.isBlank()) {
+        tipo
+    } else {
+        "$tipo: $valor"
+    }
+}
+
+fun obtenerTipoContratoEmpleado(contrato: String): String {
+    val contratoLimpio = contrato.trim()
+
+    return when {
+        contratoLimpio.startsWith("% por trabajo") -> "% por trabajo"
+        contratoLimpio.startsWith("Pago por día") -> "Pago por día"
+        contratoLimpio.startsWith("Pago por semana") -> "Pago por semana"
+        contratoLimpio.endsWith("%") -> "% por trabajo"
+        contratoLimpio.isBlank() -> ""
+        else -> ""
+    }
+}
+
+fun obtenerValorContratoEmpleado(contrato: String): String {
+    val contratoLimpio = contrato.trim()
+
+    return when {
+        contratoLimpio.contains(":") -> {
+            contratoLimpio.substringAfter(":").trim()
+        }
+
+        contratoLimpio.endsWith("%") -> {
+            contratoLimpio
+        }
+
+        else -> ""
+    }
+}
+
+fun obtenerSalarioEmpleado(
+    tipoContrato: String,
+    valorContrato: String
+): Double {
+    if (tipoContrato == "% por trabajo") {
+        return 0.0
+    }
+
+    return valorContrato
+        .replace("$", "")
+        .replace(",", "")
+        .replace("%", "")
+        .trim()
+        .toDoubleOrNull() ?: 0.0
 }

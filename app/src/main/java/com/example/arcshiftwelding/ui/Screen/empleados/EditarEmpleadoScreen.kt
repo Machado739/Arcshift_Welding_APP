@@ -60,9 +60,10 @@ fun EditarEmpleadoScreen(
     var direccion by remember { mutableStateOf("") }
 
     var fechaIngreso by remember { mutableStateOf("") }
-    var porcentajeContrato by remember { mutableStateOf("") }
+
+    var tipoContrato by remember { mutableStateOf("") }
+    var valorContrato by remember { mutableStateOf("") }
     var trabajoActual by remember { mutableStateOf("") }
-    var pagoSemanal by remember { mutableStateOf("") }
 
     var notas by remember { mutableStateOf("") }
 
@@ -83,9 +84,9 @@ fun EditarEmpleadoScreen(
             direccion = empleado.direccion
 
             fechaIngreso = empleado.fechaIngreso
-            porcentajeContrato = empleado.porcentajeContrato
+            tipoContrato = obtenerTipoContratoEmpleado(empleado.porcentajeContrato)
+            valorContrato = obtenerValorContratoEmpleado(empleado.porcentajeContrato)
             trabajoActual = empleado.trabajoActual
-            pagoSemanal = empleado.salario.toString()
 
             notas = empleado.notas
             empleadoActivo = empleado.activo
@@ -173,12 +174,12 @@ fun EditarEmpleadoScreen(
             SeccionInformacionLaboralNuevoEmpleado(
                 fechaIngreso = fechaIngreso,
                 onFechaIngresoChange = { fechaIngreso = it },
-                porcentajeContrato = porcentajeContrato,
-                onPorcentajeContratoChange = { porcentajeContrato = it },
+                tipoContrato = tipoContrato,
+                onTipoContratoChange = { tipoContrato = it },
+                valorContrato = valorContrato,
+                onValorContratoChange = { valorContrato = it },
                 trabajoActual = trabajoActual,
-                onTrabajoActualChange = { trabajoActual = it },
-                pagoSemanal = pagoSemanal,
-                onPagoSemanalChange = { pagoSemanal = it }
+                onTrabajoActualChange = { trabajoActual = it }
             )
 
             SeccionNotasNuevoEmpleado(
@@ -207,9 +208,9 @@ fun EditarEmpleadoScreen(
                         correo = correo,
                         direccion = direccion,
                         puesto = puesto,
-                        salario = pagoSemanal.aDoubleMoneda(),
+                        salario = obtenerSalarioEmpleado(tipoContrato, valorContrato),
+                        porcentajeContrato = construirContratoEmpleado(tipoContrato, valorContrato),
                         fechaIngreso = fechaIngreso,
-                        porcentajeContrato = porcentajeContrato,
                         trabajoActual = trabajoActual,
                         notas = notas,
                         activo = empleadoActivo && estatus == "Activo"
