@@ -496,10 +496,12 @@ fun SeccionInformacionLaboralEmpleado(
 
             Divider(color = Color(0xFFE5E7EB))
 
+            val tipoPagoEmpleado = obtenerTipoContratoEmpleado(empleado.porcentajeContrato)
+
             ItemInfoEmpleado(
                 icono = Icons.Default.Badge,
-                titulo = "Contrato / pago",
-                valor = empleado.porcentajeContrato.ifBlank { "Sin definir" }
+                titulo = if (tipoPagoEmpleado.isBlank()) "Tipo de pago" else tipoPagoEmpleado,
+                valor = obtenerTextoPagoEmpleado(empleado.porcentajeContrato)
             )
 
             Divider(color = Color(0xFFE5E7EB))
@@ -529,7 +531,47 @@ fun SeccionInformacionLaboralEmpleado(
         }
     }
 }
+fun obtenerTextoPagoEmpleado(contrato: String): String {
+    val contratoLimpio = contrato.trim()
 
+    if (contratoLimpio.isBlank()) {
+        return "Sin definir"
+    }
+
+    return when {
+        contratoLimpio.startsWith("% por trabajo") -> {
+            val valor = contratoLimpio
+                .substringAfter(":", "")
+                .replace("$", "")
+                .replace("%", "")
+                .trim()
+
+            if (valor.isBlank()) "Sin definir" else "$valor%"
+        }
+
+        contratoLimpio.startsWith("Pago por día") -> {
+            val valor = contratoLimpio
+                .substringAfter(":", "")
+                .replace("$", "")
+                .replace("%", "")
+                .trim()
+
+            if (valor.isBlank()) "Sin definir" else "$$valor"
+        }
+
+        contratoLimpio.startsWith("Pago por semana") -> {
+            val valor = contratoLimpio
+                .substringAfter(":", "")
+                .replace("$", "")
+                .replace("%", "")
+                .trim()
+
+            if (valor.isBlank()) "Sin definir" else "$$valor"
+        }
+
+        else -> contratoLimpio
+    }
+}
 @Composable
 fun SeccionNotasDetalleEmpleado(
     empleado: EmpleadoDetalleUI

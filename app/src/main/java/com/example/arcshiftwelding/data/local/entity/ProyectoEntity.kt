@@ -13,19 +13,34 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["clienteId"],
             onDelete = ForeignKey.NO_ACTION
+        ),
+        ForeignKey(
+            entity = CotizacionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["cotizacionId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
-        Index(value = ["clienteId"])
+        Index("clienteId"),
+        Index("cotizacionId")
     ]
 )
 data class ProyectoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
     val nombre: String,
     val clienteId: Int,
-    val fechaInicio: String,
-    val fechaFin: String,
-    val estado: String
+    val cotizacionId: Int? = null,
+    val descripcion: String = "",
+    val estado: String = "Pendiente",
+    val fechaInicio: String = "",
+    val fechaEstimadaFin: String = "",
+    val fechaFinReal: String = "",
+    val avance: Int = 0,
+    val presupuestoEstimado: Double = 0.0,
+    val costoMaterial: Double = 0.0,
+    val costoManoObra: Double = 0.0,
+    val costoTotal: Double = 0.0,
+    val observaciones: String = ""
 )

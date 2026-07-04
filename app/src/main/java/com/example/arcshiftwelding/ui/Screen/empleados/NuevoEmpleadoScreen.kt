@@ -379,16 +379,16 @@ fun SeccionInformacionLaboralNuevoEmpleado(
         tipoContrato.isNotBlank() && tipoContrato != "Sin definir"
 
     val tituloValorContrato = when (tipoContrato) {
-        "% por trabajo" -> "Porcentaje"
+        "% por trabajo" -> "Porcentaje por trabajo"
         "Pago por día" -> "Pago por día"
         "Pago por semana" -> "Pago por semana"
         else -> "Valor"
     }
 
     val placeholderValorContrato = when (tipoContrato) {
-        "% por trabajo" -> "Ej. 20%"
-        "Pago por día" -> "Ej. $500"
-        "Pago por semana" -> "Ej. $2500"
+        "% por trabajo" -> "Ej. 20"
+        "Pago por día" -> "Ej. 500"
+        "Pago por semana" -> "Ej. 2500"
         else -> "Opcional"
     }
 
@@ -397,41 +397,49 @@ fun SeccionInformacionLaboralNuevoEmpleado(
         icono = Icons.Default.Work,
         color = Color(0xFF2563EB)
     ) {
-        CampoFechaEmpleado(
-            valor = fechaIngreso,
-            onValorChange = onFechaIngresoChange,
-            titulo = "Fecha ingreso",
-            placeholder = "Seleccionar fecha",
-            requerido = true
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CampoFechaEmpleado(
+                valor = fechaIngreso,
+                onValorChange = onFechaIngresoChange,
+                titulo = "Fecha ingreso",
+                placeholder = "Seleccionar fecha",
+                requerido = true,
+                modifier = Modifier.weight(1f)
+            )
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        SelectorSimpleEmpleado(
-            titulo = "Contrato / pago",
-            valor = tipoContrato,
-            opciones = listOf(
-                "Sin definir",
-                "% por trabajo",
-                "Pago por día",
-                "Pago por semana"
-            ),
-            onValorChange = { opcion ->
-                onTipoContratoChange(opcion)
-
-                if (opcion == "Sin definir") {
+            SelectorSimpleEmpleado(
+                titulo = "Tipo de pago",
+                valor = tipoContrato,
+                opciones = listOf(
+                    "Sin definir",
+                    "% por trabajo",
+                    "Pago por día",
+                    "Pago por semana"
+                ),
+                onValorChange = { opcion ->
+                    onTipoContratoChange(opcion)
                     onValorContratoChange("")
-                }
-            },
-            requerido = false
-        )
+                },
+                requerido = false,
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         if (mostrarValorContrato) {
             Spacer(modifier = Modifier.height(10.dp))
 
             CampoTextoEmpleado(
                 valor = valorContrato,
-                onValorChange = onValorContratoChange,
+                onValorChange = { nuevoValor ->
+                    onValorContratoChange(
+                        nuevoValor
+                            .replace("$", "")
+                            .replace("%", "")
+                    )
+                },
                 titulo = tituloValorContrato,
                 placeholder = placeholderValorContrato,
                 requerido = false,
@@ -956,22 +964,30 @@ fun OpcionCheckEmpleado(
     }
 }
 
-
 fun construirContratoEmpleado(
     tipoContrato: String,
     valorContrato: String
 ): String {
     val tipo = tipoContrato.trim()
-    val valor = valorContrato.trim()
+    val valor = valorContrato
+        .replace("$", "")
+        .replace("%", "")
+        .replace(",", "")
+        .trim()
 
     if (tipo.isBlank() || tipo == "Sin definir") {
         return ""
     }
 
-    return if (valor.isBlank()) {
-        tipo
-    } else {
-        "$tipo: $valor"
+    if (valor.isBlank()) {
+        return tipo
+    }
+
+    return when (tipo) {
+        "% por trabajo" -> "$tipo: $valor%"
+        "Pago por día" -> "$tipo: $$valor"
+        "Pago por semana" -> "$tipo: $$valor"
+        else -> "$tipo: $valor"
     }
 }
 
@@ -991,17 +1007,16 @@ fun obtenerTipoContratoEmpleado(contrato: String): String {
 fun obtenerValorContratoEmpleado(contrato: String): String {
     val contratoLimpio = contrato.trim()
 
-    return when {
-        contratoLimpio.contains(":") -> {
-            contratoLimpio.substringAfter(":").trim()
-        }
-
-        contratoLimpio.endsWith("%") -> {
-            contratoLimpio
-        }
-
-        else -> ""
+    if (!contratoLimpio.contains(":")) {
+        return ""
     }
+
+    return contratoLimpio
+        .substringAfter(":")
+        .replace("$", "")
+        .replace("%", "")
+        .replace(",", "")
+        .trim()
 }
 
 fun obtenerSalarioEmpleado(
@@ -1014,8 +1029,8 @@ fun obtenerSalarioEmpleado(
 
     return valorContrato
         .replace("$", "")
-        .replace(",", "")
         .replace("%", "")
+        .replace(",", "")
         .trim()
         .toDoubleOrNull() ?: 0.0
 }

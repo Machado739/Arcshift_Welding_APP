@@ -12,6 +12,9 @@ import com.example.arcshiftwelding.data.local.dao.GastoDao
 import com.example.arcshiftwelding.data.local.dao.IngresoDao
 import com.example.arcshiftwelding.data.local.dao.MovimientoInventarioDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoEmpleadoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoMaterialDao
 import com.example.arcshiftwelding.data.local.entity.CategoriaProductoEntity
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
@@ -22,7 +25,9 @@ import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
 import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
 
 
@@ -39,10 +44,12 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         EmpleadoEntity::class,
         EmpresaEntity::class,
         ProyectoEntity::class,
-        UsuarioEntity::class
+        UsuarioEntity::class,
+        ProyectoEmpleadoEntity::class,
+        ProyectoMaterialEntity::class
 
                ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -55,6 +62,9 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
     abstract fun empleadoDao(): EmpleadoDao
     abstract fun cotizacionDao(): CotizacionDao
     abstract fun detalleCotizacionDao(): DetalleCotizacionDao
+    abstract fun proyectoEmpleadoDao(): ProyectoEmpleadoDao
+    abstract fun proyectoMaterialDao(): ProyectoMaterialDao
+    abstract fun proyectoDao(): ProyectoDao
 
     companion object {
         @Volatile

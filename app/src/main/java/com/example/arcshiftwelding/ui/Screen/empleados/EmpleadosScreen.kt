@@ -544,7 +544,7 @@ fun ItemEmpleado(
                 )
                 InfoEmpleadoLinea(
                     icono = Icons.Default.Badge,
-                    texto = empleado.contrato
+                    texto = limpiarContratoListadoEmpleado(empleado.contrato)
                 )
             }
 
@@ -583,6 +583,66 @@ fun ItemEmpleado(
             )
         }
     }
+}
+fun limpiarContratoListadoEmpleado(contrato: String): String {
+    val contratoLimpio = contrato
+        .replace("Contrato", "", ignoreCase = true)
+        .trim()
+
+    if (contratoLimpio.isBlank()) {
+        return "Sin definir"
+    }
+
+    val contratoMinusculas = contratoLimpio.lowercase()
+    val valor = extraerValorContratoListadoEmpleado(contratoLimpio)
+
+    return when {
+        contratoMinusculas.contains("% por trabajo") -> {
+            if (valor.isBlank()) {
+                "% por trabajo"
+            } else {
+                "% por trabajo: $valor%"
+            }
+        }
+
+        contratoMinusculas.contains("pago por día") ||
+                contratoMinusculas.contains("pago por dia") -> {
+            if (valor.isBlank()) {
+                "Pago por día"
+            } else {
+                "Pago por día: ${'$'}$valor"
+            }
+        }
+
+        contratoMinusculas.contains("pago por semana") -> {
+            if (valor.isBlank()) {
+                "Pago por semana"
+            } else {
+                "Pago por semana: ${'$'}$valor"
+            }
+        }
+
+        else -> contratoLimpio.replace("%", "")
+    }
+}
+
+fun extraerValorContratoListadoEmpleado(contrato: String): String {
+    val textoBase = if (contrato.contains(":")) {
+        contrato.substringAfter(":")
+    } else {
+        contrato
+    }
+
+    return textoBase
+        .replace("% por trabajo", "", ignoreCase = true)
+        .replace("Pago por día", "", ignoreCase = true)
+        .replace("Pago por dia", "", ignoreCase = true)
+        .replace("Pago por semana", "", ignoreCase = true)
+        .replace("Contrato", "", ignoreCase = true)
+        .replace("${'$'}", "")
+        .replace("%", "")
+        .replace(",", "")
+        .trim()
 }
 
 @Composable
