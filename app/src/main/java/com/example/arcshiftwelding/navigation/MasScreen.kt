@@ -34,6 +34,9 @@ fun MasScreen(navController: NavController) {
             Button(onClick = { navController.navigate(AppRoutes.REPORTES) }) {
                 Text("Reportes")
             }
+            Button(onClick = {
+                navController.navigate(AppRoutes.PROYECTOS)
+            }) { Text("Proyectos") }
         }
     }
 }

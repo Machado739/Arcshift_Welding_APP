@@ -139,6 +139,25 @@ object AppRoutes {
         return "detalle_reporte/$tipoReporte"
     }
 
+    /// PROYECTOS
+    const val PROYECTOS = "proyectos"
+    const val NUEVO_PROYECTO = "nuevo_proyecto"
+    const val DETALLE_PROYECTO = "detalle_proyecto/{proyectoId}"
+    const val EDITAR_PROYECTO = "editar_proyecto/{proyectoId}"
+    const val ELIMINAR_PROYECTO = "eliminar_proyecto/{proyectoId}"
+
+    fun detalleProyecto(proyectoId: Int): String {
+        return "detalle_proyecto/$proyectoId"
+    }
+
+    fun editarProyecto(proyectoId: Int): String {
+        return "editar_proyecto/$proyectoId"
+    }
+
+    fun eliminarProyecto(proyectoId: Int): String {
+        return "eliminar_proyecto/$proyectoId"
+    }
+
 ///                     MAS
 ///                     MAS
 ///                     MAS

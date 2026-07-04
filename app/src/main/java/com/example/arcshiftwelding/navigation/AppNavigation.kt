@@ -69,6 +69,11 @@ import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModel
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 
+import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
+import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -112,6 +117,13 @@ fun AppNavigation() {
         )
     )
 
+    val proyectosViewModel: ProyectosViewModel = viewModel(
+        factory = ProyectosViewModelFactory(
+            proyectoDao = database.proyectoDao(),
+            clienteDao = database.clienteDao()
+        )
+    )
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -123,7 +135,8 @@ fun AppNavigation() {
         AppRoutes.INGRESOS,
         AppRoutes.COTIZACIONES,
         AppRoutes.EMPLEADOS,
-        AppRoutes.REPORTES
+        AppRoutes.REPORTES,
+        AppRoutes.PROYECTOS
     )
 
     Scaffold(
@@ -608,6 +621,21 @@ fun AppNavigation() {
                 DetalleReporteScreen(
                     navController = navController,
                     tipoReporte = tipoReporte
+                )
+            }
+
+            /// PROYECTOS
+            composable(AppRoutes.PROYECTOS) {
+                ProyectosScreen(
+                    navController = navController,
+                    viewModel = proyectosViewModel
+                )
+            }
+
+            composable(AppRoutes.NUEVO_PROYECTO) {
+                NuevoProyectoScreen(
+                    navController = navController,
+                    viewModel = proyectosViewModel
                 )
             }
 

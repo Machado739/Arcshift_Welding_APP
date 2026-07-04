@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Card
@@ -212,6 +213,10 @@ fun BottomNavigationBar(
             onReportesClick = {
                 mostrarMenuMas = false
                 navController.navigateBottomBar(AppRoutes.REPORTES)
+            },
+            onProyectosClick = {
+                mostrarMenuMas = false
+                navController.navigateBottomBar(AppRoutes.PROYECTOS)
             }
         )
     }
@@ -223,7 +228,8 @@ fun MenuMasFlotante(
     onIngresosClick: () -> Unit,
     onCotizacionesClick: () -> Unit,
     onEmpleadosClick: () -> Unit,
-    onReportesClick: () -> Unit
+    onReportesClick: () -> Unit,
+    onProyectosClick: () -> Unit
 ) {
     Popup(
         alignment = Alignment.BottomEnd,
@@ -262,7 +268,13 @@ fun MenuMasFlotante(
                 icono = Icons.Default.Assessment,
                 onClick = onReportesClick
             )
-        }
+
+            BotonMenuMasVertical(
+                texto = "Proyectos",
+                icono = Icons.Default.Build,
+                onClick = onProyectosClick
+            )
+            }
     }
 }
 @Composable
