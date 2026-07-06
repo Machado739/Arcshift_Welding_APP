@@ -168,7 +168,6 @@ fun DetalleClienteScreen(
                         contentDescription = "Editar cliente"
                     )
                 }
-
             }
         },
         containerColor = Color(0xFFF5F5F5),
@@ -208,7 +207,6 @@ fun DetalleClienteScreen(
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCliente(clienteActual.id))
                 },
-           /*     onWhatsappClick = { },*/
                 onLlamarClick = { },
                 onNuevaCotizacionClick = {
                     navController.navigate(AppRoutes.NUEVA_COTIZACION)
@@ -845,13 +843,6 @@ fun SeccionAccionesRapidasCliente(
                     modifier = Modifier.weight(1f)
                 )
 
-              /*  BotonAccionCliente(
-                    texto = "WhatsApp",
-                    icono = Icons.Default.Whatsapp,
-                    color = Color(0xFF16A34A),
-                    onClick = onWhatsappClick,
-                    modifier = Modifier.weight(1f)
-                )*/
 
                 BotonAccionCliente(
                     texto = "Llamar",

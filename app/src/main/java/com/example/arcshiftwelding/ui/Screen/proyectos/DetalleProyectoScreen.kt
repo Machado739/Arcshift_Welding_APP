@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.ui.Screen.proyectos
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +31,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
@@ -56,6 +67,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Delete
+import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,46 +83,55 @@ fun DetalleProyectoScreen(
 ) {
     val proyectos by viewModel.proyectos.collectAsState()
     val proyecto = proyectos.find { it.id == proyectoId }
+    var mostrarDialogoTerminar by remember { mutableStateOf(false) }
+    var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF8FAFC),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Detalle proyecto",
-                        fontWeight = FontWeight.Bold
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            // Cuando tengas EditarProyectoScreen:
-                            // navController.navigate(AppRoutes.editarProyecto(proyectoId))
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                }
+
+                Text(
+                    text = "Detalle proyecto",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
                 )
-            )
-        }
+
+                IconButton(
+                    onClick = {
+                        // Cuando tengas EditarProyectoScreen:
+                        navController.navigate(AppRoutes.editarProyecto(proyectoId))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar Proyecto"
+                    )
+                }
+            }
+        },
+        containerColor = Color(0xFFF5F5F5),
+        contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         if (proyecto == null) {
@@ -120,201 +146,208 @@ fun DetalleProyectoScreen(
             return@Scaffold
         }
 
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
                 .padding(paddingValues)
-                .navigationBarsPadding(),
-            contentPadding = PaddingValues(12.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                HeaderDetalleProyecto(proyecto = proyecto)
+            CardSeccionDetalleProyecto(
+                titulo = "Información general",
+                icono = Icons.Default.Work
+            ) {
+                ItemDetalleProyecto(
+                    icono = Icons.Default.Person,
+                    titulo = "Cliente",
+                    valor = proyecto.cliente
+                )
+
+                ItemDetalleProyecto(
+                    icono = Icons.Default.RequestQuote,
+                    titulo = "Cotización",
+                    valor = proyecto.cotizacion
+                )
+
+                ItemDetalleProyecto(
+                    icono = Icons.Default.Description,
+                    titulo = "Descripción",
+                    valor = proyecto.descripcion.ifBlank { "Sin descripción" }
+                )
             }
 
-            item {
-                CardSeccionDetalleProyecto(
-                    titulo = "Información general",
-                    icono = Icons.Default.Work
-                ) {
-                    ItemDetalleProyecto(
-                        icono = Icons.Default.Person,
-                        titulo = "Cliente",
-                        valor = proyecto.cliente
-                    )
 
-                    ItemDetalleProyecto(
-                        icono = Icons.Default.RequestQuote,
-                        titulo = "Cotización",
-                        valor = proyecto.cotizacion
-                    )
-
-                    ItemDetalleProyecto(
-                        icono = Icons.Default.Description,
-                        titulo = "Descripción",
-                        valor = proyecto.descripcion.ifBlank { "Sin descripción" }
-                    )
-                }
-            }
-
-            item {
-                CardSeccionDetalleProyecto(
-                    titulo = "Fechas del proyecto",
-                    icono = Icons.Default.CalendarMonth
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CajaDetalleProyecto(
-                            titulo = "Inicio",
-                            valor = proyecto.fechaInicio.ifBlank { "Sin fecha" },
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        CajaDetalleProyecto(
-                            titulo = "Entrega",
-                            valor = proyecto.fechaEstimadaFin.ifBlank { "Sin fecha" },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    CajaDetalleProyecto(
-                        titulo = "Fecha final real",
-                        valor = proyecto.fechaFinReal.ifBlank { "Pendiente" },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            item {
-                CardSeccionDetalleProyecto(
-                    titulo = "Costos del proyecto",
-                    icono = Icons.Default.AttachMoney
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CajaDetalleProyecto(
-                            titulo = "Presupuesto",
-                            valor = formatoMonedaProyecto(proyecto.presupuestoEstimado),
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        CajaDetalleProyecto(
-                            titulo = "Costo real",
-                            valor = formatoMonedaProyecto(proyecto.costoTotal),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CajaDetalleProyecto(
-                            titulo = "Material",
-                            valor = formatoMonedaProyecto(proyecto.costoMaterial),
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        CajaDetalleProyecto(
-                            titulo = "Mano de obra",
-                            valor = formatoMonedaProyecto(proyecto.costoManoObra),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    val utilidad = proyecto.presupuestoEstimado - proyecto.costoTotal
-
-                    CajaDetalleProyecto(
-                        titulo = "Utilidad estimada",
-                        valor = formatoMonedaProyecto(utilidad),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            item {
-                CardSeccionDetalleProyecto(
-                    titulo = "Empleados y material",
-                    icono = Icons.Default.Groups
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        BotonAccionProyecto(
-                            icono = Icons.Default.Groups,
-                            titulo = "Empleados",
-                            subtitulo = "Asignar personal",
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                // Después conectamos AsignarEmpleadosProyectoScreen
-                            }
-                        )
-
-                        BotonAccionProyecto(
-                            icono = Icons.Default.Inventory,
-                            titulo = "Material",
-                            subtitulo = "Registrar uso",
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                // Después conectamos AgregarMaterialProyectoScreen
-                            }
-                        )
-                    }
-                }
-            }
-
-            item {
-                CardSeccionDetalleProyecto(
-                    titulo = "Observaciones",
-                    icono = Icons.Default.Description
-                ) {
-                    Text(
-                        text = proyecto.observaciones.ifBlank { "Sin observaciones registradas." },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF334155)
-                    )
-                }
-            }
-
-            item {
+            CardSeccionDetalleProyecto(
+                titulo = "Costos del proyecto",
+                icono = Icons.Default.AttachMoney
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    OutlinedButton(
-                        onClick = {
-                            // Pendiente eliminar proyecto
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Eliminar")
-                    }
+                    CajaDetalleProyecto(
+                        titulo = "Presupuesto",
+                        valor = formatoMonedaProyecto(proyecto.presupuestoEstimado),
+                        modifier = Modifier.weight(1f)
+                    )
 
-                    FilledTonalButton(
-                        onClick = {
-                            // Pendiente editar proyecto
-                        },
+                    CajaDetalleProyecto(
+                        titulo = "Costo real",
+                        valor = formatoMonedaProyecto(proyecto.costoTotal),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    CajaDetalleProyecto(
+                        titulo = "Material",
+                        valor = formatoMonedaProyecto(proyecto.costoMaterial),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    CajaDetalleProyecto(
+                        titulo = "Mano de obra",
+                        valor = formatoMonedaProyecto(proyecto.costoManoObra),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                val utilidad = proyecto.presupuestoEstimado - proyecto.costoTotal
+
+                CajaDetalleProyecto(
+                    titulo = "Utilidad estimada",
+                    valor = formatoMonedaProyecto(utilidad),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            CardSeccionDetalleProyecto(
+                titulo = "Empleados y material",
+                icono = Icons.Default.Groups
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    BotonAccionProyecto(
+                        icono = Icons.Default.Groups,
+                        titulo = "Empleados",
+                        subtitulo = "Asignar personal",
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Editar")
-                    }
+                        onClick = {
+                            // Después conectamos AsignarEmpleadosProyectoScreen
+                        }
+                    )
+
+                    BotonAccionProyecto(
+                        icono = Icons.Default.Inventory,
+                        titulo = "Material",
+                        subtitulo = "Registrar uso",
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            // Después conectamos AgregarMaterialProyectoScreen
+                        }
+                    )
                 }
             }
+            CardSeccionDetalleProyecto(
+                titulo = "Observaciones",
+                icono = Icons.Default.Description
+            ) {
+                Text(
+                    text = proyecto.observaciones.ifBlank { "Sin observaciones registradas." },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF334155)
+                )
+            }
+
+            BotonesInferioresDetalleProyecto(
+                proyecto = proyecto,
+                onEditar = {
+                    navController.navigate(AppRoutes.editarProyecto(proyecto.id))
+                },
+                onTerminar = {
+                    mostrarDialogoTerminar = true
+                },
+                onEliminar = {
+                    mostrarDialogoEliminar = true
+                }
+            )
         }
+    }
+
+
+    if (mostrarDialogoTerminar && proyecto != null) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoTerminar = false },
+            title = {
+                Text("Terminar proyecto")
+            },
+            text = {
+                Text("¿Deseas marcar este proyecto como terminado? El avance se colocará en 100%.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.terminarProyecto(proyecto)
+                        mostrarDialogoTerminar = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF16A34A)
+                    )
+                ) {
+                    Text("Terminar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { mostrarDialogoTerminar = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (mostrarDialogoEliminar && proyecto != null) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoEliminar = false },
+            title = {
+                Text("Eliminar proyecto")
+            },
+            text = {
+                Text("¿Seguro que deseas eliminar este proyecto? Esta acción no se puede deshacer.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.eliminarProyecto(proyecto)
+                        mostrarDialogoEliminar = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFDC2626)
+                    )
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { mostrarDialogoEliminar = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
@@ -594,6 +627,101 @@ fun BotonAccionProyecto(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF64748B)
+            )
+        }
+    }
+}
+
+@Composable
+fun BotonesInferioresDetalleProyecto(
+    proyecto: ProyectoUI,
+    onEditar: () -> Unit,
+    onTerminar: () -> Unit,
+    onEliminar: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            TituloSeccionCliente(
+                titulo = "Acciones rápidas",
+                icono = Icons.Default.Bolt,
+                color = Color(0xFF2563EB)
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                BotonRapidoInferiorProyecto(
+                    titulo = "Editar",
+                    icono = Icons.Default.Edit,
+                    color = Color(0xFF2563EB),
+                    modifier = Modifier.weight(1f),
+                    onClick = onEditar
+                )
+
+                BotonRapidoInferiorProyecto(
+                    titulo = "Terminar",
+                    icono = Icons.Default.Check,
+                    color = Color(0xFF16A34A),
+                    modifier = Modifier.weight(1f),
+                    onClick = onTerminar
+                )
+
+                BotonRapidoInferiorProyecto(
+                    titulo = "Eliminar",
+                    icono = Icons.Default.Delete,
+                    color = Color(0xFFDC2626),
+                    modifier = Modifier.weight(1f),
+                    onClick = onEliminar
+                )
+            }
+        }
+    }
+}
+@Composable
+fun BotonRapidoInferiorProyecto(
+    titulo: String,
+    icono: ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.height(68.dp),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(4.dp),
+        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(22.dp)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF0F172A),
+                fontWeight = FontWeight.Bold
             )
         }
     }

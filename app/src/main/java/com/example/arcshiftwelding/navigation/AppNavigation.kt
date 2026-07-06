@@ -76,6 +76,7 @@ import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
+import com.example.arcshiftwelding.ui.Screen.proyectos.EditarProyectoScreen
 
 @Composable
 fun AppNavigation() {
@@ -655,6 +656,24 @@ fun AppNavigation() {
                 val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
 
                 DetalleProyectoScreen(
+                    navController = navController,
+                    viewModel = proyectosViewModel,
+                    proyectoId = proyectoId
+                )
+            }
+
+            composable(
+                route = AppRoutes.EDITAR_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                EditarProyectoScreen(
                     navController = navController,
                     viewModel = proyectosViewModel,
                     proyectoId = proyectoId

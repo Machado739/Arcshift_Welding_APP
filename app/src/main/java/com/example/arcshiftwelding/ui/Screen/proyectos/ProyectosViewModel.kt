@@ -186,4 +186,99 @@ class ProyectosViewModel(
             else -> 0
         }
     }
+
+    fun actualizarProyecto(
+        id: Int,
+        nombre: String,
+        clienteId: Int,
+        cotizacionId: Int?,
+        descripcion: String,
+        fechaInicio: String,
+        fechaEstimadaFin: String,
+        fechaFinReal: String,
+        estado: String,
+        avance: Int,
+        presupuestoEstimado: Double,
+        costoMaterial: Double,
+        costoManoObra: Double,
+        costoTotal: Double,
+        observaciones: String
+    ) {
+        viewModelScope.launch {
+            val proyecto = ProyectoEntity(
+                id = id,
+                nombre = nombre.trim(),
+                clienteId = clienteId,
+                cotizacionId = cotizacionId,
+                descripcion = descripcion.trim(),
+                fechaInicio = fechaInicio.trim(),
+                fechaEstimadaFin = fechaEstimadaFin.trim(),
+                fechaFinReal = fechaFinReal.trim(),
+                estado = estado,
+                avance = avance,
+                presupuestoEstimado = presupuestoEstimado,
+                costoMaterial = costoMaterial,
+                costoManoObra = costoManoObra,
+                costoTotal = costoTotal,
+                observaciones = observaciones.trim()
+            )
+
+            proyectoDao.actualizarProyecto(proyecto)
+        }
+    }
+
+    fun terminarProyecto(proyecto: ProyectoUI) {
+        viewModelScope.launch {
+            val proyectoTerminado = ProyectoEntity(
+                id = proyecto.id,
+                nombre = proyecto.nombre,
+                clienteId = proyecto.clienteId,
+                cotizacionId = proyecto.cotizacionId,
+                descripcion = proyecto.descripcion,
+                fechaInicio = proyecto.fechaInicio,
+                fechaEstimadaFin = proyecto.fechaEstimadaFin,
+                fechaFinReal = obtenerFechaActualProyectoSistema(),
+                estado = "Terminado",
+                avance = 100,
+                presupuestoEstimado = proyecto.presupuestoEstimado,
+                costoMaterial = proyecto.costoMaterial,
+                costoManoObra = proyecto.costoManoObra,
+                costoTotal = proyecto.costoTotal,
+                observaciones = proyecto.observaciones
+            )
+
+            proyectoDao.actualizarProyecto(proyectoTerminado)
+        }
+    }
+
+    fun eliminarProyecto(proyecto: ProyectoUI) {
+        viewModelScope.launch {
+            val proyectoEliminar = ProyectoEntity(
+                id = proyecto.id,
+                nombre = proyecto.nombre,
+                clienteId = proyecto.clienteId,
+                cotizacionId = proyecto.cotizacionId,
+                descripcion = proyecto.descripcion,
+                fechaInicio = proyecto.fechaInicio,
+                fechaEstimadaFin = proyecto.fechaEstimadaFin,
+                fechaFinReal = proyecto.fechaFinReal,
+                estado = proyecto.estado,
+                avance = proyecto.avance,
+                presupuestoEstimado = proyecto.presupuestoEstimado,
+                costoMaterial = proyecto.costoMaterial,
+                costoManoObra = proyecto.costoManoObra,
+                costoTotal = proyecto.costoTotal,
+                observaciones = proyecto.observaciones
+            )
+
+            proyectoDao.eliminarProyecto(proyectoEliminar)
+        }
+    }
+
+    fun obtenerFechaActualProyectoSistema(): String {
+        return java.text.SimpleDateFormat(
+            "dd/MM/yyyy",
+            java.util.Locale.getDefault()
+        ).format(java.util.Date())
+    }
 }
