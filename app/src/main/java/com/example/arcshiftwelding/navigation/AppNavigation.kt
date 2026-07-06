@@ -68,9 +68,12 @@ import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModel
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
-
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
+import androidx.navigation.navArgument
+import com.example.arcshiftwelding.ui.Screen.proyectos.DetalleProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
 
@@ -120,7 +123,8 @@ fun AppNavigation() {
     val proyectosViewModel: ProyectosViewModel = viewModel(
         factory = ProyectosViewModelFactory(
             proyectoDao = database.proyectoDao(),
-            clienteDao = database.clienteDao()
+            clienteDao = database.clienteDao(),
+            cotizacionDao = database.cotizacionDao()
         )
     )
 
@@ -636,6 +640,24 @@ fun AppNavigation() {
                 NuevoProyectoScreen(
                     navController = navController,
                     viewModel = proyectosViewModel
+                )
+            }
+
+            composable(
+                route = AppRoutes.DETALLE_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                DetalleProyectoScreen(
+                    navController = navController,
+                    viewModel = proyectosViewModel,
+                    proyectoId = proyectoId
                 )
             }
 
