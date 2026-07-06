@@ -23,6 +23,8 @@ interface CotizacionDao {
     @Query("UPDATE cotizaciones SET estado = :estado WHERE id = :id")
     suspend fun actualizarEstado(id: Int, estado: String)
 
+    @Query("UPDATE cotizaciones SET folio = :folio WHERE id = :id")
+    suspend fun actualizarFolioCotizacion(id: Int, folio: String)
 
     @Query("SELECT * FROM cotizaciones ORDER BY id DESC")
     fun obtenerCotizaciones(): Flow<List<CotizacionEntity>>

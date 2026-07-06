@@ -16,9 +16,7 @@ interface ProyectoDao {
     ): ProyectoEntity?
 
     @Insert
-    suspend fun insertarProyecto(
-        proyecto: ProyectoEntity
-    )
+    suspend fun insertarProyecto(proyecto: ProyectoEntity): Long
 
     @Update
     suspend fun actualizarProyecto(
@@ -29,4 +27,6 @@ interface ProyectoDao {
     suspend fun eliminarProyecto(
         proyecto: ProyectoEntity
     )
+    @Query("SELECT * FROM proyectos WHERE cotizacionId = :cotizacionId LIMIT 1")
+    suspend fun obtenerProyectoPorCotizacionId(cotizacionId: Int): ProyectoEntity?
 }

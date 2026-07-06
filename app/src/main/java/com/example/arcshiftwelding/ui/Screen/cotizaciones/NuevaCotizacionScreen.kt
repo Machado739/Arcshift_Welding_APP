@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import androidx.compose.material.icons.filled.Lock
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
     val descripcion: String = "",
@@ -102,7 +102,7 @@ fun NuevaCotizacionScreen(
     var proyecto by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("19/05/2026") }
     var vigencia by remember { mutableStateOf("02/06/2026") }
-    var folio by remember { mutableStateOf("COT-00025") }
+    val folio = "Se asignará automáticamente"
     var descripcion by remember { mutableStateOf("") }
 
     var descuento by remember { mutableStateOf("0") }
@@ -263,7 +263,6 @@ fun NuevaCotizacionScreen(
                         }
 
                         viewModel.guardarCotizacion(
-                            folio = folio.trim(),
                             clienteId = clienteId,
                             descripcionTrabajo = descripcion.trim(),
                             proyecto = proyecto.trim(),
@@ -278,7 +277,6 @@ fun NuevaCotizacionScreen(
                             onFinish = {
                                 navController.popBackStack()
                             }
-
                         )
                     }
                 )
@@ -343,9 +341,8 @@ fun SeccionInformacionGeneralNuevaCotizacion(
         CampoFormularioCotizacion(
             titulo = "Proyecto (opcional)",
             valor = proyecto,
-            placeholder = "Seleccionar proyecto",
-            onValueChange = onProyectoChange,
-            trailingIcon = Icons.Default.KeyboardArrowDown
+            placeholder = "Ej. Portón de acceso, escalera metálica, estructura para techo",
+            onValueChange = onProyectoChange
         )
 
         Row(
@@ -367,11 +364,10 @@ fun SeccionInformacionGeneralNuevaCotizacion(
             )
         }
 
-        CampoFormularioCotizacion(
+        CampoFolioCotizacionSoloLectura(
             titulo = "Folio / Número",
             valor = folio,
-            placeholder = "COT-00025",
-            onValueChange = onFolioChange
+            placeholder = "Se asignará automáticamente"
         )
 
         CampoTextoLargoCotizacion(
@@ -1530,5 +1526,59 @@ fun CampoDropdownCotizacion(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CampoFolioCotizacionSoloLectura(
+    titulo: String,
+    valor: String,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(bottom = 8.dp)
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
+        )
+
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    fontSize = 10.sp
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = "Folio automático",
+                    tint = Color(0xFF64748B)
+                )
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF334155)
+            ),
+            shape = RoundedCornerShape(7.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color(0xFFF1F5F9),
+                unfocusedContainerColor = Color(0xFFF1F5F9),
+                focusedBorderColor = Color(0xFFCBD5E1),
+                unfocusedBorderColor = Color(0xFFCBD5E1)
+            )
+        )
     }
 }

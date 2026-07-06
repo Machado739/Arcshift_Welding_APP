@@ -51,7 +51,6 @@ class CotizacionesViewModel(
     }
 
     fun guardarCotizacion(
-        folio: String,
         clienteId: Int,
         descripcionTrabajo: String,
         proyecto: String = "",
@@ -68,7 +67,7 @@ class CotizacionesViewModel(
         viewModelScope.launch {
             val cotizacionId = cotizacionDao.insertarCotizacion(
                 CotizacionEntity(
-                    folio = folio,
+                    folio = "",
                     clienteId = clienteId,
                     descripcionTrabajo = descripcionTrabajo,
                     proyecto = proyecto,
@@ -81,6 +80,13 @@ class CotizacionesViewModel(
                     estado = estado
                 )
             ).toInt()
+
+            val folioGenerado = generarFolioCotizacion(cotizacionId)
+
+            cotizacionDao.actualizarFolioCotizacion(
+                id = cotizacionId,
+                folio = folioGenerado
+            )
 
             if (detalles.isNotEmpty()) {
                 val detallesConId = detalles.map { detalle ->
@@ -95,6 +101,10 @@ class CotizacionesViewModel(
 
             onFinish()
         }
+    }
+
+    private fun generarFolioCotizacion(id: Int): String {
+        return "COT-${id.toString().padStart(4, '0')}"
     }
 
     fun actualizarCotizacion(
@@ -133,9 +143,13 @@ class CotizacionesViewModel(
         }
     }
 
-    fun aprobarCotizacion(id: Int) {
+    fun aprobarCotizacion(
+        id: Int,
+        onFinish: () -> Unit = {}
+    ) {
         viewModelScope.launch {
             cotizacionDao.actualizarEstado(id, "Aprobada")
+            onFinish()
         }
     }
 

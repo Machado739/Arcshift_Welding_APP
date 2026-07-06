@@ -13,6 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusModifier
@@ -75,6 +78,8 @@ fun DetalleCotizacionScreen(
     val cotizacionActual = cotizacionCompleta!!
     val cotizacionUi = cotizacionActual.toDetalleUi()
     val detalles = cotizacionActual.detalles
+
+    var mostrarDialogoCrearProyecto by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -153,7 +158,9 @@ fun DetalleCotizacionScreen(
                     navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
                 },
                 onAprobarClick = {
-                    viewModel.aprobarCotizacion(cotizacionId)
+                    viewModel.aprobarCotizacion(cotizacionId) {
+                        mostrarDialogoCrearProyecto = true
+                    }
                 },
                 onRechazarClick = {
                     viewModel.rechazarCotizacion(cotizacionId)
@@ -162,6 +169,45 @@ fun DetalleCotizacionScreen(
             )
 
         }
+    }
+    if (mostrarDialogoCrearProyecto) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogoCrearProyecto = false
+            },
+            title = {
+                Text(
+                    text = "Cotización aprobada",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Deseas crear un proyecto a partir de esta cotización? Se cargarán automáticamente los datos disponibles y podrás completar la información faltante."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoCrearProyecto = false
+                        navController.navigate(
+                            AppRoutes.nuevoProyectoDesdeCotizacion(cotizacionId)
+                        )
+                    }
+                ) {
+                    Text("Crear proyecto")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoCrearProyecto = false
+                    }
+                ) {
+                    Text("No, solo aprobar")
+                }
+            }
+        )
     }
 }
 

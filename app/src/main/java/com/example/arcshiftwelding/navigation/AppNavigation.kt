@@ -680,6 +680,20 @@ fun AppNavigation() {
                 )
             }
 
+            composable(
+                route = AppRoutes.NUEVO_PROYECTO_DESDE_COTIZACION
+            ) { backStackEntry ->
+
+                val cotizacionId = backStackEntry.arguments
+                    ?.getString("cotizacionId")
+                    ?.toIntOrNull() ?: 0
+
+                NuevoProyectoScreen(
+                    navController = navController,
+                    cotizacionId = cotizacionId
+                )
+            }
+
 ///                     MAS
 ///                     MAS
 ///                     MAS

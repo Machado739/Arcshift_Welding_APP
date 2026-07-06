@@ -158,6 +158,12 @@ object AppRoutes {
         return "eliminar_proyecto/$proyectoId"
     }
 
+    const val NUEVO_PROYECTO_DESDE_COTIZACION = "nuevo_proyecto_desde_cotizacion/{cotizacionId}"
+
+    fun nuevoProyectoDesdeCotizacion(cotizacionId: Int): String {
+        return "nuevo_proyecto_desde_cotizacion/$cotizacionId"
+    }
+
 ///                     MAS
 ///                     MAS
 ///                     MAS
