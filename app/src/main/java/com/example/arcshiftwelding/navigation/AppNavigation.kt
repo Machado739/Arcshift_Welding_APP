@@ -95,7 +95,8 @@ fun AppNavigation() {
         factory = GastosViewModelFactory(
             gastoDao = database.gastoDao(),
             clienteDao = database.clienteDao(),
-            cotizacionDao = database.cotizacionDao()
+            cotizacionDao = database.cotizacionDao(),
+            proyectoDao = database.proyectoDao()
         )
     )
 
@@ -681,15 +682,20 @@ fun AppNavigation() {
             }
 
             composable(
-                route = AppRoutes.NUEVO_PROYECTO_DESDE_COTIZACION
+                route = AppRoutes.NUEVO_PROYECTO_DESDE_COTIZACION,
+                arguments = listOf(
+                    navArgument("cotizacionId") {
+                        type = NavType.IntType
+                    }
+                )
             ) { backStackEntry ->
 
                 val cotizacionId = backStackEntry.arguments
-                    ?.getString("cotizacionId")
-                    ?.toIntOrNull() ?: 0
+                    ?.getInt("cotizacionId")
 
                 NuevoProyectoScreen(
                     navController = navController,
+                    viewModel = proyectosViewModel,
                     cotizacionId = cotizacionId
                 )
             }

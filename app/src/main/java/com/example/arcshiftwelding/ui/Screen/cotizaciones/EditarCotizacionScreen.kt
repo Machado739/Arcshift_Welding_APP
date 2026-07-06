@@ -265,7 +265,7 @@ fun EditarCotizacionScreen(
                         viewModel.actualizarCotizacion(
                             cotizacion = CotizacionEntity(
                                 id = cotizacionId,
-                                folio = folio.trim(),
+                                folio = cotizacionEntity?.folio ?: folio,
                                 clienteId = clienteId,
                                 descripcionTrabajo = descripcion.trim(),
                                 proyecto = proyecto.trim(),
@@ -395,11 +395,10 @@ fun SeccionInformacionGeneralEditarCotizacion(
             )
         }
 
-        CampoEditarCotizacion(
+        CampoFolioCotizacionSoloLectura(
             titulo = "Folio / Número",
             valor = folio,
-            placeholder = "COT-00025",
-            onValueChange = onFolioChange
+            placeholder = "Folio automático"
         )
 
         CampoTextoLargoEditarCotizacion(

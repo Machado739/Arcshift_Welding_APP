@@ -11,22 +11,17 @@ interface ProyectoDao {
     fun obtenerProyectos(): Flow<List<ProyectoEntity>>
 
     @Query("SELECT * FROM proyectos WHERE id = :id")
-    suspend fun obtenerProyectoPorId(
-        id: Int
-    ): ProyectoEntity?
+    suspend fun obtenerProyectoPorId(id: Int): ProyectoEntity?
+
+    @Query("SELECT * FROM proyectos WHERE cotizacionId = :cotizacionId LIMIT 1")
+    suspend fun obtenerProyectoPorCotizacionId(cotizacionId: Int): ProyectoEntity?
 
     @Insert
     suspend fun insertarProyecto(proyecto: ProyectoEntity): Long
 
     @Update
-    suspend fun actualizarProyecto(
-        proyecto: ProyectoEntity
-    )
+    suspend fun actualizarProyecto(proyecto: ProyectoEntity)
 
     @Delete
-    suspend fun eliminarProyecto(
-        proyecto: ProyectoEntity
-    )
-    @Query("SELECT * FROM proyectos WHERE cotizacionId = :cotizacionId LIMIT 1")
-    suspend fun obtenerProyectoPorCotizacionId(cotizacionId: Int): ProyectoEntity?
+    suspend fun eliminarProyecto(proyecto: ProyectoEntity)
 }

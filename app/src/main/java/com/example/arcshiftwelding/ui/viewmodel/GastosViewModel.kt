@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.relation.GastoConRelaciones
@@ -21,7 +22,8 @@ import com.example.arcshiftwelding.data.local.relation.GastoConRelaciones
 class GastosViewModel(
     private val gastoDao: GastoDao,
     private val clienteDao: ClienteDao,
-    private val cotizacionDao: CotizacionDao
+    private val cotizacionDao: CotizacionDao,
+    private val proyectoDao: ProyectoDao
 ) : ViewModel() {
 
     val clientesActivos: Flow<List<ClienteEntity>> =
@@ -42,6 +44,8 @@ class GastosViewModel(
                 SharingStarted.WhileSubscribed(5000),
                 emptyList()
             )
+
+    val proyectos = proyectoDao.obtenerProyectos()
 
     fun obtenerDetalleGasto(gastoId: Int): StateFlow<GastoUi?> {
         return gastoDao.obtenerGastoConRelaciones(gastoId)
@@ -130,7 +134,8 @@ class GastosViewModel(
 class GastosViewModelFactory(
     private val gastoDao: GastoDao,
     private val clienteDao: ClienteDao,
-    private val cotizacionDao: CotizacionDao
+    private val cotizacionDao: CotizacionDao,
+    private val proyectoDao: ProyectoDao
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -138,7 +143,8 @@ class GastosViewModelFactory(
         return GastosViewModel(
             gastoDao = gastoDao,
             clienteDao = clienteDao,
-            cotizacionDao = cotizacionDao
+            cotizacionDao = cotizacionDao,
+            proyectoDao = proyectoDao
         ) as T
     }
 }

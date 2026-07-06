@@ -93,5 +93,7 @@ interface CotizacionDao {
         insertarDetallesCotizacion(detallesActualizados)
     }
 
+    @Query("SELECT IFNULL(MAX(id), 0) + 1 FROM cotizaciones")
+    fun observarSiguienteNumeroFolio(): Flow<Int>
 
 }

@@ -52,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,8 +71,16 @@ import java.util.TimeZone
 @Composable
 fun NuevoProyectoScreen(
     navController: NavController,
-    viewModel: ProyectosViewModel
-) {
+    viewModel: ProyectosViewModel,
+    cotizacionId: Int? = null
+){
+    val cotizacionOrigen by remember(cotizacionId) {
+        if (cotizacionId != null) {
+            viewModel.obtenerCotizacionPorId(cotizacionId)
+        } else {
+            kotlinx.coroutines.flow.flowOf(null)
+        }
+    }.collectAsState(initial = null)
     val clientes by viewModel.clientes.collectAsState()
     val cotizaciones by viewModel.cotizaciones.collectAsState()
 
@@ -86,6 +95,25 @@ fun NuevoProyectoScreen(
     var presupuestoEstimado by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
 
+
+    var clienteId by remember { mutableStateOf<Int?>(null) }
+    var fechaFin by remember { mutableStateOf("") }
+
+    LaunchedEffect(cotizacionOrigen) {
+        cotizacionOrigen?.let { cotizacion ->
+            nombre = if (cotizacion.proyecto.isNotBlank()) {
+                cotizacion.proyecto
+            } else {
+                cotizacion.descripcionTrabajo
+            }
+
+            clienteId = cotizacion.clienteId
+            descripcion = cotizacion.descripcionTrabajo
+            presupuestoEstimado = cotizacion.total.toString()
+            fechaFin = cotizacion.vigencia
+            observaciones = "Proyecto creado desde la cotización ${cotizacion.folio}"
+        }
+    }
     val cotizacionesFiltradas = if (clienteSeleccionado == null) {
         cotizaciones
     } else {

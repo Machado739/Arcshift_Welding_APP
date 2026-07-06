@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import kotlinx.coroutines.flow.combine
-
+import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import kotlinx.coroutines.flow.Flow
 data class ProyectoUI(
     val id: Int,
     val nombre: String,
@@ -280,5 +281,9 @@ class ProyectosViewModel(
             "dd/MM/yyyy",
             java.util.Locale.getDefault()
         ).format(java.util.Date())
+    }
+
+    fun obtenerCotizacionPorId(cotizacionId: Int): Flow<CotizacionEntity?> {
+        return cotizacionDao.observarCotizacionPorId(cotizacionId)
     }
 }

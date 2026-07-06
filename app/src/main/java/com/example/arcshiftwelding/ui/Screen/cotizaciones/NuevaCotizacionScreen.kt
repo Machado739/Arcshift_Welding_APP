@@ -25,6 +25,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.runtime.saveable.rememberSaveable
+
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
     val descripcion: String = "",
@@ -97,20 +99,22 @@ fun NuevaCotizacionScreen(
 ) {
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
 
-    var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
-    var errorCliente by remember { mutableStateOf(false) }
-    var proyecto by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("19/05/2026") }
-    var vigencia by remember { mutableStateOf("02/06/2026") }
-    val folio = "Se asignará automáticamente"
-    var descripcion by remember { mutableStateOf("") }
 
-    var descuento by remember { mutableStateOf("0") }
-    var iva by remember { mutableStateOf("16") }
-    var anticipo by remember { mutableStateOf("50") }
-    var observaciones by remember { mutableStateOf("") }
 
-    var conceptos by remember {
+    var clienteSeleccionadoId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var errorCliente by rememberSaveable { mutableStateOf(false) }
+    var proyecto by rememberSaveable { mutableStateOf("") }
+    var fecha by rememberSaveable { mutableStateOf("19/05/2026") }
+    var vigencia by rememberSaveable { mutableStateOf("02/06/2026") }
+    val folio by viewModel.siguienteFolio.collectAsState()
+    var descripcion by rememberSaveable { mutableStateOf("") }
+
+    var descuento by rememberSaveable { mutableStateOf("0") }
+    var iva by rememberSaveable { mutableStateOf("16") }
+    var anticipo by rememberSaveable { mutableStateOf("50") }
+    var observaciones by rememberSaveable { mutableStateOf("") }
+
+    var conceptos by rememberSaveable {
         mutableStateOf<List<ConceptoCotizacionForm>>(emptyList())
     }
 
@@ -190,9 +194,11 @@ fun NuevaCotizacionScreen(
                     vigencia = vigencia,
                     onVigenciaChange = { vigencia = it },
                     folio = folio,
-                    onFolioChange = { folio = it },
                     descripcion = descripcion,
-                    onDescripcionChange = { descripcion = it }
+                    onDescripcionChange = { descripcion = it },
+                    onNuevoClienteClick = {
+                        navController.navigate(AppRoutes.NUEVO_CLIENTE)
+                    },
                 )
             }
 
@@ -302,10 +308,10 @@ fun SeccionInformacionGeneralNuevaCotizacion(
     vigencia: String,
     onVigenciaChange: (String) -> Unit,
     folio: String,
-    onFolioChange: (String) -> Unit,
     descripcion: String,
-    onDescripcionChange: (String) -> Unit
-) {
+    onDescripcionChange: (String) -> Unit,
+    onNuevoClienteClick: () -> Unit
+){
     CardSeccionFormularioCotizacion(
         titulo = "Información general",
         icono = Icons.Default.Info
@@ -324,8 +330,7 @@ fun SeccionInformacionGeneralNuevaCotizacion(
 
             IconButton(
                 onClick = {
-                    // Aquí puedes navegar a NuevoCliente si quieres
-                    // navController.navigate(AppRoutes.NUEVO_CLIENTE)
+                    onNuevoClienteClick()
                 },
                 modifier = Modifier
                     .padding(top = 16.dp)
@@ -575,6 +580,9 @@ fun EncabezadoNuevaCotizacionConceptos() {
         color = Color(0xFFE2E8F0)
     )
 }
+
+
+
 @Composable
 fun SeccionConceptosNuevaCotizacion(
     conceptos: List<ConceptoCotizacionForm>,
@@ -587,6 +595,12 @@ fun SeccionConceptosNuevaCotizacion(
         "Mano de obra",
         "Gastos adicionales"
     )
+
+    val conceptosCategoria = conceptos
+        .mapIndexed { index, concepto -> index to concepto }
+        .filter { (_, concepto) ->
+            concepto.tipo == categoriaSeleccionada
+        }
 
     CardSeccionFormularioCotizacion(
         titulo = "Conceptos",
@@ -633,7 +647,7 @@ fun SeccionConceptosNuevaCotizacion(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        if (conceptos.isEmpty()) {
+        if (conceptosCategoria.isEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
@@ -643,7 +657,7 @@ fun SeccionConceptosNuevaCotizacion(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Text(
-                    text = "Aún no hay conceptos agregados. Selecciona una categoría y presiona Agregar concepto.",
+                    text = "Aún no hay conceptos agregados en esta categoría.",
                     fontSize = 10.sp,
                     color = Color(0xFF92400E),
                     modifier = Modifier.padding(10.dp)
@@ -651,30 +665,37 @@ fun SeccionConceptosNuevaCotizacion(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-        }
+        } else {
+            conceptosCategoria.forEachIndexed { numeroVisible, item ->
+                val indexReal = item.first
+                val concepto = item.second
 
-        conceptos.forEachIndexed { index, concepto ->
-            ConceptoNuevaCotizacionItem(
-                numeroConcepto = index + 1,
-                concepto = concepto,
-                mostrarEliminar = conceptos.size > 1,
-                onConceptoChange = { conceptoActualizado ->
-                    onConceptosChange(
-                        conceptos.toMutableList().also {
-                            it[index] = conceptoActualizado
-                        }
-                    )
-                },
-                onEliminarClick = {
-                    onConceptosChange(
-                        conceptos.toMutableList().also {
-                            it.removeAt(index)
-                        }
-                    )
-                }
-            )
+                ConceptoNuevaCotizacionItem(
+                    numeroConcepto = numeroVisible + 1,
+                    concepto = concepto,
+                    mostrarEliminar = true,
+                    onConceptoChange = { conceptoActualizado ->
+                        onConceptosChange(
+                            conceptos.mapIndexed { index, conceptoActual ->
+                                if (index == indexReal) {
+                                    conceptoActualizado
+                                } else {
+                                    conceptoActual
+                                }
+                            }
+                        )
+                    },
+                    onEliminarClick = {
+                        onConceptosChange(
+                            conceptos.filterIndexed { index, _ ->
+                                index != indexReal
+                            }
+                        )
+                    }
+                )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
 
         TextButton(
@@ -1580,5 +1601,92 @@ fun CampoFolioCotizacionSoloLectura(
                 unfocusedBorderColor = Color(0xFFCBD5E1)
             )
         )
+    }
+}
+
+@Composable
+fun FilaConceptoNuevaCotizacion(
+    concepto: ConceptoCotizacionForm,
+    onConceptoChange: (ConceptoCotizacionForm) -> Unit,
+    onEliminarClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = concepto.descripcion,
+            onValueChange = {
+                onConceptoChange(concepto.copy(descripcion = it))
+            },
+            modifier = Modifier.weight(1.3f),
+            placeholder = {
+                Text(
+                    text = placeholderDescripcionConcepto(concepto.tipo),
+                    fontSize = 9.sp
+                )
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 10.sp)
+        )
+
+        OutlinedTextField(
+            value = concepto.cantidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(cantidad = it))
+            },
+            modifier = Modifier.weight(0.5f),
+            placeholder = {
+                Text("0", fontSize = 9.sp)
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 10.sp)
+        )
+
+        OutlinedTextField(
+            value = concepto.unidad,
+            onValueChange = {
+                onConceptoChange(concepto.copy(unidad = it))
+            },
+            modifier = Modifier.weight(0.7f),
+            placeholder = {
+                Text("Pza", fontSize = 9.sp)
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 10.sp)
+        )
+
+        OutlinedTextField(
+            value = concepto.precioUnitario,
+            onValueChange = {
+                onConceptoChange(concepto.copy(precioUnitario = it))
+            },
+            modifier = Modifier.weight(0.8f),
+            placeholder = {
+                Text("$0", fontSize = 9.sp)
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(fontSize = 10.sp)
+        )
+
+        Text(
+            text = concepto.total.formatoMonedaCotizacion(),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(0.8f)
+        )
+
+        IconButton(
+            onClick = onEliminarClick,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Eliminar concepto",
+                tint = Color(0xFFDC2626),
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }

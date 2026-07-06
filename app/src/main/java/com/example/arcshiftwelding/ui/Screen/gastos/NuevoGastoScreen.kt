@@ -27,7 +27,7 @@ import java.util.Date
 import java.util.Locale
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
-
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoGastoScreen(
@@ -49,7 +49,7 @@ fun NuevoGastoScreen(
     var proyecto by remember { mutableStateOf("") }
     var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
     var cotizacionSeleccionadaId by remember { mutableStateOf<Int?>(null) }
-
+    val proyectosDb by viewModel.proyectos.collectAsState(initial = emptyList())
     val clientesDb by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val cotizacionesDb by viewModel.cotizaciones.collectAsState(initial = emptyList())
 
@@ -97,14 +97,6 @@ fun NuevoGastoScreen(
         "Crédito"
     )
 
-
-    val proyectos = listOf(
-        "Portón metálico",
-        "Estructura para techo",
-        "Reparación de remolque",
-        "Escalera industrial",
-        "Sin proyecto"
-    )
 
     val opcionesIva = listOf(
         "0",
@@ -373,12 +365,11 @@ fun NuevoGastoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CampoDropdownCompacto(
+                    CampoSelectorProyectoNuevoGasto(
                         label = "Proyecto",
-                        value = proyecto,
-                        opciones = proyectos,
-                        onValueChange = { proyecto = it },
-                        placeholder = "Seleccionar proyecto",
+                        proyectos = proyectosDb,
+                        proyectoSeleccionado = proyecto,
+                        onProyectoSeleccionado = { proyecto = it },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -453,7 +444,7 @@ fun NuevoGastoScreen(
                                 correoProveedor = correoProveedor.ifBlank { null },
                                 rfcProveedor = rfcProveedor.ifBlank { null },
                                 observaciones = observaciones.ifBlank { null },
-                                proyecto = proyecto.ifBlank { null },
+                                proyecto = proyecto.takeIf { it.isNotBlank() },
                                 clienteId = clienteSeleccionadoId,
                                 cotizacionId = cotizacionSeleccionadaId
                             )
@@ -1038,4 +1029,74 @@ fun CampoTextoCompacto(
         textStyle = MaterialTheme.typography.bodyMedium,
         shape = RoundedCornerShape(10.dp)
     )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoSelectorProyectoNuevoGasto(
+    label: String,
+    proyectos: List<ProyectoEntity>,
+    proyectoSeleccionado: String,
+    onProyectoSeleccionado: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = proyectoSeleccionado.ifBlank { "Sin proyecto" },
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin proyecto") },
+                onClick = {
+                    onProyectoSeleccionado("")
+                    expanded = false
+                }
+            )
+
+            proyectos.forEach { proyecto ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = proyecto.nombre,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            if (proyecto.estado.isNotBlank()) {
+                                Text(
+                                    text = proyecto.estado,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    },
+                    onClick = {
+                        onProyectoSeleccionado(proyecto.nombre)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }

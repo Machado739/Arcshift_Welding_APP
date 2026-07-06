@@ -42,6 +42,16 @@ class CotizacionesViewModel(
                 initialValue = emptyList()
             )
 
+    val siguienteFolio = cotizacionDao.observarSiguienteNumeroFolio()
+        .map { numero ->
+            "COT-${numero.toString().padStart(4, '0')}"
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "COT-0001"
+        )
+
     fun observarCotizacion(id: Int): Flow<CotizacionEntity?> {
         return cotizacionDao.observarCotizacionPorId(id)
     }
