@@ -906,7 +906,10 @@ fun CampoFechaCompacto(
     modifier: Modifier = Modifier
 ) {
     var mostrarCalendario by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = convertirFechaCompactoAMillis(value)
+    )
 
     Box(
         modifier = modifier
@@ -964,13 +967,8 @@ fun CampoFechaCompacto(
                         val fechaSeleccionada = datePickerState.selectedDateMillis
 
                         if (fechaSeleccionada != null) {
-                            val formato = java.text.SimpleDateFormat(
-                                "dd/MM/yyyy",
-                                java.util.Locale.getDefault()
-                            )
-
                             onValueChange(
-                                formato.format(java.util.Date(fechaSeleccionada))
+                                formatearFechaCompactoUTC(fechaSeleccionada)
                             )
                         }
 
@@ -997,6 +995,35 @@ fun CampoFechaCompacto(
     }
 }
 
+fun formatearFechaCompactoUTC(millis: Long): String {
+    val calendario = java.util.Calendar.getInstance(
+        java.util.TimeZone.getTimeZone("UTC")
+    ).apply {
+        timeInMillis = millis
+    }
+
+    val dia = calendario.get(java.util.Calendar.DAY_OF_MONTH)
+    val mes = calendario.get(java.util.Calendar.MONTH) + 1
+    val anio = calendario.get(java.util.Calendar.YEAR)
+
+    return "%02d/%02d/%04d".format(dia, mes, anio)
+}
+
+fun convertirFechaCompactoAMillis(fecha: String): Long? {
+    return try {
+        val formato = java.text.SimpleDateFormat(
+            "dd/MM/yyyy",
+            java.util.Locale.getDefault()
+        )
+
+        formato.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        formato.isLenient = false
+
+        formato.parse(fecha)?.time
+    } catch (e: Exception) {
+        null
+    }
+}
 @Composable
 fun CampoTextoCompacto(
     label: String,
