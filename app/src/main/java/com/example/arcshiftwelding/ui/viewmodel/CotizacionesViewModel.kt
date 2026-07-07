@@ -64,10 +64,23 @@ class CotizacionesViewModel(
         clienteId: Int,
         descripcionTrabajo: String,
         proyecto: String = "",
+
         subtotal: Double,
+
+        descuentoPorcentaje: Double = 0.0,
+        descuento: Double = 0.0,
+
+        ivaPorcentaje: Double = 16.0,
         iva: Double,
+
         total: Double,
+
+        anticipoPorcentaje: Double = 50.0,
+        anticipo: Double = 0.0,
+        saldo: Double = 0.0,
+
         fecha: String,
+
         vigencia: String = "",
         observaciones: String = "",
         estado: String = "Pendiente",
@@ -81,10 +94,23 @@ class CotizacionesViewModel(
                     clienteId = clienteId,
                     descripcionTrabajo = descripcionTrabajo,
                     proyecto = proyecto,
+
                     subtotal = subtotal,
+
+                    descuentoPorcentaje = descuentoPorcentaje,
+                    descuento = descuento,
+
+                    ivaPorcentaje = ivaPorcentaje,
                     iva = iva,
+
                     total = total,
+
+                    anticipoPorcentaje = anticipoPorcentaje,
+                    anticipo = anticipo,
+                    saldo = saldo,
+
                     fecha = fecha,
+
                     vigencia = vigencia,
                     observaciones = observaciones,
                     estado = estado

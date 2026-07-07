@@ -22,10 +22,13 @@ import androidx.room.PrimaryKey
 data class DetalleCotizacionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
     val cotizacionId: Int,
+
+    val tipo: String = "Materiales",
     val descripcion: String,
+
     val cantidad: Double,
+    val unidad: String = "Pza",
     val precioUnitario: Double,
     val total: Double
 )

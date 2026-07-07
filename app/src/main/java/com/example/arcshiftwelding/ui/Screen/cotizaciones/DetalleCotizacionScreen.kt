@@ -30,7 +30,7 @@ import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.data.local.relation.CotizacionCompleta
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
-
+import com.example.arcshiftwelding.utils.calcularResumenCotizacion
 data class CotizacionDetalleUI(
     val id: Int,
     val folio: String,
@@ -50,7 +50,10 @@ data class CotizacionDetalleUI(
     val total: String,
     val anticipo: String,
     val saldo: String,
-    val observaciones: String
+    val observaciones: String,
+    val descuento: String,
+    val ivaPorcentaje: String,
+    val anticipoPorcentaje: String
 )
 
 @Composable
@@ -215,6 +218,8 @@ private fun CotizacionCompleta.toDetalleUi(): CotizacionDetalleUI {
     val cotizacionActual = cotizacion
     val clienteActual = cliente
 
+
+
     return CotizacionDetalleUI(
         id = cotizacionActual.id,
         folio = cotizacionActual.folio,
@@ -229,11 +234,16 @@ private fun CotizacionCompleta.toDetalleUi(): CotizacionDetalleUI {
         fecha = cotizacionActual.fecha,
         vigencia = cotizacionActual.vigencia.ifBlank { "Sin vigencia" },
         estado = cotizacionActual.estado,
+
         subtotal = cotizacionActual.subtotal.formatoMoneda(),
+        descuento = cotizacionActual.descuento.formatoMoneda(),
+        ivaPorcentaje = cotizacionActual.ivaPorcentaje.formatoNumeroCotizacion(),
         iva = cotizacionActual.iva.formatoMoneda(),
         total = cotizacionActual.total.formatoMoneda(),
-        anticipo = (cotizacionActual.total * 0.50).formatoMoneda(),
-        saldo = (cotizacionActual.total * 0.50).formatoMoneda(),
+        anticipoPorcentaje = cotizacionActual.anticipoPorcentaje.formatoNumeroCotizacion(),
+        anticipo = cotizacionActual.anticipo.formatoMoneda(),
+        saldo = cotizacionActual.saldo.formatoMoneda(),
+
         observaciones = cotizacionActual.observaciones.ifBlank {
             "Sin observaciones registradas."
         }
@@ -387,7 +397,16 @@ fun SeccionResumenFinancieroCotizacion(
         icono = Icons.Default.AttachMoney
     ) {
         FilaMontoCotizacion("Subtotal", cotizacion.subtotal, Color.Black)
-        FilaMontoCotizacion("IVA (16%)", cotizacion.iva, Color.Black)
+
+        if (cotizacion.descuento != "$0.00" && cotizacion.descuento != "$ 0.00") {
+            FilaMontoCotizacion("Descuento", cotizacion.descuento, Color(0xFFDC2626))
+        }
+
+        FilaMontoCotizacion(
+            "IVA (${cotizacion.ivaPorcentaje}%)",
+            cotizacion.iva,
+            Color.Black
+        )
 
         Divider(
             modifier = Modifier.padding(vertical = 6.dp),
@@ -395,11 +414,16 @@ fun SeccionResumenFinancieroCotizacion(
         )
 
         FilaMontoCotizacion("Total", cotizacion.total, Color(0xFF16A34A), true)
-        FilaMontoCotizacion("Anticipo requerido (50%)", cotizacion.anticipo, Color.Black)
+
+        FilaMontoCotizacion(
+            "Anticipo requerido (${cotizacion.anticipoPorcentaje}%)",
+            cotizacion.anticipo,
+            Color.Black
+        )
+
         FilaMontoCotizacion("Saldo restante", cotizacion.saldo, Color.Black)
     }
 }
-
 @Composable
 fun SeccionEstadoCotizacion(
     cotizacion: CotizacionDetalleUI
@@ -461,7 +485,7 @@ fun SeccionConceptosCotizados(
             ConceptoCotizacionItem(
                 concepto = detalle.descripcion,
                 cantidad = detalle.cantidad.toString(),
-                unidad = "Pza",
+                unidad = detalle.unidad,
                 precio = detalle.precioUnitario.formatoMoneda(),
                 importe = detalle.total.formatoMoneda()
             )
@@ -473,7 +497,7 @@ fun SeccionConceptosCotizados(
         )
 
         FilaMontoCotizacion(
-            titulo = "Total",
+            titulo = "Subtotal de conceptos",
             valor = detalles.sumOf { it.total }.formatoMoneda(),
             color = Color(0xFF16A34A),
             negrita = true

@@ -304,7 +304,7 @@ fun EditarGastoScreen(
 
                 }
             }
-
+/*
             TarjetaDetalleGasto(
                 titulo = "Proveedor",
                 icono = Icons.Default.Business
@@ -334,7 +334,7 @@ fun EditarGastoScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
+*/
             TarjetaDetalleGasto(
                 titulo = "Factura / Comprobante",
                 icono = Icons.Default.AttachFile

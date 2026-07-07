@@ -89,6 +89,13 @@ fun DetalleClienteScreen(
         viewModel.obtenerClienteConCotizaciones(clienteId)
     }
 
+    val ingresosCliente by remember(clienteId) {
+        viewModel.obtenerIngresosPorCliente(clienteId)
+    }.collectAsState()
+
+    val proyectosCliente by remember(clienteId) {
+        viewModel.obtenerProyectosPorCliente(clienteId)
+    }.collectAsState()
     val clienteConCotizaciones by clienteConCotizacionesFlow.collectAsState(initial = null)
 
     if (cliente == null) {
@@ -119,7 +126,9 @@ fun DetalleClienteScreen(
 
     val clienteActual = cliente!!.copy(
         totalCotizaciones = cotizacionesCliente.size,
-        totalFacturado = cotizacionesCliente.sumOf { it.monto }
+        totalIngresos = ingresosCliente.size,
+        totalProyectos = proyectosCliente.size,
+        totalFacturado = ingresosCliente.sumOf { it.total }
     )
 
 

@@ -94,19 +94,16 @@ fun EditarCotizacionScreen(
             observaciones = cotizacionEntity!!.observaciones
 
 
-            iva = if (cotizacionActual.subtotal > 0.0) {
-                val porcentajeIva = (cotizacionActual.iva / cotizacionActual.subtotal) * 100.0
-                porcentajeIva.formatoNumeroCotizacion()
-            } else {
-                "16"
-            }
+            descuento = cotizacionActual.descuentoPorcentaje.formatoNumeroCotizacion()
+            iva = cotizacionActual.ivaPorcentaje.formatoNumeroCotizacion()
+            anticipo = cotizacionActual.anticipoPorcentaje.formatoNumeroCotizacion()
 
             conceptos = detallesActuales.map { detalle ->
                 ConceptoEditarCotizacionForm(
-                    tipo = "Materiales",
+                    tipo = detalle.tipo,
                     descripcion = detalle.descripcion,
                     cantidad = detalle.cantidad.formatoNumeroCotizacion(),
-                    unidad = "Pza",
+                    unidad = detalle.unidad,
                     precioUnitario = detalle.precioUnitario.formatoNumeroCotizacion()
                 )
             }
@@ -243,16 +240,14 @@ fun EditarCotizacionScreen(
                         }
 
                         val detallesActualizados = conceptos
-                            .filter {
-                                it.descripcion.isNotBlank() &&
-                                        it.cantidadNumero > 0.0 &&
-                                        it.precioNumero > 0.0
-                            }
+                            .filter { it.descripcion.isNotBlank() && it.cantidadNumero > 0.0 && it.precioNumero > 0.0 }
                             .map { concepto ->
                                 DetalleCotizacionEntity(
                                     cotizacionId = cotizacionId,
-                                    descripcion = concepto.descripcion,
+                                    tipo = concepto.tipo,
+                                    descripcion = concepto.descripcion.trim(),
                                     cantidad = concepto.cantidadNumero,
+                                    unidad = concepto.unidad,
                                     precioUnitario = concepto.precioNumero,
                                     total = concepto.total
                                 )
@@ -269,9 +264,21 @@ fun EditarCotizacionScreen(
                                 clienteId = clienteId,
                                 descripcionTrabajo = descripcion.trim(),
                                 proyecto = proyecto.trim(),
+
                                 subtotal = subtotalCalculado,
+
+                                descuentoPorcentaje = descuento.toDoubleOrNull() ?: 0.0,
+                                descuento = descuentoCalculado,
+
+                                ivaPorcentaje = iva.toDoubleOrNull() ?: 0.0,
                                 iva = ivaCalculado,
+
                                 total = totalCalculado,
+
+                                anticipoPorcentaje = anticipo.toDoubleOrNull() ?: 0.0,
+                                anticipo = anticipoCalculado,
+                                saldo = saldoCalculado,
+
                                 fecha = fecha,
                                 vigencia = vigencia,
                                 observaciones = observaciones.trim(),
@@ -491,6 +498,7 @@ fun EncabezadoConceptosEditarCotizacion() {
     )
 }
 
+
 @Composable
 fun SeccionConceptosEditarCotizacion(
     conceptos: List<ConceptoEditarCotizacionForm>,
@@ -503,6 +511,10 @@ fun SeccionConceptosEditarCotizacion(
         "Mano de obra",
         "Gastos adicionales"
     )
+
+    val conceptosFiltrados = conceptos
+        .mapIndexed { index, concepto -> index to concepto }
+        .filter { it.second.tipo == categoriaSeleccionada }
 
     CardSeccionEditarCotizacion(
         titulo = "Conceptos",
@@ -529,26 +541,38 @@ fun SeccionConceptosEditarCotizacion(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        conceptos.forEachIndexed { index, concepto ->
+        if (conceptosFiltrados.isEmpty()) {
+            Text(
+                text = "No hay conceptos en ${categoriaSeleccionada.lowercase()}.",
+                fontSize = 10.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        conceptosFiltrados.forEachIndexed { indexVisual, par ->
+            val indexReal = par.first
+            val concepto = par.second
+
             ConceptoEditarCotizacionItem(
-                numeroConcepto = index + 1,
+                numeroConcepto = indexVisual + 1,
                 concepto = concepto,
-                mostrarEliminar = conceptos.size > 1,
+                mostrarEliminar = true,
                 onConceptoChange = { conceptoActualizado ->
                     onConceptosChange(
                         conceptos.toMutableList().also {
-                            it[index] = conceptoActualizado
+                            it[indexReal] = conceptoActualizado.copy(
+                                tipo = categoriaSeleccionada
+                            )
                         }
                     )
                 },
                 onEliminarClick = {
-                    if (conceptos.size > 1) {
-                        onConceptosChange(
-                            conceptos.toMutableList().also {
-                                it.removeAt(index)
-                            }
-                        )
-                    }
+                    onConceptosChange(
+                        conceptos.toMutableList().also {
+                            it.removeAt(indexReal)
+                        }
+                    )
                 }
             )
 

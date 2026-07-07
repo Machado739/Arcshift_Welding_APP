@@ -257,8 +257,10 @@ fun NuevaCotizacionScreen(
                             .map { concepto ->
                                 DetalleCotizacionEntity(
                                     cotizacionId = 0,
+                                    tipo = concepto.tipo,
                                     descripcion = concepto.descripcion,
                                     cantidad = concepto.cantidadNumero,
+                                    unidad = concepto.unidad,
                                     precioUnitario = concepto.precioNumero,
                                     total = concepto.total
                                 )
@@ -276,6 +278,12 @@ fun NuevaCotizacionScreen(
                             iva = ivaCalculado,
                             total = totalCalculado,
                             fecha = fecha,
+                            descuentoPorcentaje = descuento.toDoubleOrNull() ?: 0.0,
+                            descuento = descuentoCalculado,
+                            ivaPorcentaje = iva.toDoubleOrNull() ?: 0.0,
+                            anticipoPorcentaje = anticipo.toDoubleOrNull() ?: 0.0,
+                            anticipo = anticipoCalculado,
+                            saldo = saldoCalculado,
                             vigencia = vigencia,
                             observaciones = observaciones.trim(),
                             estado = "Pendiente",

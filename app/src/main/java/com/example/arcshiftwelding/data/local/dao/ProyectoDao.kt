@@ -16,6 +16,9 @@ interface ProyectoDao {
     @Query("SELECT * FROM proyectos WHERE cotizacionId = :cotizacionId LIMIT 1")
     suspend fun obtenerProyectoPorCotizacionId(cotizacionId: Int): ProyectoEntity?
 
+    @Query("SELECT * FROM proyectos WHERE clienteId = :clienteId ORDER BY id DESC")
+    fun obtenerProyectosPorCliente(clienteId: Int): Flow<List<ProyectoEntity>>
+
     @Insert
     suspend fun insertarProyecto(proyecto: ProyectoEntity): Long
 

@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ClientesViewModel(
-    private val clienteDao: ClienteDao
+    private val clienteDao: ClienteDao,
+    private val ingresoDao: com.example.arcshiftwelding.data.local.dao.IngresoDao,
+    private val proyectoDao: com.example.arcshiftwelding.data.local.dao.ProyectoDao
 ) : ViewModel() {
 
     val clientes: StateFlow<List<ClienteUI>> =
@@ -44,6 +46,22 @@ class ClientesViewModel(
 
     fun obtenerClienteConCotizaciones(clienteId: Int) =
         clienteDao.obtenerClienteConCotizaciones(clienteId)
+
+    fun obtenerIngresosPorCliente(clienteId: Int) =
+        ingresoDao.obtenerIngresosPorCliente(clienteId)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    fun obtenerProyectosPorCliente(clienteId: Int) =
+        proyectoDao.obtenerProyectosPorCliente(clienteId)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
 
     fun obtenerClienteEditar(clienteId: Int): StateFlow<ClienteEditarUI?> {
         return clienteDao.obtenerClientePorId(clienteId)
@@ -176,13 +194,15 @@ class ClientesViewModel(
 }
 
 class ClientesViewModelFactory(
-    private val clienteDao: ClienteDao
+    private val clienteDao: ClienteDao,
+    private val ingresoDao: com.example.arcshiftwelding.data.local.dao.IngresoDao,
+    private val proyectoDao: com.example.arcshiftwelding.data.local.dao.ProyectoDao
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ClientesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ClientesViewModel(clienteDao) as T
+            return ClientesViewModel(clienteDao, ingresoDao, proyectoDao) as T
         }
 
         throw IllegalArgumentException("ViewModel desconocido")

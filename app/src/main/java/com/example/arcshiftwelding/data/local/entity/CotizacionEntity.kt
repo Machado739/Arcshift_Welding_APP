@@ -26,9 +26,21 @@ data class CotizacionEntity(
     val clienteId: Int,
     val descripcionTrabajo: String,
     val proyecto: String = "",
+
     val subtotal: Double,
+
+    val descuentoPorcentaje: Double = 0.0,
+    val descuento: Double = 0.0,
+
+    val ivaPorcentaje: Double = 16.0,
     val iva: Double,
+
     val total: Double,
+
+    val anticipoPorcentaje: Double = 50.0,
+    val anticipo: Double = 0.0,
+    val saldo: Double = 0.0,
+
     val fecha: String,
     val vigencia: String = "",
     val observaciones: String = "",

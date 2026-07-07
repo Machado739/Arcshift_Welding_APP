@@ -222,11 +222,13 @@ fun TarjetaPrincipalGasto(
                         icono = Icons.Default.DateRange,
                         texto = gasto.fecha
                     )
-
+/*
                     DatoIconoPequeno(
                         icono = Icons.Default.Payment,
                         texto = gasto.metodoPago
                     )
+
+ */
                 }
             }
 
@@ -331,11 +333,13 @@ fun SeccionDetalleInformacionGeneral(
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
-
+/*
                 ItemDatoDetalle(
                     titulo = "Forma de pago",
                     valor = gasto.formaPago.ifBlank { "No especificada" }
                 )
+
+ */
             }
         }
     }
@@ -414,7 +418,7 @@ fun SeccionDetalleProveedor(
             titulo = "Nombre",
             valor = gasto.proveedor
         )
-
+/*
         Spacer(modifier = Modifier.height(8.dp))
 
         ItemDatoDetalle(
@@ -435,6 +439,7 @@ fun SeccionDetalleProveedor(
             titulo = "RFC",
             valor = gasto.rfcProveedor.ifBlank { "No registrado" }
         )
+        */
     }
 }
 

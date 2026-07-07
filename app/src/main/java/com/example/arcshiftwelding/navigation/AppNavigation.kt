@@ -87,7 +87,9 @@ fun AppNavigation() {
     }
     val clientesViewModel: ClientesViewModel = viewModel(
         factory = ClientesViewModelFactory(
-            clienteDao = database.clienteDao()
+            clienteDao = database.clienteDao(),
+            ingresoDao = database.ingresoDao(),
+            proyectoDao = database.proyectoDao()
         )
     )
 
