@@ -27,6 +27,7 @@ fun EditarIngresoScreen(
 
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
+    val proyectos by viewModel.proyectos.collectAsState(initial = emptyList())
 
     val cotizacionesFiltradas = if (form.clienteId != null) {
         cotizaciones.filter { it.clienteId == form.clienteId }
@@ -102,6 +103,7 @@ fun EditarIngresoScreen(
             SeccionIngresoRelacionado(
                 form = form,
                 cotizaciones = cotizacionesFiltradas,
+                proyectos = proyectos,
                 onChange = viewModel::actualizarFormulario
             )
 

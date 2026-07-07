@@ -24,4 +24,5 @@ interface ProyectoDao {
 
     @Delete
     suspend fun eliminarProyecto(proyecto: ProyectoEntity)
+
 }

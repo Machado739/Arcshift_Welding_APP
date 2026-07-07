@@ -173,13 +173,14 @@ fun HeaderGastos(
         )
 
         IconButton(onClick = { }) {
-            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
+            Icon(
+                Icons.Default.Notifications,
+                contentDescription = "Notificaciones")
         }
         IconButton(
             onClick = {
                 navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(0) {
-                        inclusive = true
+                    popUpTo(0) { inclusive = true
                     }
                     launchSingleTop = true
                 }

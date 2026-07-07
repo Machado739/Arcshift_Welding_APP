@@ -996,16 +996,18 @@ fun SeccionDetalleAdicional(
                 titulo = "Fecha de registro",
                 valor = producto.fechaRegistro.ifBlank { "Sin fecha" }
             )
-
+/*
             CampoDetalle(
                 titulo = "Permite stock negativo",
                 valor = if (producto.permitirStockNegativo) "Sí" else "No"
             )
-
+*/
+            /*
             CampoDetalle(
                 titulo = "Producto activo",
                 valor = if (producto.activo) "Sí" else "No"
             )
+                         */
         }
     }
 }

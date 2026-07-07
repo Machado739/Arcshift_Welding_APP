@@ -288,7 +288,6 @@ fun TarjetaResumenProyecto(
 ) {
     Card(
         modifier = Modifier
-            .width(125.dp)
             .height(105.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -307,8 +306,7 @@ fun TarjetaResumenProyecto(
                 modifier = Modifier
                     .size(28.dp)
                     .background(
-                        tarjeta.color.copy(alpha = 0.15f),
-                        CircleShape
+                        tarjeta.color.copy(alpha = 0.15f), CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {

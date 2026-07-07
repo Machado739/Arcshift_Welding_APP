@@ -104,7 +104,8 @@ fun AppNavigation() {
         factory = IngresosViewModelFactory(
             ingresoDao = database.ingresoDao(),
             clienteDao = database.clienteDao(),
-            cotizacionDao = database.cotizacionDao()
+            cotizacionDao = database.cotizacionDao(),
+            proyectoDao = database.proyectoDao()
         )
     )
 

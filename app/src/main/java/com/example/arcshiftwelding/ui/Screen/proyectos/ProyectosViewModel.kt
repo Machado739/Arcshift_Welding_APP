@@ -41,9 +41,13 @@ data class ProyectoUI(
 
 data class CotizacionProyectoUI(
     val id: Int,
+    val folio: String,
     val texto: String,
     val clienteId: Int,
-    val total: Double
+    val total: Double,
+    val proyecto: String,
+    val descripcionTrabajo: String,
+    val vigencia: String
 )
 
 data class ResumenProyectosUI(
@@ -76,9 +80,13 @@ class ProyectosViewModel(
 
                     CotizacionProyectoUI(
                         id = cotizacion.id,
+                        folio = cotizacion.folio,
                         texto = "${cotizacion.folio} - ${cliente?.nombre ?: "Cliente #${cotizacion.clienteId}"}",
                         clienteId = cotizacion.clienteId,
-                        total = cotizacion.total
+                        total = cotizacion.total,
+                        proyecto = cotizacion.proyecto,
+                        descripcionTrabajo = cotizacion.descripcionTrabajo,
+                        vigencia = cotizacion.vigencia
                     )
                 }
             }

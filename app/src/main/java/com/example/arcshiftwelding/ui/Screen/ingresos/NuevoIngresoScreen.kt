@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import androidx.compose.foundation.clickable
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -33,12 +34,15 @@ fun NuevoIngresoScreen(
 
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
+    val proyectos by viewModel.proyectos.collectAsState(initial = emptyList())
 
     val cotizacionesFiltradas = if (form.clienteId != null) {
         cotizaciones.filter { it.clienteId == form.clienteId }
     } else {
         cotizaciones
     }
+
+
 
     LaunchedEffect(Unit) {
         viewModel.limpiarFormulario()
@@ -108,6 +112,7 @@ fun NuevoIngresoScreen(
             SeccionIngresoRelacionado(
                 form = form,
                 cotizaciones = cotizacionesFiltradas,
+                proyectos = proyectos,
                 onChange = viewModel::actualizarFormulario
             )
 
@@ -140,14 +145,14 @@ fun SeccionIngresoInformacionFinanciera(
         "Cheque",
         "Crédito"
     )
-/*
-    val formasPago = listOf(
-        "Contado",
-        "Crédito",
-        "Anticipo",
-        "Parcialidad"
-    )
-*/
+    /*
+        val formasPago = listOf(
+            "Contado",
+            "Crédito",
+            "Anticipo",
+            "Parcialidad"
+        )
+    */
     val subtotalNumero = form.subtotal.aDouble()
     val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
     val totalNumero = subtotalNumero + ivaNumero
@@ -268,17 +273,17 @@ fun SeccionIngresoInformacionFinanciera(
                 },
                 modifier = Modifier.weight(1f)
             )
-/*
-            CampoDropdownIngreso(
-                titulo = "Forma de pago",
-                valor = form.formaPago,
-                opciones = formasPago,
-                placeholder = "Forma",
-                onValueChange = {
-                    onChange(form.copy(formaPago = it))
-                },
-                modifier = Modifier.weight(1f)
-            )*/
+            /*
+                        CampoDropdownIngreso(
+                            titulo = "Forma de pago",
+                            valor = form.formaPago,
+                            opciones = formasPago,
+                            placeholder = "Forma",
+                            onValueChange = {
+                                onChange(form.copy(formaPago = it))
+                            },
+                            modifier = Modifier.weight(1f)
+                        )*/
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -323,16 +328,9 @@ fun SeccionIngresoComprobante(
 fun SeccionIngresoRelacionado(
     form: IngresoFormState,
     cotizaciones: List<CotizacionEntity>,
+    proyectos: List<ProyectoEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
-    val proyectos = listOf(
-        "Portón metálico",
-        "Estructura para techo",
-        "Reparación de remolque",
-        "Escalera industrial",
-        "Sin proyecto"
-    )
-
     TarjetaNuevoIngreso(
         titulo = "Relacionado con opcional",
         icono = Icons.Default.Link
@@ -354,26 +352,16 @@ fun SeccionIngresoRelacionado(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
-/*
-        CampoTextoIngreso(
-            titulo = "Orden de trabajo",
-            valor = form.ordenTrabajo,
-            placeholder = "Ej. OT-001",
-            onValueChange = {
-                onChange(form.copy(ordenTrabajo = it))
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-*/
-        Spacer(modifier = Modifier.height(10.dp))
 
-        CampoDropdownIngreso(
-            titulo = "Proyecto",
-            valor = form.proyecto,
-            opciones = proyectos,
-            placeholder = "Seleccionar proyecto",
-            onValueChange = {
-                onChange(form.copy(proyecto = it))
+        SelectorProyectoIngreso(
+            proyectos = proyectos,
+            proyectoSeleccionadoNombre = form.proyecto,
+            onProyectoSeleccionado = { proyecto ->
+                onChange(
+                    form.copy(
+                        proyecto = proyecto?.nombre ?: ""
+                    )
+                )
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -947,6 +935,100 @@ fun SelectorClienteIngreso(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectorProyectoIngreso(
+    proyectos: List<ProyectoEntity>,
+    proyectoSeleccionadoNombre: String,
+    onProyectoSeleccionado: (ProyectoEntity?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    val proyectoSeleccionado = proyectos.firstOrNull {
+        it.nombre == proyectoSeleccionadoNombre
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expandido,
+        onExpandedChange = { expandido = !expandido },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = proyectoSeleccionado?.nombre ?: if (proyectoSeleccionadoNombre.isBlank()) "Sin proyecto" else proyectoSeleccionadoNombre,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Proyecto") },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandido)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            textStyle = MaterialTheme.typography.bodySmall,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF2563EB),
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            )
+        )
+
+        ExposedDropdownMenu(
+            expanded = expandido,
+            onDismissRequest = { expandido = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Sin proyecto") },
+                onClick = {
+                    onProyectoSeleccionado(null)
+                    expandido = false
+                }
+            )
+
+            if (proyectos.isEmpty()) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "No hay proyectos registrados",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    },
+                    onClick = { },
+                    enabled = false
+                )
+            } else {
+                proyectos.forEach { proyecto ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    text = proyecto.nombre,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                Text(
+                                    text = proyecto.estado,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray,
+                                    maxLines = 1
+                                )
+                            }
+                        },
+                        onClick = {
+                            onProyectoSeleccionado(proyecto)
+                            expandido = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectorCotizacionIngreso(

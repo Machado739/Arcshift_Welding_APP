@@ -30,26 +30,25 @@ data class IngresoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
-    val concepto: String = "",
+    val concepto: String,
     val clienteId: Int?,
-    val trabajo: String = "",
-    val folio: String = "",
-    val fecha: String = "",
-
-    val subtotal: Double = 0.0,
-    val ivaPorcentaje: Double = 0.0,
-    val iva: Double = 0.0,
-    val total: Double = 0.0,
-    val anticipo: Double = 0.0,
-    val pendiente: Double = 0.0,
-
-    val metodoPago: String = "",
-    val formaPago: String = "",
-
-    val observaciones: String = "",
     val cotizacionId: Int?,
-    val ordenTrabajo: String = "",
-    val proyecto: String = "",
+    val trabajo: String,
+    val folio: String,
+    val fecha: String,
 
+    val subtotal: Double,
+    val ivaPorcentaje: Double,
+    val iva: Double,
+    val total: Double,
+    val anticipo: Double,
+    val pendiente: Double,
+
+    val metodoPago: String,
+    val formaPago: String,
+    val observaciones: String,
+    val ordenTrabajo: String,
+
+    val proyecto: String = "",
     val activo: Boolean = true
 )

@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.IngresoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import com.example.arcshiftwelding.data.local.relation.IngresoConRelaciones
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,12 +73,13 @@ data class IngresoFormState(
     val ordenTrabajo: String = "",
     val proyecto: String = ""
 )
-
 class IngresosViewModel(
     private val ingresoDao: IngresoDao,
     private val clienteDao: ClienteDao,
-    private val cotizacionDao: CotizacionDao
+    private val cotizacionDao: CotizacionDao,
+    private val proyectoDao: ProyectoDao
 ) : ViewModel() {
+
 
     val clientesActivos: Flow<List<ClienteEntity>> =
         clienteDao.obtenerClientesActivos()
@@ -96,6 +99,9 @@ class IngresosViewModel(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
+
+    val proyectos: Flow<List<ProyectoEntity>> =
+        proyectoDao.obtenerProyectos()
 
     private val _formState = MutableStateFlow(IngresoFormState())
     val formState: StateFlow<IngresoFormState> = _formState
@@ -167,7 +173,8 @@ class IngresosViewModel(
 class IngresosViewModelFactory(
     private val ingresoDao: IngresoDao,
     private val clienteDao: ClienteDao,
-    private val cotizacionDao: CotizacionDao
+    private val cotizacionDao: CotizacionDao,
+    private val proyectoDao: ProyectoDao
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -176,7 +183,8 @@ class IngresosViewModelFactory(
             return IngresosViewModel(
                 ingresoDao = ingresoDao,
                 clienteDao = clienteDao,
-                cotizacionDao = cotizacionDao
+                cotizacionDao = cotizacionDao,
+                proyectoDao = proyectoDao
             ) as T
         }
 

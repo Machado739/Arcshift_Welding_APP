@@ -94,6 +94,7 @@ fun EditarProductoScreen(
     val productoViewModel: ProductoViewModel = viewModel(
         factory = ProductoViewModelFactory(repository)
     )
+
     val movimientoRepository = remember {
         MovimientoInventarioRepository(database.movimientoInventarioDao())
     }
@@ -106,12 +107,6 @@ fun EditarProductoScreen(
 
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
-    val seleccionarImagenLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        imagenUri = uri
-    }
-
     var nombre by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
     var unidad by remember { mutableStateOf("") }
@@ -122,7 +117,6 @@ fun EditarProductoScreen(
     var stockActual by remember { mutableStateOf("") }
     var stockMinimo by remember { mutableStateOf("") }
     var stockMaximo by remember { mutableStateOf("") }
-    var estado by remember { mutableStateOf("En Stock") }
 
     var costoUnitario by remember { mutableStateOf("") }
     var proveedor by remember { mutableStateOf("") }
@@ -152,7 +146,6 @@ fun EditarProductoScreen(
             stockActual = producto.stock.toString()
             stockMinimo = producto.stockMinimo.toString()
             stockMaximo = producto.stockMaximo.toString()
-            estado = producto.estado
 
             costoUnitario = producto.precioCompra.toString()
             proveedor = producto.proveedor
@@ -170,6 +163,7 @@ fun EditarProductoScreen(
             datosCargados = true
         }
     }
+
     Scaffold(
         topBar = {
             Row(
@@ -201,18 +195,18 @@ fun EditarProductoScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
             }
         },
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = Color(0xFFF5F5F5),
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
+
         if (productoSeleccionado == null) {
             Box(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .background(Color(0xFFF5F6FA)),
+                    .background(Color(0xFFF5F5F5)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -224,244 +218,53 @@ fun EditarProductoScreen(
 
             return@Scaffold
         }
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F6FA))
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            FormularioCard(
-                titulo = "Foto del producto",
-                icono = Icons.Default.Inventory2
-            ) {
-                SelectorImagenProductoEditar(
-                    imagenUri = imagenUri,
-                    onSeleccionarImagen = {
-                        seleccionarImagenLauncher.launch("image/*")
-                    }
-                )
-            }
-            FormularioCard(
-                titulo = "Información general",
-                icono = Icons.Default.Info
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = nombre,
-                        onValueChange = { nombre = it },
-                        label = { Text("Nombre del producto *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
+            SeccionInformacionGeneral(
+                nombre = nombre,
+                onNombreChange = { nombre = it },
+                codigo = codigo,
+                onCodigoChange = {},
+                ubicacion = ubicacion,
+                onUbicacionChange = { ubicacion = it },
+                descripcion = descripcion,
+                onDescripcionChange = { descripcion = it },
+                categoria = categoria,
+                onCategoriaChange = { categoria = it },
+                unidad = unidad,
+                onUnidadChange = { unidad = it },
+                imagenUri = imagenUri,
+                onImagenChange = { imagenUri = it }
+            )
 
-                    MenuDesplegable(
-                        label = "Categoría *",
-                        placeholder = "Seleccionar categoría",
-                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad", "Equipos", "Otros"),
-                        valorSeleccionado = categoria,
-                        onSeleccionar = { categoria = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            SeccionInventarioEditar(
+                stockActual = stockActual,
+                onStockActualChange = { stockActual = it },
+                stockMinimo = stockMinimo,
+                onStockMinimoChange = { stockMinimo = it },
+                stockMaximo = stockMaximo,
+                onStockMaximoChange = { stockMaximo = it }
+            )
 
-                    MenuDesplegable(
-                        label = "Unidad de medida *",
-                        placeholder = "Seleccionar unidad",
-                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros", "Hojas", "Litros", "Otros"),
-                        valorSeleccionado = unidad,
-                        onSeleccionar = { unidad = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            SeccionCostosEditar(
+                costoUnitario = costoUnitario,
+                onCostoUnitarioChange = { costoUnitario = it },
+                stockActual = stockActual
+            )
 
-                    OutlinedTextField(
-                        value = codigo,
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
-                        label = { Text("Código automático") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = ubicacion,
-                        onValueChange = { ubicacion = it },
-                        label = { Text("Ubicación *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = descripcion,
-                        onValueChange = {
-                            if (it.length <= 200) descripcion = it
-                        },
-                        label = { Text("Descripción") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        supportingText = {
-                            Text("${descripcion.length}/200")
-                        }
-                    )
-                }
-            }
-
-            FormularioCard(
-                titulo = "Inventario",
-                icono = Icons.Default.Inventory2
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = stockActual,
-                        onValueChange = { stockActual = it },
-                        label = { Text("Stock actual *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = stockMinimo,
-                        onValueChange = { stockMinimo = it },
-                        label = { Text("Stock mínimo *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = stockMaximo,
-                        onValueChange = { stockMaximo = it },
-                        label = { Text("Stock máximo") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    MenuDesplegable(
-                        label = "Estado *",
-                        placeholder = "Seleccionar estado",
-                        opciones = listOf("En Stock", "Bajo Stock", "Agotado"),
-                        valorSeleccionado = estado,
-                        onSeleccionar = { estado = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            FormularioCard(
-                titulo = "Costos",
-                icono = Icons.Default.AttachMoney
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = costoUnitario,
-                        onValueChange = { costoUnitario = it },
-                        label = { Text("Costo unitario *") },
-                        leadingIcon = { Text("$") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    val total = calcularTotalEditar(
-                        stockActual = stockActual,
-                        costoUnitario = costoUnitario
-                    )
-
-                    OutlinedTextField(
-                        value = total,
-                        onValueChange = {},
-                        label = { Text("Costo total en inventario") },
-                        leadingIcon = { Text("$") },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = false,
-                        singleLine = true
-                    )
-                }
-            }
-
-            FormularioCard(
-                titulo = "Información adicional",
-                icono = Icons.Default.LocalOffer
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedTextField(
-                        value = proveedor,
-                        onValueChange = {
-                            if (it.length <= 80) proveedor = it
-                        },
-                        label = { Text("Proveedor") },
-                        placeholder = { Text("Ej. Aceros del Norte") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        supportingText = {
-                            Text("${proveedor.length}/80")
-                        }
-                    )
-                    OutlinedTextField(
-                        value = notas,
-                        onValueChange = {
-                            if (it.length <= 150) notas = it
-                        },
-                        label = { Text("Notas") },
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText = {
-                            Text("${notas.length}/150")
-                        }
-                    )
-                }
-            }
-/*
-            FormularioCard(
-                titulo = "Opciones",
-                icono = Icons.Default.Settings
-            ) {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = permitirStockNegativo,
-                            onCheckedChange = { permitirStockNegativo = it }
-                        )
-
-                        Column {
-                            Text("Permitir stock negativo")
-                            Text(
-                                text = "Permite que el stock actual pueda ser menor a cero.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = productoActivo,
-                            onCheckedChange = { productoActivo = it }
-                        )
-
-                        Column {
-                            Text("Producto activo")
-                            Text(
-                                text = "El producto estará disponible en el inventario.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-                }
-            }*/
+            SeccionInformacionAdicional(
+                proveedor = proveedor,
+                onProveedorChange = { proveedor = it },
+                notas = notas,
+                onNotasChange = { notas = it }
+            )
 
             if (mensajeError.isNotBlank()) {
                 Text(
@@ -471,183 +274,314 @@ fun EditarProductoScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
-                ) {
-                    Text("Cancelar")
-                }
 
-                Button(
-                    onClick = {
-                        val productoOriginal = productoSeleccionado
+            BotonesFormularioEditar(
+                onCancelar = {
+                    navController.popBackStack()
+                },
+                onGuardar = {
+                    val productoOriginal = productoSeleccionado
 
-                        if (productoOriginal == null) {
-                            mensajeError = "No se pudo cargar el producto"
-                            return@Button
-                        }
+                    if (productoOriginal == null) {
+                        mensajeError = "No se pudo cargar el producto"
+                        return@BotonesFormularioEditar
+                    }
 
-                        if (nombre.isBlank()) {
-                            mensajeError = "El nombre del producto es obligatorio"
-                            return@Button
-                        }
+                    if (nombre.isBlank()) {
+                        mensajeError = "El nombre del producto es obligatorio"
+                        return@BotonesFormularioEditar
+                    }
 
-                        if (categoria.isBlank()) {
-                            mensajeError = "Selecciona una categoría"
-                            return@Button
-                        }
+                    if (categoria.isBlank()) {
+                        mensajeError = "Selecciona una categoría"
+                        return@BotonesFormularioEditar
+                    }
 
-                        if (unidad.isBlank()) {
-                            mensajeError = "Selecciona una unidad de medida"
-                            return@Button
-                        }
+                    if (unidad.isBlank()) {
+                        mensajeError = "Selecciona una unidad de medida"
+                        return@BotonesFormularioEditar
+                    }
 
+                    if (ubicacion.isBlank()) {
+                        mensajeError = "La ubicación es obligatoria"
+                        return@BotonesFormularioEditar
+                    }
 
+                    val stock = stockActual.toIntOrNull()
+                    if (stock == null) {
+                        mensajeError = "El stock actual debe ser un número válido"
+                        return@BotonesFormularioEditar
+                    }
 
-                        if (ubicacion.isBlank()) {
-                            mensajeError = "La ubicación es obligatoria"
-                            return@Button
-                        }
+                    val minimo = stockMinimo.toIntOrNull()
+                    if (minimo == null) {
+                        mensajeError = "El stock mínimo debe ser un número válido"
+                        return@BotonesFormularioEditar
+                    }
 
-                        val stock = stockActual.toIntOrNull()
-                        if (stock == null) {
-                            mensajeError = "El stock actual debe ser un número válido"
-                            return@Button
-                        }
+                    val maximo = stockMaximo.toIntOrNull() ?: 0
 
-                        val minimo = stockMinimo.toIntOrNull()
-                        if (minimo == null) {
-                            mensajeError = "El stock mínimo debe ser un número válido"
-                            return@Button
-                        }
+                    val costo = costoUnitario.toDoubleOrNull()
+                    if (costo == null) {
+                        mensajeError = "El costo unitario debe ser un número válido"
+                        return@BotonesFormularioEditar
+                    }
 
-                        val maximo = stockMaximo.toIntOrNull() ?: 0
-
-                        val costo = costoUnitario.toDoubleOrNull()
-                        if (costo == null) {
-                            mensajeError = "El costo unitario debe ser un número válido"
-                            return@Button
-                        }
-
-                        val estadoCalculado = when {
-                            stock <= 0 -> "Agotado"
-                            stock <= minimo -> "Bajo Stock"
-                            else -> "En Stock"
-                        }
-
-                        val rutaImagenInterna = when {
-                            imagenUri == null -> {
-                                ""
-                            }
-
-                            imagenUri.toString().startsWith("/") -> {
-                                imagenUri.toString()
-                            }
-
-                            imagenUri.toString().startsWith("content://") -> {
-                                guardarImagenProductoEnInterno(
-                                    context = context,
-                                    imagenUri = imagenUri
-                                )
-                            }
-
-                            else -> {
-                                productoOriginal.imagenUri
-                            }
-                        }
-
-                        val productoEditado = ProductoEntity(
-                            id = productoOriginal.id,
-
-                            nombre = nombre.trim(),
-                            categoria = categoria,
-                            codigo = codigo.trim(),
-                            ubicacion = ubicacion.trim(),
-
-                            stock = stock,
-                            unidad = unidad,
-                            stockMinimo = minimo,
-                            stockMaximo = maximo,
-
-                            estado = estadoCalculado,
-
-                            precioCompra = costo,
-                            precioVenta = productoOriginal.precioVenta,
-
-                            descripcion = descripcion.trim(),
-                            proveedor = proveedor.trim(),
-                            notas = notas.trim(),
-
-                            imagenUri = rutaImagenInterna,
-
-                            permitirStockNegativo = permitirStockNegativo,
-                            activo = productoActivo,
-
-                            fechaRegistro = productoOriginal.fechaRegistro
-                        )
-
-                        val stockAnterior = productoOriginal.stock
-                        val stockNuevo = stock
-                        val diferenciaStock = stockNuevo - stockAnterior
-
-                        productoViewModel.actualizarProducto(productoEditado)
-
-                        if (diferenciaStock != 0) {
-                            val fechaActual = LocalDate.now()
-                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-
-                            val horaActual = LocalTime.now()
-                                .format(DateTimeFormatter.ofPattern("HH:mm"))
-
-                            val movimientoAjuste = MovimientoInventarioEntity(
-                                productoId = productoOriginal.id,
-                                clienteId = null,
-                                cotizacionId = null,
-                                tipo = "Ajuste",
-                                cantidad = kotlin.math.abs(diferenciaStock),
-                                stockAnterior = stockAnterior,
-                                stockNuevo = stockNuevo,
-                                unidad = unidad,
-                                fecha = fechaActual,
-                                hora = horaActual,
-                                usuario = "Admin",
-                                referencia = "AJ-${productoOriginal.id}",
-                                observaciones = if (diferenciaStock > 0) {
-                                    "Ajuste manual: aumento de stock desde edición de producto"
-                                } else {
-                                    "Ajuste manual: disminución de stock desde edición de producto"
-                                }
-                            )
-
-                            movimientoViewModel.insertarMovimiento(movimientoAjuste)
-                        }
-
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = null
+                    val estadoCalculado = calcularEstadoInventarioEditar(
+                        stockActual = stock,
+                        stockMinimo = minimo
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    val rutaImagenInterna = when {
+                        imagenUri == null -> {
+                            ""
+                        }
 
-                    Text("Guardar Cambios")
+                        imagenUri?.scheme == "file" -> {
+                            File(imagenUri?.path ?: productoOriginal.imagenUri).absolutePath
+                        }
+
+                        imagenUri?.scheme == "content" -> {
+                            guardarImagenProductoEnInterno(
+                                context = context,
+                                imagenUri = imagenUri
+                            )
+                        }
+
+                        imagenUri.toString().startsWith("/") -> {
+                            imagenUri.toString()
+                        }
+
+                        else -> {
+                            productoOriginal.imagenUri
+                        }
+                    }
+
+                    val productoEditado = ProductoEntity(
+                        id = productoOriginal.id,
+
+                        nombre = nombre.trim(),
+                        categoria = categoria,
+                        codigo = codigo.trim(),
+                        ubicacion = ubicacion.trim(),
+
+                        stock = stock,
+                        unidad = unidad,
+                        stockMinimo = minimo,
+                        stockMaximo = maximo,
+
+                        estado = estadoCalculado,
+
+                        precioCompra = costo,
+                        precioVenta = productoOriginal.precioVenta,
+
+                        descripcion = descripcion.trim(),
+                        proveedor = proveedor.trim(),
+                        notas = notas.trim(),
+
+                        imagenUri = rutaImagenInterna,
+
+                        permitirStockNegativo = permitirStockNegativo,
+                        activo = productoActivo,
+
+                        fechaRegistro = productoOriginal.fechaRegistro
+                    )
+
+                    val stockAnterior = productoOriginal.stock
+                    val stockNuevo = stock
+                    val diferenciaStock = stockNuevo - stockAnterior
+
+                    productoViewModel.actualizarProducto(productoEditado)
+
+                    if (diferenciaStock != 0) {
+                        val fechaActual = LocalDate.now()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
+                        val horaActual = LocalTime.now()
+                            .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+                        val movimientoAjuste = MovimientoInventarioEntity(
+                            productoId = productoOriginal.id,
+                            clienteId = null,
+                            cotizacionId = null,
+                            tipo = "Ajuste",
+                            cantidad = abs(diferenciaStock),
+                            stockAnterior = stockAnterior,
+                            stockNuevo = stockNuevo,
+                            unidad = unidad,
+                            fecha = fechaActual,
+                            hora = horaActual,
+                            usuario = "Admin",
+                            referencia = "AJ-${productoOriginal.id}",
+                            observaciones = if (diferenciaStock > 0) {
+                                "Ajuste manual: aumento de stock desde edición de producto"
+                            } else {
+                                "Ajuste manual: disminución de stock desde edición de producto"
+                            }
+                        )
+
+                        movimientoViewModel.insertarMovimiento(movimientoAjuste)
+                    }
+
+                    navController.popBackStack()
                 }
-            }
+            )
 
+            Spacer(modifier = Modifier.height(8.dp))
         }
+    }
+}
+
+@Composable
+fun SeccionInventarioEditar(
+    stockActual: String,
+    onStockActualChange: (String) -> Unit,
+    stockMinimo: String,
+    onStockMinimoChange: (String) -> Unit,
+    stockMaximo: String,
+    onStockMaximoChange: (String) -> Unit
+) {
+    val stock = stockActual.toIntOrNull() ?: 0
+    val minimo = stockMinimo.toIntOrNull() ?: 0
+
+    val estadoCalculado = calcularEstadoInventarioEditar(
+        stockActual = stock,
+        stockMinimo = minimo
+    )
+
+    FormularioCard(
+        titulo = "Inventario",
+        icono = Icons.Default.Inventory2
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = stockActual,
+                onValueChange = onStockActualChange,
+                label = { Text("Stock actual *") },
+                placeholder = { Text("Ej. 10") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = stockMinimo,
+                onValueChange = onStockMinimoChange,
+                label = { Text("Stock mínimo *") },
+                placeholder = { Text("Ej. 5") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = stockMaximo,
+                onValueChange = onStockMaximoChange,
+                label = { Text("Stock máximo") },
+                placeholder = { Text("Ej. 100") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = estadoCalculado,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text("Estado actual") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+    }
+}
+
+@Composable
+fun SeccionCostosEditar(
+    costoUnitario: String,
+    onCostoUnitarioChange: (String) -> Unit,
+    stockActual: String
+) {
+    val stock = stockActual.toIntOrNull() ?: 0
+    val costo = costoUnitario.toDoubleOrNull() ?: 0.0
+    val costoTotal = stock * costo
+
+    FormularioCard(
+        titulo = "Costos",
+        icono = Icons.Default.AttachMoney
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = costoUnitario,
+                onValueChange = onCostoUnitarioChange,
+                label = { Text("Costo unitario *") },
+                placeholder = { Text("0.00") },
+                leadingIcon = { Text("$") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = "%.2f".format(costoTotal),
+                onValueChange = {},
+                label = { Text("Costo total en inventario") },
+                leadingIcon = { Text("$") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                singleLine = true
+            )
+        }
+    }
+}
+
+@Composable
+fun BotonesFormularioEditar(
+    onCancelar: () -> Unit,
+    onGuardar: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedButton(
+            onClick = onCancelar,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp)
+        ) {
+            Text("Cancelar")
+        }
+
+        Button(
+            onClick = onGuardar,
+            modifier = Modifier
+                .weight(1f)
+                .height(52.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Save,
+                contentDescription = null
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text("Guardar cambios")
+        }
+    }
+}
+
+fun calcularEstadoInventarioEditar(
+    stockActual: Int,
+    stockMinimo: Int
+): String {
+    return when {
+        stockActual <= 0 -> "Agotado"
+        stockActual <= stockMinimo -> "Bajo Stock"
+        else -> "En Stock"
     }
 }
 

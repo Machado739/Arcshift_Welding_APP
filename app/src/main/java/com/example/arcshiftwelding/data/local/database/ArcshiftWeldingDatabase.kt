@@ -49,7 +49,7 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         ProyectoMaterialEntity::class
 
                ],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {

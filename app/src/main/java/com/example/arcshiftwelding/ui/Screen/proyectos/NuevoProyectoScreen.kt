@@ -99,26 +99,37 @@ fun NuevoProyectoScreen(
     var clienteId by remember { mutableStateOf<Int?>(null) }
     var fechaFin by remember { mutableStateOf("") }
 
-    LaunchedEffect(cotizacionOrigen) {
-        cotizacionOrigen?.let { cotizacion ->
-            nombre = if (cotizacion.proyecto.isNotBlank()) {
-                cotizacion.proyecto
-            } else {
-                cotizacion.descripcionTrabajo
-            }
-
-            clienteId = cotizacion.clienteId
-            descripcion = cotizacion.descripcionTrabajo
-            presupuestoEstimado = cotizacion.total.toString()
-            fechaFin = cotizacion.vigencia
-            observaciones = "Proyecto creado desde la cotización ${cotizacion.folio}"
-        }
-    }
     val cotizacionesFiltradas = if (clienteSeleccionado == null) {
         cotizaciones
     } else {
         cotizaciones.filter { it.clienteId == clienteSeleccionado?.id }
     }
+
+    LaunchedEffect(cotizacionId, cotizaciones, clientes) {
+        if (cotizacionId != null && cotizacionSeleccionada == null) {
+            val cotizacionOrigen = cotizaciones.find { it.id == cotizacionId }
+
+            if (cotizacionOrigen != null) {
+                cotizacionSeleccionada = cotizacionOrigen
+
+                clienteSeleccionado = clientes.find {
+                    it.id == cotizacionOrigen.clienteId
+                }
+
+                nombre = if (cotizacionOrigen.proyecto.isNotBlank()) {
+                    cotizacionOrigen.proyecto
+                } else {
+                    cotizacionOrigen.descripcionTrabajo
+                }
+
+                descripcion = cotizacionOrigen.descripcionTrabajo
+                presupuestoEstimado = cotizacionOrigen.total.toString()
+                fechaEstimadaFin = cotizacionOrigen.vigencia
+                observaciones = "Proyecto creado desde la cotización ${cotizacionOrigen.folio}"
+            }
+        }
+    }
+
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),

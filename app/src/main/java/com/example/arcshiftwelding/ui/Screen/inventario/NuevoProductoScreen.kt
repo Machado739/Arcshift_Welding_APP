@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.ui.Screen.inventario
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,9 +38,31 @@ import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFac
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
 import com.example.arcshiftwelding.utils.guardarImagenProductoEnInterno
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.text.input.KeyboardType
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+
+private val ArcPrimary = Color(0xFF2563EB)
+private val ArcPrimaryLight = Color(0xFFDBEAFE)
+private val ArcBackground = Color(0xFFF8FAFC)
+private val ArcSurface = Color(0xFFFFFFFF)
+private val ArcTextPrimary = Color(0xFF0F172A)
+private val ArcTextSecondary = Color(0xFF64748B)
+private val ArcBorder = Color(0xFFE2E8F0)
+private val ArcError = Color(0xFFDC2626)
+private val ArcErrorLight = Color(0xFFFEE2E2)
+private val ArcSuccess = Color(0xFF16A34A)
+private val ArcWarning = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun NuevoProductoScreen(
     navController: NavController
@@ -79,7 +102,6 @@ fun NuevoProductoScreen(
     var stockInicial by remember { mutableStateOf("") }
     var stockMinimo by remember { mutableStateOf("") }
     var stockMaximo by remember { mutableStateOf("") }
-    var estado by remember { mutableStateOf("En Stock") }
 
     var costoUnitario by remember { mutableStateOf("") }
 
@@ -91,40 +113,144 @@ fun NuevoProductoScreen(
 
     var mensajeError by remember { mutableStateOf("") }
 
+    val fechaActual = remember {
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+    }
+
+    val horaActual = remember {
+        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+    }
+
+    fun guardarProducto() {
+        mensajeError = ""
+
+        if (nombre.isBlank()) {
+            mensajeError = "Ingresa el nombre del producto"
+            return
+        }
+
+        if (categoria.isBlank()) {
+            mensajeError = "Selecciona una categoría"
+            return
+        }
+
+        if (unidad.isBlank()) {
+            mensajeError = "Selecciona una unidad de medida"
+            return
+        }
+
+        if (codigoGenerado.isBlank()) {
+            mensajeError = "El código del producto es obligatorio"
+            return
+        }
+
+        if (ubicacion.isBlank()) {
+            mensajeError = "La ubicación es obligatoria"
+            return
+        }
+
+        val stock = stockInicial.toIntOrNull()
+        if (stock == null) {
+            mensajeError = "El stock inicial debe ser un número válido"
+            return
+        }
+
+        val minimo = stockMinimo.toIntOrNull()
+        if (minimo == null) {
+            mensajeError = "El stock mínimo debe ser un número válido"
+            return
+        }
+
+        val costo = costoUnitario.toDoubleOrNull()
+        if (costo == null) {
+            mensajeError = "El costo unitario debe ser un número válido"
+            return
+        }
+
+        val maximo = stockMaximo.toIntOrNull() ?: 0
+
+        val estadoCalculado = when {
+            stock <= 0 -> "Agotado"
+            stock <= minimo -> "Bajo Stock"
+            else -> "En Stock"
+        }
+
+        val rutaImagenInterna = guardarImagenProductoEnInterno(
+            context = context,
+            imagenUri = imagenUri
+        )
+
+        val producto = ProductoEntity(
+            nombre = nombre.trim(),
+            categoria = categoria,
+            codigo = codigoGenerado,
+            ubicacion = ubicacion.trim(),
+
+            stock = stock,
+            unidad = unidad,
+            stockMinimo = minimo,
+            stockMaximo = maximo,
+
+            estado = estadoCalculado,
+
+            precioCompra = costo,
+            precioVenta = 0.0,
+
+            descripcion = descripcion.trim(),
+            proveedor = proveedor.trim(),
+            notas = notas.trim(),
+
+            imagenUri = rutaImagenInterna,
+
+            permitirStockNegativo = permitirStockNegativo,
+            activo = productoActivo,
+
+            fechaRegistro = fechaActual
+        )
+
+        productoViewModel.insertarProductoConCodigo(producto) { productoIdGenerado ->
+
+            val movimientoInicial = MovimientoInventarioEntity(
+                productoId = productoIdGenerado.toInt(),
+                clienteId = null,
+                cotizacionId = null,
+                tipo = "Registro inicial",
+                cantidad = stock,
+                stockAnterior = 0,
+                stockNuevo = stock,
+                unidad = unidad,
+                fecha = fechaActual,
+                hora = horaActual,
+                usuario = "Admin",
+                referencia = "REG-INICIAL",
+                observaciones = "Registro inicial del producto"
+            )
+
+            movimientoViewModel.insertarMovimiento(movimientoInicial)
+
+            navController.popBackStack()
+        }
+    }
+
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(
-                        start = 17.dp,
-                        top = 8.dp,
-                        end = 14.dp,
-                        bottom = 8.dp
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = {
-                        navController.popBackStack()
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Regresar"
-                    )
+            HeaderNuevoProducto(
+                onBack = {
+                    navController.popBackStack()
                 }
-
-                Text(
-                    text = "Nuevo Producto",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            )
         },
-        containerColor = Color(0xFFF5F5F5),
+        bottomBar = {
+            BotonesFormulario(
+                onCancelar = {
+                    navController.popBackStack()
+                },
+                onGuardar = {
+                    guardarProducto()
+                }
+            )
+        },
+        containerColor = ArcBackground,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -133,9 +259,16 @@ fun NuevoProductoScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            ResumenNuevoProducto(
+                categoria = categoria,
+                codigo = codigoGenerado,
+                stock = stockInicial,
+                unidad = unidad
+            )
+
             SeccionInformacionGeneral(
                 nombre = nombre,
                 onNombreChange = { nombre = it },
@@ -158,18 +291,26 @@ fun NuevoProductoScreen(
 
             SeccionInventario(
                 stockInicial = stockInicial,
-                onStockInicialChange = { stockInicial = it },
+                onStockInicialChange = {
+                    stockInicial = it.filter { caracter -> caracter.isDigit() }
+                },
                 stockMinimo = stockMinimo,
-                onStockMinimoChange = { stockMinimo = it },
+                onStockMinimoChange = {
+                    stockMinimo = it.filter { caracter -> caracter.isDigit() }
+                },
                 stockMaximo = stockMaximo,
-                onStockMaximoChange = { stockMaximo = it },
-                estado = estado,
-                onEstadoChange = { estado = it }
+                onStockMaximoChange = {
+                    stockMaximo = it.filter { caracter -> caracter.isDigit() }
+                }
             )
 
             SeccionCostos(
                 costoUnitario = costoUnitario,
-                onCostoUnitarioChange = { costoUnitario = it },
+                onCostoUnitarioChange = {
+                    if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+                        costoUnitario = it
+                    }
+                },
                 stockInicial = stockInicial
             )
 
@@ -179,135 +320,155 @@ fun NuevoProductoScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-/*
-            SeccionOpciones(
-                permitirStockNegativo = permitirStockNegativo,
-                onPermitirStockNegativoChange = { permitirStockNegativo = it },
-                productoActivo = productoActivo,
-                onProductoActivoChange = { productoActivo = it }
-            )
-*/
+
             if (mensajeError.isNotBlank()) {
-                Text(
-                    text = mensajeError,
-                    color = Color(0xFFDC2626),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
+                MensajeErrorProducto(mensaje = mensajeError)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+fun HeaderNuevoProducto(
+    onBack: () -> Unit
+) {
+    Surface(
+        color = ArcSurface,
+        shadowElevation = 3.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 8.dp, end = 16.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Regresar",
+                    tint = ArcTextPrimary
                 )
             }
 
-            BotonesFormulario(
-                onCancelar = {
-                    navController.popBackStack()
-                },
-                onGuardar = {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Inventory2,
+                    contentDescription = null,
+                    tint = ArcPrimary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
 
+            Spacer(modifier = Modifier.width(12.dp))
 
-                    if (categoria.isBlank()) {
-                        mensajeError = "Selecciona una categoría"
-                        return@BotonesFormulario
-                    }
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Nuevo producto",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ArcTextPrimary
+                )
 
-                    if (unidad.isBlank()) {
-                        mensajeError = "Selecciona una unidad de medida"
-                        return@BotonesFormulario
-                    }
+                Text(
+                    text = "Registra un artículo para inventario",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ArcTextSecondary
+                )
+            }
+        }
+    }
+}
 
-                    if (codigoGenerado.isBlank()) {
-                        mensajeError = "El código del producto es obligatorio"
-                        return@BotonesFormulario
-                    }
-
-                    if (ubicacion.isBlank()) {
-                        mensajeError = "La ubicación es obligatoria"
-                        return@BotonesFormulario
-                    }
-
-                    val stock = stockInicial.toIntOrNull()
-                    if (stock == null) {
-                        mensajeError = "El stock inicial debe ser un número válido"
-                        return@BotonesFormulario
-                    }
-
-                    val minimo = stockMinimo.toIntOrNull()
-                    if (minimo == null) {
-                        mensajeError = "El stock mínimo debe ser un número válido"
-                        return@BotonesFormulario
-                    }
-
-                    val costo = costoUnitario.toDoubleOrNull()
-                    if (costo == null) {
-                        mensajeError = "El costo unitario debe ser un número válido"
-                        return@BotonesFormulario
-                    }
-
-                    val maximo = stockMaximo.toIntOrNull() ?: 0
-
-                    val estadoCalculado = when {
-                        stock <= 0 -> "Agotado"
-                        stock <= minimo -> "Bajo Stock"
-                        else -> "En Stock"
-                    }
-
-                    val rutaImagenInterna = guardarImagenProductoEnInterno(
-                        context = context,
-                        imagenUri = imagenUri
-                    )
-
-                    val producto = ProductoEntity(
-                        nombre = nombre.trim(),
-                        categoria = categoria,
-                        codigo = codigoGenerado,
-                        ubicacion = ubicacion.trim(),
-
-                        stock = stock,
-                        unidad = unidad,
-                        stockMinimo = minimo,
-                        stockMaximo = maximo,
-
-                        estado = estadoCalculado,
-
-                        precioCompra = costo,
-                        precioVenta = 0.0,
-
-                        descripcion = descripcion.trim(),
-                        proveedor = proveedor.trim(),
-                        notas = notas.trim(),
-
-                        imagenUri = rutaImagenInterna,
-
-                        permitirStockNegativo = permitirStockNegativo,
-                        activo = productoActivo,
-
-                        fechaRegistro = "18/06/2026"
-                    )
-
-                    productoViewModel.insertarProductoConCodigo(producto) { productoIdGenerado ->
-
-                        val movimientoInicial = MovimientoInventarioEntity(
-                            productoId = productoIdGenerado.toInt(),
-                            clienteId = null,
-                            cotizacionId = null,
-                            tipo = "Registro inicial",
-                            cantidad = stock,
-                            stockAnterior = 0,
-                            stockNuevo = stock,
-                            unidad = unidad,
-                            fecha = "18/06/2026",
-                            hora = "00:00",
-                            usuario = "Admin",
-                            referencia = "REG-INICIAL",
-                            observaciones = "Registro inicial del producto"
-                        )
-
-                        movimientoViewModel.insertarMovimiento(movimientoInicial)
-
-                        navController.popBackStack()
-                    }
-                }
+@Composable
+fun ResumenNuevoProducto(
+    categoria: String,
+    codigo: String,
+    stock: String,
+    unidad: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = ArcPrimary
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Vista previa del registro",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                DatoResumenProducto(
+                    titulo = "Categoría",
+                    valor = categoria.ifBlank { "Pendiente" },
+                    modifier = Modifier.weight(1f)
+                )
+
+                DatoResumenProducto(
+                    titulo = "Código",
+                    valor = codigo.ifBlank { "Sin generar" },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            DatoResumenProducto(
+                titulo = "Stock inicial",
+                valor = if (stock.isBlank()) "Pendiente" else "$stock ${unidad.ifBlank { "" }}",
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun DatoResumenProducto(
+    titulo: String,
+    valor: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = Color.White.copy(alpha = 0.14f),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+        ) {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.80f)
+            )
+
+            Text(
+                text = valor,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                maxLines = 1
+            )
         }
     }
 }
@@ -316,43 +477,64 @@ fun NuevoProductoScreen(
 fun FormularioCard(
     titulo: String,
     icono: ImageVector,
+    descripcion: String? = null,
     contenido: @Composable () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = ArcSurface
         )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = icono,
-                    contentDescription = null,
-                    modifier = Modifier.size(22.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icono,
+                        contentDescription = null,
+                        tint = ArcPrimary,
+                        modifier = Modifier.size(21.dp)
+                    )
+                }
 
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                Text(
-                    text = titulo,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = titulo,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = ArcTextPrimary
+                    )
+
+                    if (!descripcion.isNullOrBlank()) {
+                        Text(
+                            text = descripcion,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ArcTextSecondary
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            Divider()
+            HorizontalDivider(color = ArcBorder)
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             contenido()
         }
@@ -384,100 +566,99 @@ fun SeccionInformacionGeneral(
 
     FormularioCard(
         titulo = "Información general",
-        icono = Icons.Default.Info
+        icono = Icons.Default.Info,
+        descripcion = "Datos principales del producto"
     ) {
-        BoxWithConstraints {
-            val esPantallaChica = maxWidth < 600.dp
-
-            if (esPantallaChica) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .background(
-                                color = Color(0xFFF2F2F2),
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        SelectorImagenProductoNuevo(
-                            imagenUri = imagenUri,
-                            onSeleccionarImagen = {
-                                seleccionarImagenLauncher.launch("image/*")
-                            }
-                        )
-                    }
-
-                    OutlinedTextField(
-                        value = nombre,
-                        onValueChange = onNombreChange,
-                        label = { Text("Nombre del producto *") },
-                        placeholder = { Text("Ej. PTR 2 x2 Cal. 14") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    MenuDesplegable(
-                        label = "Categoría *",
-                        placeholder = "Seleccionar categoría",
-                        opciones = listOf("Materiales", "Herramientas", "Consumibles", "Seguridad","Equipos", "Otros"),
-                        valorSeleccionado = categoria,
-                        onSeleccionar = onCategoriaChange,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedTextField(
-                        value = codigo,
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
-                        label = { Text("Código automático") },
-                        placeholder = { Text("Selecciona una categoría") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    MenuDesplegable(
-                        label = "Unidad de medida *",
-                        placeholder = "Seleccionar unidad",
-                        opciones = listOf("Piezas", "Metros", "Kg", "Cajas", "Pares", "Rollos", "Cilindros", "Hojas", "Litros", "Otros"),
-                        valorSeleccionado = unidad,
-                        onSeleccionar = onUnidadChange,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-
-                    OutlinedTextField(
-                        value = ubicacion,
-                        onValueChange = onUbicacionChange,
-                        label = { Text("Ubicación *") },
-                        placeholder = { Text("Ej. Almacén A") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = descripcion,
-                        onValueChange = {
-                            if (it.length <= 200) onDescripcionChange(it)
-                        },
-                        label = { Text("Descripción") },
-                        placeholder = {
-                            Text("Describe el producto, características, usos, etc.")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        supportingText = {
-                            Text("${descripcion.length}/200")
-                        }
-                    )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            SelectorImagenProductoNuevo(
+                imagenUri = imagenUri,
+                onSeleccionarImagen = {
+                    seleccionarImagenLauncher.launch("image/*")
                 }
-            }
+            )
+
+            CampoTextoProducto(
+                valor = nombre,
+                onValorChange = onNombreChange,
+                titulo = "Nombre del producto",
+                placeholder = "Ej. PTR 2 x 2 Cal. 14",
+                requerido = true,
+                icono = Icons.Default.Inventory2
+            )
+
+            MenuDesplegable(
+                label = "Categoría",
+                placeholder = "Seleccionar categoría",
+                opciones = listOf(
+                    "Materiales",
+                    "Herramientas",
+                    "Consumibles",
+                    "Seguridad",
+                    "Equipos",
+                    "Otros"
+                ),
+                valorSeleccionado = categoria,
+                onSeleccionar = onCategoriaChange,
+                requerido = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CampoTextoProducto(
+                valor = codigo,
+                onValorChange = onCodigoChange,
+                titulo = "Código automático",
+                placeholder = "Selecciona una categoría",
+                requerido = true,
+                readOnly = true,
+                icono = Icons.Default.QrCode
+            )
+
+            MenuDesplegable(
+                label = "Unidad de medida",
+                placeholder = "Seleccionar unidad",
+                opciones = listOf(
+                    "Piezas",
+                    "Metros",
+                    "Kg",
+                    "Cajas",
+                    "Pares",
+                    "Rollos",
+                    "Cilindros",
+                    "Hojas",
+                    "Litros",
+                    "Otros"
+                ),
+                valorSeleccionado = unidad,
+                onSeleccionar = onUnidadChange,
+                requerido = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CampoTextoProducto(
+                valor = ubicacion,
+                onValorChange = onUbicacionChange,
+                titulo = "Ubicación",
+                placeholder = "Ej. Almacén A",
+                requerido = true,
+                icono = Icons.Default.LocationOn
+            )
+
+            CampoTextoProducto(
+                valor = descripcion,
+                onValorChange = {
+                    if (it.length <= 200) onDescripcionChange(it)
+                },
+                titulo = "Descripción",
+                placeholder = "Características, medidas, uso o detalles del producto",
+                requerido = false,
+                icono = Icons.Default.Description,
+                maxLines = 4,
+                minHeight = 110.dp,
+                limite = 200
+            )
         }
     }
 }
@@ -489,53 +670,105 @@ fun SeccionInventario(
     stockMinimo: String,
     onStockMinimoChange: (String) -> Unit,
     stockMaximo: String,
-    onStockMaximoChange: (String) -> Unit,
-    estado: String,
-    onEstadoChange: (String) -> Unit
+    onStockMaximoChange: (String) -> Unit
 ) {
+    val stock = stockInicial.toIntOrNull() ?: 0
+    val minimo = stockMinimo.toIntOrNull() ?: 0
+
+    val estadoCalculado = when {
+        stockInicial.isBlank() || stockMinimo.isBlank() -> "Pendiente"
+        stock <= 0 -> "Agotado"
+        stock <= minimo -> "Bajo Stock"
+        else -> "En Stock"
+    }
+
+    val colorEstado = when (estadoCalculado) {
+        "En Stock" -> ArcSuccess
+        "Bajo Stock" -> ArcWarning
+        "Agotado" -> ArcError
+        else -> ArcTextSecondary
+    }
+
     FormularioCard(
         titulo = "Inventario",
-        icono = Icons.Default.Inventory2
+        icono = Icons.Default.Warehouse,
+        descripcion = "Cantidad inicial y niveles de control"
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            OutlinedTextField(
-                value = stockInicial,
-                onValueChange = onStockInicialChange,
-                label = { Text("Stock inicial *") },
-                placeholder = { Text("Ej. 10") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            CampoTextoProducto(
+                valor = stockInicial,
+                onValorChange = onStockInicialChange,
+                titulo = "Stock inicial",
+                placeholder = "Ej. 10",
+                requerido = true,
+                icono = Icons.Default.AddBox,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-            OutlinedTextField(
-                value = stockMinimo,
-                onValueChange = onStockMinimoChange,
-                label = { Text("Stock mínimo *") },
-                placeholder = { Text("Ej. 5") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CampoTextoProducto(
+                    valor = stockMinimo,
+                    onValorChange = onStockMinimoChange,
+                    titulo = "Mínimo",
+                    placeholder = "Ej. 5",
+                    requerido = true,
+                    icono = Icons.Default.Warning,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
 
-            OutlinedTextField(
-                value = stockMaximo,
-                onValueChange = onStockMaximoChange,
-                label = { Text("Stock máximo") },
-                placeholder = { Text("Ej. 100") },
+                CampoTextoProducto(
+                    valor = stockMaximo,
+                    onValorChange = onStockMaximoChange,
+                    titulo = "Máximo",
+                    placeholder = "Ej. 100",
+                    requerido = false,
+                    icono = Icons.Default.Inventory,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+                color = colorEstado.copy(alpha = 0.10f),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoGraph,
+                        contentDescription = null,
+                        tint = colorEstado,
+                        modifier = Modifier.size(22.dp)
+                    )
 
-            MenuDesplegable(
-                label = "Estado inicial *",
-                placeholder = "Estado",
-                opciones = listOf("En Stock", "Bajo Stock", "Agotado"),
-                valorSeleccionado = estado,
-                onSeleccionar = onEstadoChange,
-                modifier = Modifier.fillMaxWidth()
-            )
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column {
+                        Text(
+                            text = "Estado calculado",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = ArcTextSecondary
+                        )
+
+                        Text(
+                            text = estadoCalculado,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = colorEstado
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -549,34 +782,71 @@ fun SeccionCostos(
     val stock = stockInicial.toIntOrNull() ?: 0
     val costo = costoUnitario.toDoubleOrNull() ?: 0.0
     val costoTotal = stock * costo
+    val formato = DecimalFormat("#,##0.00")
 
     FormularioCard(
         titulo = "Costos",
-        icono = Icons.Default.AttachMoney
+        icono = Icons.Default.AttachMoney,
+        descripcion = "Costo inicial del inventario registrado"
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            OutlinedTextField(
-                value = costoUnitario,
-                onValueChange = onCostoUnitarioChange,
-                label = { Text("Costo unitario *") },
-                placeholder = { Text("0.00") },
-                leadingIcon = { Text("$") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+            CampoTextoProducto(
+                valor = costoUnitario,
+                onValorChange = onCostoUnitarioChange,
+                titulo = "Costo unitario",
+                placeholder = "0.00",
+                requerido = true,
+                icono = Icons.Default.Payments,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
 
-            OutlinedTextField(
-                value = costoTotal.toString(),
-                onValueChange = {},
-                label = { Text("Costo total inicial") },
-                leadingIcon = { Text("$") },
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = false,
-                singleLine = true
-            )
+                color = Color(0xFFF1F5F9),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, ArcBorder)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Calculate,
+                            contentDescription = null,
+                            tint = ArcPrimary,
+                            modifier = Modifier.size(21.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Costo total inicial",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = ArcTextSecondary
+                        )
+
+                        Text(
+                            text = "$${formato.format(costoTotal)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = ArcTextPrimary
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -590,126 +860,135 @@ fun SeccionInformacionAdicional(
 ) {
     FormularioCard(
         titulo = "Información adicional",
-        icono = Icons.Default.LocalOffer
+        icono = Icons.Default.LocalOffer,
+        descripcion = "Datos opcionales para control interno"
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            OutlinedTextField(
-                value = proveedor,
-                onValueChange = {
+            CampoTextoProducto(
+                valor = proveedor,
+                onValorChange = {
                     if (it.length <= 80) onProveedorChange(it)
                 },
-                label = { Text("Proveedor") },
-                placeholder = { Text("Ej. Aceros del Norte") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                supportingText = {
-                    Text("${proveedor.length}/80")
-                }
+                titulo = "Proveedor",
+                placeholder = "Ej. Aceros del Norte",
+                requerido = false,
+                icono = Icons.Default.Store,
+                limite = 80
             )
 
-            OutlinedTextField(
-                value = notas,
-                onValueChange = {
+            CampoTextoProducto(
+                valor = notas,
+                onValorChange = {
                     if (it.length <= 150) onNotasChange(it)
                 },
-                label = { Text("Notas") },
-                placeholder = { Text("Notas adicionales opcional") },
-                modifier = Modifier.fillMaxWidth(),
-                supportingText = {
-                    Text("${notas.length}/150")
+                titulo = "Notas",
+                placeholder = "Notas adicionales del producto",
+                requerido = false,
+                icono = Icons.Default.Notes,
+                maxLines = 4,
+                minHeight = 100.dp,
+                limite = 150
+            )
+        }
+    }
+}
+
+@Composable
+fun CampoTextoProducto(
+    valor: String,
+    onValorChange: (String) -> Unit,
+    titulo: String,
+    placeholder: String,
+    requerido: Boolean,
+    modifier: Modifier = Modifier,
+    icono: ImageVector? = null,
+    readOnly: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    maxLines: Int = 1,
+    minHeight: androidx.compose.ui.unit.Dp = 56.dp,
+    limite: Int? = null
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Row {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = ArcTextPrimary
+            )
+
+            if (requerido) {
+                Text(
+                    text = " *",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ArcError
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        OutlinedTextField(
+            value = valor,
+            onValueChange = onValorChange,
+            readOnly = readOnly,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = minHeight),
+            placeholder = {
+                Text(
+                    text = placeholder,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ArcTextSecondary
+                )
+            },
+            leadingIcon = if (icono != null) {
+                {
+                    Icon(
+                        imageVector = icono,
+                        contentDescription = null,
+                        tint = ArcTextSecondary
+                    )
                 }
+            } else null,
+            trailingIcon = if (readOnly) {
+                {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = ArcTextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            } else null,
+            singleLine = maxLines == 1,
+            maxLines = maxLines,
+            keyboardOptions = keyboardOptions,
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = ArcPrimary,
+                unfocusedBorderColor = ArcBorder,
+                focusedContainerColor = ArcSurface,
+                unfocusedContainerColor = ArcSurface,
+                cursorColor = ArcPrimary
             )
-        }
-    }
-}
-/*
-@Composable
-fun SeccionOpciones(
-    permitirStockNegativo: Boolean,
-    onPermitirStockNegativoChange: (Boolean) -> Unit,
-    productoActivo: Boolean,
-    onProductoActivoChange: (Boolean) -> Unit
-) {
-    FormularioCard(
-        titulo = "Opciones",
-        icono = Icons.Default.Settings
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = permitirStockNegativo,
-                onCheckedChange = onPermitirStockNegativoChange
+        )
+
+        if (limite != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "${valor.length}/$limite",
+                style = MaterialTheme.typography.labelSmall,
+                color = ArcTextSecondary,
+                modifier = Modifier.align(Alignment.End)
             )
-
-            Column {
-                Text("Permitir stock negativo")
-                Text(
-                    text = "Permite que el stock actual pueda ser menor a cero.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-            }
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = productoActivo,
-                onCheckedChange = onProductoActivoChange
-            )
-
-            Column {
-                Text("Producto activo")
-                Text(
-                    text = "El producto estará disponible en el inventario.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-            }
-        }
-    }
-}
-
-*/
-
-@Composable
-fun BotonesFormulario(
-    onCancelar: () -> Unit,
-    onGuardar: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-
-        OutlinedButton(
-            onClick = onCancelar,
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-        ) {
-            Text("Cancelar")
-        }
-
-        Button(
-            onClick = onGuardar,
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Save,
-                contentDescription = null
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text("Guardar Producto")
         }
     }
 }
@@ -722,49 +1001,101 @@ fun MenuDesplegable(
     opciones: List<String>,
     valorSeleccionado: String,
     onSeleccionar: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    requerido: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
+    val rotacionFlecha by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        label = "rotacionFlechaDropdown"
+    )
+
+    Column(
         modifier = modifier
     ) {
+        Row {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = ArcTextPrimary
+            )
 
-        OutlinedTextField(
-            value = valorSeleccionado,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            placeholder = { Text(placeholder) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
+            if (requerido) {
+                Text(
+                    text = " *",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ArcError
                 )
-            },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-        )
+            }
+        }
 
-        ExposedDropdownMenu(
+        Spacer(modifier = Modifier.height(6.dp))
+
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onExpandedChange = {
+                expanded = !expanded
+            }
         ) {
-            opciones.forEach { opcion ->
-                DropdownMenuItem(
-                    text = { Text(opcion) },
-                    onClick = {
-                        onSeleccionar(opcion)
-                        expanded = false
-                    }
+            OutlinedTextField(
+                value = valorSeleccionado,
+                onValueChange = {},
+                readOnly = true,
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ArcTextSecondary
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = ArcTextSecondary,
+                        modifier = Modifier.rotate(rotacionFlecha)
+                    )
+                },
+                modifier = Modifier
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = ArcPrimary,
+                    unfocusedBorderColor = ArcBorder,
+                    focusedContainerColor = ArcSurface,
+                    unfocusedContainerColor = ArcSurface,
+                    cursorColor = ArcPrimary
                 )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                }
+            ) {
+                opciones.forEach { opcion ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = opcion,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        onClick = {
+                            onSeleccionar(opcion)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 
 @Composable
 fun SelectorImagenProductoNuevo(
@@ -774,10 +1105,13 @@ fun SelectorImagenProductoNuevo(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .background(
-                color = Color(0xFFF2F2F2),
-                shape = RoundedCornerShape(10.dp)
+            .height(170.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFFF1F5F9))
+            .border(
+                width = 1.dp,
+                color = ArcBorder,
+                shape = RoundedCornerShape(18.dp)
             )
             .clickable {
                 onSeleccionarImagen()
@@ -791,28 +1125,160 @@ fun SelectorImagenProductoNuevo(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(12.dp),
+                color = ArcPrimary,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text(
+                        text = "Cambiar",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                }
+            }
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Default.Inventory2,
-                    contentDescription = null,
-                    modifier = Modifier.size(52.dp),
-                    tint = Color.Gray
-                )
+                Box(
+                    modifier = Modifier
+                        .size(58.dp)
+                        .background(ArcPrimaryLight, RoundedCornerShape(18.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AddPhotoAlternate,
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp),
+                        tint = ArcPrimary
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "Cambiar foto del producto",
-                    fontWeight = FontWeight.Medium
+                    text = "Agregar foto del producto",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ArcTextPrimary
                 )
 
                 Text(
-                    text = "JPG, PNG",
+                    text = "JPG o PNG",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = ArcTextSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MensajeErrorProducto(
+    mensaje: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = ArcErrorLight
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.ErrorOutline,
+                contentDescription = null,
+                tint = ArcError
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Text(
+                text = mensaje,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = ArcError
+            )
+        }
+    }
+}
+
+@Composable
+fun BotonesFormulario(
+    onCancelar: () -> Unit,
+    onGuardar: () -> Unit
+) {
+    Surface(
+        color = ArcSurface,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onCancelar,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, ArcBorder),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = ArcTextPrimary
+                )
+            ) {
+                Text(
+                    text = "Cancelar",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Button(
+                onClick = onGuardar,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(52.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ArcPrimary,
+                    contentColor = Color.White
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Save,
+                    contentDescription = null,
+                    modifier = Modifier.size(19.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Guardar",
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

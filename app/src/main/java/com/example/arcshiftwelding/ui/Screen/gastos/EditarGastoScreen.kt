@@ -64,20 +64,14 @@ fun EditarGastoScreen(
         "Cheque",
         "Crédito"
     )
+    val proyectosDb by viewModel.proyectos.collectAsState(initial = emptyList())
 
-    val formasPago = listOf(
-        "Contado",
-        "Crédito",
-        "Parcialidades"
-    )
+    val opcionesProyectos = remember(proyectosDb) {
+        listOf("Sin proyecto") + proyectosDb.map { proyecto ->
+            proyecto.nombre
+        }
+    }
 
-    val proyectos = listOf(
-        "Estructura Nave Industrial",
-        "Portón Metálico",
-        "Reparación de maquinaria",
-        "Barandal residencial",
-        "Sin proyecto"
-    )
 
     val clientesDb by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val cotizacionesDb by viewModel.cotizaciones.collectAsState(initial = emptyList())
@@ -428,9 +422,15 @@ fun EditarGastoScreen(
             ) {
                 CampoSelectorEditar(
                     label = "Proyecto",
-                    value = proyecto,
-                    opciones = proyectos,
-                    onValueChange = { proyecto = it },
+                    value = proyecto.ifBlank { "Sin proyecto" },
+                    opciones = opcionesProyectos,
+                    onValueChange = { nuevoProyecto ->
+                        proyecto = if (nuevoProyecto == "Sin proyecto") {
+                            ""
+                        } else {
+                            nuevoProyecto
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -510,7 +510,7 @@ fun EditarGastoScreen(
                                 correoProveedor = correoProveedor.ifBlank { null },
                                 rfcProveedor = rfcProveedor.ifBlank { null },
                                 observaciones = observaciones.ifBlank { null },
-                                proyecto = proyecto.ifBlank { null },
+                                proyecto = proyecto.takeIf { it.isNotBlank() && it != "Sin proyecto" },
                                 clienteId = clienteSeleccionadoId,
                                 cotizacionId = cotizacionSeleccionadaId
                             )
