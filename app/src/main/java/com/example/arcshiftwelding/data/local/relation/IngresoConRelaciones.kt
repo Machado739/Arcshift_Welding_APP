@@ -5,6 +5,7 @@ import androidx.room.Relation
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 
 data class IngresoConRelaciones(
     @Embedded
@@ -20,5 +21,11 @@ data class IngresoConRelaciones(
         parentColumn = "cotizacionId",
         entityColumn = "id"
     )
-    val cotizacion: CotizacionEntity?
+    val cotizacion: CotizacionEntity?,
+
+    @Relation(
+        parentColumn = "proyectoId",
+        entityColumn = "id"
+    )
+    val proyecto: ProyectoEntity?
 )

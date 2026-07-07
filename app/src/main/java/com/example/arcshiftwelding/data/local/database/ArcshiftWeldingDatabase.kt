@@ -11,6 +11,7 @@ import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.GastoDao
 import com.example.arcshiftwelding.data.local.dao.IngresoDao
 import com.example.arcshiftwelding.data.local.dao.MovimientoInventarioDao
+import com.example.arcshiftwelding.data.local.dao.PagoProgramadoDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoEmpleadoDao
@@ -24,6 +25,7 @@ import com.example.arcshiftwelding.data.local.entity.EmpresaEntity
 import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.IngresoEntity
 import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
+import com.example.arcshiftwelding.data.local.entity.PagoProgramadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
@@ -46,10 +48,11 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         ProyectoEntity::class,
         UsuarioEntity::class,
         ProyectoEmpleadoEntity::class,
-        ProyectoMaterialEntity::class
+        ProyectoMaterialEntity::class,
+        PagoProgramadoEntity::class
 
                ],
-    version = 16,
+    version = 19,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -65,6 +68,7 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
     abstract fun proyectoEmpleadoDao(): ProyectoEmpleadoDao
     abstract fun proyectoMaterialDao(): ProyectoMaterialDao
     abstract fun proyectoDao(): ProyectoDao
+    abstract fun pagoProgramadoDao(): PagoProgramadoDao
 
     companion object {
         @Volatile

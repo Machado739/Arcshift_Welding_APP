@@ -19,11 +19,18 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["cotizacionId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = ProyectoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["proyectoId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["clienteId"]),
-        Index(value = ["cotizacionId"])
+        Index(value = ["cotizacionId"]),
+        Index(value = ["proyectoId"])
     ]
 )
 data class IngresoEntity(
@@ -33,8 +40,11 @@ data class IngresoEntity(
     val concepto: String,
     val clienteId: Int?,
     val cotizacionId: Int?,
+    val proyectoId: Int? = null,
     val trabajo: String,
     val folio: String,
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = "",
     val fecha: String,
 
     val subtotal: Double,

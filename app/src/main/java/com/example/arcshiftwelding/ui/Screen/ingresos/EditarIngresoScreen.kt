@@ -90,20 +90,19 @@ fun EditarIngresoScreen(
                 onChange = viewModel::actualizarFormulario
             )
 
-            SeccionIngresoInformacionFinanciera(
+            SeccionIngresoInformacionFinancieraNueva(
                 form = form,
                 onChange = viewModel::actualizarFormulario
             )
 
-            SeccionIngresoComprobante(
+            SeccionIngresoComprobanteNuevo(
                 form = form,
                 onChange = viewModel::actualizarFormulario
             )
 
-            SeccionIngresoRelacionado(
+            SeccionIngresoRelacionadoNuevo(
                 form = form,
-                cotizaciones = cotizacionesFiltradas,
-                proyectos = proyectos,
+                clientes = clientes,
                 onChange = viewModel::actualizarFormulario
             )
 

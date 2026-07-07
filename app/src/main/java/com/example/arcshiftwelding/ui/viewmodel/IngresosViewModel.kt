@@ -44,6 +44,7 @@ data class IngresoUI(
     val observaciones: String,
     val cotizacion: String,
     val cotizacionId: Int?,
+    val proyectoId: Int?,
     val ordenTrabajo: String,
     val proyecto: String,
     val totalNumero: Double,
@@ -56,21 +57,20 @@ data class IngresoFormState(
     val concepto: String = "",
     val clienteId: Int? = null,
     val cotizacionId: Int? = null,
-
     val trabajo: String = "",
     val folio: String = "",
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = "",
     val fecha: String = fechaActual(),
-
     val subtotal: String = "",
     val ivaPorcentaje: String = "16",
     val iva: String = "",
     val anticipo: String = "",
-
     val metodoPago: String = "",
-    val formaPago: String = "Contado",
-
+    val formaPago: String = "Pago",
     val observaciones: String = "",
     val ordenTrabajo: String = "",
+    val proyectoId: Int? = null,
     val proyecto: String = ""
 )
 class IngresosViewModel(
@@ -134,6 +134,10 @@ class IngresosViewModel(
     fun guardarIngreso(onGuardado: () -> Unit) {
         val form = _formState.value
 
+        if (form.trabajo.isBlank()) {
+            return
+        }
+
         if (form.concepto.isBlank()) {
             return
         }
@@ -149,6 +153,14 @@ class IngresosViewModel(
         val form = _formState.value
 
         if (form.id == 0 || form.concepto.isBlank()) {
+            return
+        }
+
+        if (form.trabajo.isBlank()) {
+            return
+        }
+
+        if (form.concepto.isBlank()) {
             return
         }
 
@@ -196,9 +208,9 @@ fun IngresoConRelaciones.toUi(): IngresoUI {
     val ingresoActual = ingreso
 
     val categoria = when {
-        ingresoActual.pendiente <= 0.0 -> "Pagados"
-        ingresoActual.anticipo > 0.0 -> "Anticipos"
-        else -> "Pendientes"
+        ingresoActual.formaPago == "Anticipo" -> "Anticipos"
+        ingresoActual.pendiente > 0.0 -> "Pendientes"
+        else -> "Pagados"
     }
 
     return IngresoUI(
@@ -221,8 +233,9 @@ fun IngresoConRelaciones.toUi(): IngresoUI {
         observaciones = ingresoActual.observaciones,
         cotizacion = cotizacion?.folio ?: "Sin cotización",
         cotizacionId = ingresoActual.cotizacionId,
+        proyectoId = ingresoActual.proyectoId,
         ordenTrabajo = ingresoActual.ordenTrabajo,
-        proyecto = ingresoActual.proyecto,
+        proyecto = proyecto?.nombre ?: ingresoActual.proyecto,
         totalNumero = ingresoActual.total,
         anticipoNumero = ingresoActual.anticipo,
         pendienteNumero = ingresoActual.pendiente
@@ -235,8 +248,11 @@ fun IngresoEntity.toForm(): IngresoFormState {
         concepto = concepto,
         clienteId = clienteId,
         cotizacionId = cotizacionId,
+        proyectoId = proyectoId,
         trabajo = trabajo,
         folio = folio,
+        comprobanteUri = comprobanteUri,
+        tipoComprobante = tipoComprobante,
         fecha = fecha,
         subtotal = subtotal.sinDecimalesSiAplica(),
         ivaPorcentaje = ivaPorcentaje.sinDecimalesSiAplica(),
@@ -261,16 +277,27 @@ fun IngresoFormState.toEntity(): IngresoEntity {
     }
 
     val totalNumero = subtotalNumero + ivaNumero
-    val anticipoNumero = anticipo.aDouble()
-    val pendienteNumero = totalNumero - anticipoNumero
+
+    val esAnticipo = formaPago == "Anticipo"
+
+    val anticipoNumero = if (esAnticipo) {
+        totalNumero
+    } else {
+        0.0
+    }
+
+    val pendienteNumero = 0.0
 
     return IngresoEntity(
         id = id,
         concepto = concepto.trim(),
         clienteId = clienteId,
-        cotizacionId = cotizacionId,
+        cotizacionId = null,
+        proyectoId = proyectoId,
         trabajo = trabajo.trim(),
         folio = folio.trim(),
+        comprobanteUri = comprobanteUri.trim(),
+        tipoComprobante = tipoComprobante.trim(),
         fecha = fecha.trim(),
         subtotal = subtotalNumero,
         ivaPorcentaje = porcentajeIva,

@@ -24,6 +24,15 @@ import java.util.Date
 import java.util.Locale
 import java.util.Calendar
 import java.util.TimeZone
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+
+data class PagoProgramadoForm(
+    val fecha: String = "",
+    val monto: String = "",
+    val observaciones: String = ""
+)
 
 @Composable
 fun NuevoIngresoScreen(
@@ -33,14 +42,7 @@ fun NuevoIngresoScreen(
     val form by viewModel.formState.collectAsState()
 
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
-    val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
     val proyectos by viewModel.proyectos.collectAsState(initial = emptyList())
-
-    val cotizacionesFiltradas = if (form.clienteId != null) {
-        cotizaciones.filter { it.clienteId == form.clienteId }
-    } else {
-        cotizaciones
-    }
 
 
 
@@ -93,26 +95,25 @@ fun NuevoIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            SeccionIngresoInformacionGeneral(
+            SeccionIngresoInformacionGeneralNueva(
+                form = form,
+                proyectos = proyectos,
+                onChange = viewModel::actualizarFormulario
+            )
+
+            SeccionIngresoInformacionFinancieraNueva(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
+
+            SeccionIngresoComprobanteNuevo(
+                form = form,
+                onChange = viewModel::actualizarFormulario
+            )
+
+            SeccionIngresoRelacionadoNuevo(
                 form = form,
                 clientes = clientes,
-                onChange = viewModel::actualizarFormulario
-            )
-
-            SeccionIngresoInformacionFinanciera(
-                form = form,
-                onChange = viewModel::actualizarFormulario
-            )
-
-            SeccionIngresoComprobante(
-                form = form,
-                onChange = viewModel::actualizarFormulario
-            )
-
-            SeccionIngresoRelacionado(
-                form = form,
-                cotizaciones = cotizacionesFiltradas,
-                proyectos = proyectos,
                 onChange = viewModel::actualizarFormulario
             )
 
@@ -129,14 +130,185 @@ fun NuevoIngresoScreen(
         }
     }
 }
+@Composable
+fun SeccionIngresoInformacionGeneralNueva(
+    form: IngresoFormState,
+    proyectos: List<ProyectoEntity>,
+    onChange: (IngresoFormState) -> Unit
+) {
+    TarjetaNuevoIngreso(
+        titulo = "Información general",
+        icono = Icons.Default.Info
+    ) {
+        CampoTrabajoIngreso(
+            trabajo = form.trabajo,
+            proyectos = proyectos,
+            onTrabajoChange = { nuevoTrabajo ->
+                onChange(
+                    form.copy(
+                        trabajo = nuevoTrabajo,
+                        proyecto = "",
+                        cotizacionId = null
+                    )
+                )
+            },
+            onProyectoSeleccionado = { proyecto ->
+                onChange(
+                    form.copy(
+                        proyectoId = proyecto.id,
+                        trabajo = proyecto.nombre,
+                        proyecto = proyecto.nombre,
+                        clienteId = proyecto.clienteId,
+                        cotizacionId = null
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Concepto / Descripción *",
+            valor = form.concepto,
+            placeholder = "Ej. Pago de avance, anticipo, liquidación del trabajo",
+            onValueChange = {
+                onChange(form.copy(concepto = it))
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(95.dp),
+            singleLine = false
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoFechaIngreso(
+            titulo = "Fecha *",
+            valor = form.fecha,
+            onFechaSeleccionada = {
+                onChange(form.copy(fecha = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampoTrabajoIngreso(
+    trabajo: String,
+    proyectos: List<ProyectoEntity>,
+    onTrabajoChange: (String) -> Unit,
+    onProyectoSeleccionado: (ProyectoEntity) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expandido by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = "Trabajo / Proyecto *",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.DarkGray,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        ExposedDropdownMenuBox(
+            expanded = expandido,
+            onExpandedChange = {
+                expandido = !expandido
+            }
+        ) {
+            OutlinedTextField(
+                value = trabajo,
+                onValueChange = onTrabajoChange,
+                placeholder = {
+                    Text(
+                        text = "Escribe el trabajo o selecciona un proyecto",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandido
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                textStyle = MaterialTheme.typography.bodySmall,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF2563EB),
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                ),
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expandido,
+                onDismissRequest = {
+                    expandido = false
+                }
+            ) {
+                if (proyectos.isEmpty()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "No hay proyectos registrados",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        },
+                        onClick = { },
+                        enabled = false
+                    )
+                } else {
+                    proyectos.forEach { proyecto ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(
+                                        text = proyecto.nombre,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Text(
+                                        text = proyecto.estado,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.Gray
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onProyectoSeleccionado(proyecto)
+                                expandido = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun SeccionIngresoInformacionFinanciera(
+fun SeccionIngresoInformacionFinancieraNueva(
     form: IngresoFormState,
     onChange: (IngresoFormState) -> Unit
 ) {
     val opcionesIva = listOf("0", "8", "16")
+
+    val tiposIngreso = listOf(
+        "Pago",
+        "Anticipo"
+    )
 
     val metodosPago = listOf(
         "Efectivo",
@@ -145,23 +317,33 @@ fun SeccionIngresoInformacionFinanciera(
         "Cheque",
         "Crédito"
     )
-    /*
-        val formasPago = listOf(
-            "Contado",
-            "Crédito",
-            "Anticipo",
-            "Parcialidad"
-        )
-    */
+
     val subtotalNumero = form.subtotal.aDouble()
     val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
     val totalNumero = subtotalNumero + ivaNumero
-    val pendienteNumero = totalNumero - form.anticipo.aDouble()
 
     TarjetaNuevoIngreso(
         titulo = "Información financiera",
         icono = Icons.Default.AttachMoney
     ) {
+        CampoDropdownIngreso(
+            titulo = "Tipo de ingreso *",
+            valor = form.formaPago,
+            opciones = tiposIngreso,
+            placeholder = "Tipo",
+            onValueChange = { tipo ->
+                onChange(
+                    form.copy(
+                        formaPago = tipo,
+                        anticipo = ""
+                    )
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -200,28 +382,7 @@ fun SeccionIngresoInformacionFinanciera(
                 },
                 modifier = Modifier.weight(1f)
             )
-
-            CampoTextoIngreso(
-                titulo = "IVA",
-                valor = ivaNumero.formatoDinero(),
-                placeholder = "Auto",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.weight(1f)
-            )
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        CampoTextoIngreso(
-            titulo = "Anticipo / Pago recibido",
-            valor = form.anticipo,
-            placeholder = "$ 0.00",
-            onValueChange = {
-                onChange(form.copy(anticipo = it))
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -229,16 +390,28 @@ fun SeccionIngresoInformacionFinanciera(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F3E6)
+                containerColor = if (form.formaPago == "Anticipo") {
+                    Color(0xFFFFF7E6)
+                } else {
+                    Color(0xFFE3F3E6)
+                }
             )
         ) {
             Column(
                 modifier = Modifier.padding(12.dp)
             ) {
                 Text(
-                    text = "Total",
+                    text = if (form.formaPago == "Anticipo") {
+                        "Anticipo recibido"
+                    } else {
+                        "Pago recibido"
+                    },
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2E7D32),
+                    color = if (form.formaPago == "Anticipo") {
+                        Color(0xFF92400E)
+                    } else {
+                        Color(0xFF2E7D32)
+                    },
                     fontWeight = FontWeight.Bold
                 )
 
@@ -246,11 +419,15 @@ fun SeccionIngresoInformacionFinanciera(
                     text = totalNumero.formatoDinero(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
+                    color = if (form.formaPago == "Anticipo") {
+                        Color(0xFF92400E)
+                    } else {
+                        Color(0xFF2E7D32)
+                    }
                 )
 
                 Text(
-                    text = "Pendiente: ${pendienteNumero.formatoDinero()}",
+                    text = "IVA calculado: ${ivaNumero.formatoDinero()}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
@@ -259,58 +436,159 @@ fun SeccionIngresoInformacionFinanciera(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            CampoDropdownIngreso(
-                titulo = "Método de pago *",
-                valor = form.metodoPago,
-                opciones = metodosPago,
-                placeholder = "Método",
-                onValueChange = {
-                    onChange(form.copy(metodoPago = it))
-                },
-                modifier = Modifier.weight(1f)
-            )
-            /*
-                        CampoDropdownIngreso(
-                            titulo = "Forma de pago",
-                            valor = form.formaPago,
-                            opciones = formasPago,
-                            placeholder = "Forma",
-                            onValueChange = {
-                                onChange(form.copy(formaPago = it))
-                            },
-                            modifier = Modifier.weight(1f)
-                        )*/
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        CampoTextoIngreso(
-            titulo = "Referencia / Folio",
-            valor = form.folio,
-            placeholder = "Ej. FACT-001",
+        CampoDropdownIngreso(
+            titulo = "Método de pago *",
+            valor = form.metodoPago,
+            opciones = metodosPago,
+            placeholder = "Método",
             onValueChange = {
-                onChange(form.copy(folio = it))
+                onChange(form.copy(metodoPago = it))
             },
             modifier = Modifier.fillMaxWidth()
         )
     }
 }
-
 @Composable
-fun SeccionIngresoComprobante(
+fun SeccionIngresoComprobanteNuevo(
     form: IngresoFormState,
     onChange: (IngresoFormState) -> Unit
 ) {
+    val seleccionarArchivo = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val tipo = when {
+                uri.toString().contains(".pdf", ignoreCase = true) -> "PDF"
+                else -> "Imagen"
+            }
+
+            onChange(
+                form.copy(
+                    comprobanteUri = uri.toString(),
+                    tipoComprobante = tipo,
+                    folio = uri.lastPathSegment ?: "Comprobante"
+                )
+            )
+        }
+    }
+
     TarjetaNuevoIngreso(
-        titulo = "Comprobante / Evidencia",
+        titulo = "Comprobante",
         icono = Icons.Default.AttachFile
     ) {
+        if (form.comprobanteUri.isBlank()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        seleccionarArchivo.launch("application/pdf")
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(58.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PictureAsPdf,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text("PDF")
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        seleccionarArchivo.launch("image/*")
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(58.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text("Foto")
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFF8FAFC)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (form.tipoComprobante == "PDF") {
+                            Icons.Default.PictureAsPdf
+                        } else {
+                            Icons.Default.Image
+                        },
+                        contentDescription = null,
+                        tint = if (form.tipoComprobante == "PDF") {
+                            Color(0xFFDC2626)
+                        } else {
+                            Color(0xFF2563EB)
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = form.tipoComprobante.ifBlank { "Comprobante" },
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Text(
+                            text = form.folio.ifBlank { "Archivo seleccionado" },
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1
+                        )
+                    }
+
+                    TextButton(
+                        onClick = {
+                            onChange(
+                                form.copy(
+                                    comprobanteUri = "",
+                                    tipoComprobante = "",
+                                    folio = ""
+                                )
+                            )
+                        }
+                    ) {
+                        Text("Quitar")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         CampoTextoIngreso(
-            titulo = "Observaciones opcional",
+            titulo = "Observaciones",
             valor = form.observaciones,
             placeholder = "Agrega notas u observaciones opcionales",
             onValueChange = {
@@ -323,43 +601,53 @@ fun SeccionIngresoComprobante(
         )
     }
 }
-
 @Composable
-fun SeccionIngresoRelacionado(
+fun SeccionIngresoRelacionadoNuevo(
     form: IngresoFormState,
-    cotizaciones: List<CotizacionEntity>,
-    proyectos: List<ProyectoEntity>,
+    clientes: List<ClienteEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
     TarjetaNuevoIngreso(
-        titulo = "Relacionado con opcional",
+        titulo = "Relaciones",
         icono = Icons.Default.Link
     ) {
-        SelectorCotizacionIngreso(
-            cotizaciones = cotizaciones,
-            cotizacionSeleccionadaId = form.cotizacionId,
-            onCotizacionSeleccionada = { cotizacion ->
-                onChange(
-                    form.copy(
-                        cotizacionId = cotizacion?.id,
-                        clienteId = cotizacion?.clienteId ?: form.clienteId,
-                        folio = cotizacion?.folio ?: form.folio,
-                        trabajo = cotizacion?.descripcionTrabajo ?: form.trabajo
-                    )
+        if (form.proyecto.isNotBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFEFF6FF)
                 )
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp)
+                ) {
+                    Text(
+                        text = "Proyecto seleccionado",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
 
-        Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = form.proyecto,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2563EB)
+                    )
+                }
+            }
 
-        SelectorProyectoIngreso(
-            proyectos = proyectos,
-            proyectoSeleccionadoNombre = form.proyecto,
-            onProyectoSeleccionado = { proyecto ->
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        SelectorClienteIngreso(
+            clientes = clientes,
+            clienteSeleccionadoId = form.clienteId,
+            onClienteSeleccionado = { clienteId ->
                 onChange(
                     form.copy(
-                        proyecto = proyecto?.nombre ?: ""
+                        clienteId = clienteId,
+                        cotizacionId = null
                     )
                 )
             },
@@ -367,7 +655,6 @@ fun SeccionIngresoRelacionado(
         )
     }
 }
-
 @Composable
 fun SeccionIngresoInformacionGeneral(
     form: IngresoFormState,
