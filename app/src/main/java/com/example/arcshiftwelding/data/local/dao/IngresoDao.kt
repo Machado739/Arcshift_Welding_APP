@@ -47,4 +47,6 @@ interface IngresoDao {
     @Query("SELECT * FROM ingresos WHERE proyectoId = :proyectoId AND activo = 1 ORDER BY id DESC")
     fun obtenerIngresosPorProyecto(proyectoId: Int): Flow<List<IngresoEntity>>
 
+
+
 }

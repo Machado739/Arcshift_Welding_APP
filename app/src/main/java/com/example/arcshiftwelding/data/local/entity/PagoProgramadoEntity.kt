@@ -12,12 +12,18 @@ import androidx.room.PrimaryKey
             entity = ProyectoEntity::class,
             parentColumns = ["id"],
             childColumns = ["proyectoId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
             entity = ClienteEntity::class,
             parentColumns = ["id"],
             childColumns = ["clienteId"],
+            onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = IngresoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["ingresoAnticipoId"],
             onDelete = ForeignKey.SET_NULL
         ),
         ForeignKey(
@@ -30,6 +36,7 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["proyectoId"]),
         Index(value = ["clienteId"]),
+        Index(value = ["ingresoAnticipoId"]),
         Index(value = ["ingresoPagadoId"])
     ]
 )
@@ -37,16 +44,17 @@ data class PagoProgramadoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
-    val proyectoId: Int,
+    val proyectoId: Int?,
     val clienteId: Int?,
+
+    val ingresoAnticipoId: Int?,
+    val ingresoPagadoId: Int? = null,
 
     val fechaProgramada: String,
     val montoProgramado: Double,
 
     val estado: String = "Pendiente",
     val observaciones: String = "",
-
-    val ingresoPagadoId: Int? = null,
 
     val fechaRegistro: String = "",
     val activo: Boolean = true

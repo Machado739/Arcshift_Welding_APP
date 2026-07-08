@@ -107,7 +107,8 @@ fun AppNavigation() {
             ingresoDao = database.ingresoDao(),
             clienteDao = database.clienteDao(),
             cotizacionDao = database.cotizacionDao(),
-            proyectoDao = database.proyectoDao()
+            proyectoDao = database.proyectoDao(),
+            pagoProgramadoDao = database.pagoProgramadoDao()
         )
     )
 

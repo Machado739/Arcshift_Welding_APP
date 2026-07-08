@@ -51,6 +51,8 @@ data class IngresoEntity(
     val ivaPorcentaje: Double,
     val iva: Double,
     val total: Double,
+    val montoTotalProyecto: Double = 0.0,
+
     val anticipo: Double,
     val pendiente: Double,
 

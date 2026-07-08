@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +25,32 @@ fun EditarIngresoScreen(
     viewModel: IngresosViewModel
 ) {
     val form by viewModel.formState.collectAsState()
+
+    var pagosProgramados by remember {
+        mutableStateOf(emptyList<PagoProgramadoForm>())
+    }
+
+    var pagosCargados by remember {
+        mutableStateOf(false)
+    }
+
+    val pagosProgramadosDb by viewModel
+        .obtenerPagosProgramadosPorIngreso(form.id)
+        .collectAsState(initial = emptyList())
+
+
+    LaunchedEffect(pagosProgramadosDb, form.id) {
+        if (!pagosCargados && form.id != 0) {
+            pagosProgramados = pagosProgramadosDb
+            pagosCargados = true
+        }
+    }
+
+    LaunchedEffect(form.formaPago) {
+        if (form.formaPago != "Anticipo") {
+            pagosProgramados = emptyList()
+        }
+    }
 
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
@@ -90,10 +117,25 @@ fun EditarIngresoScreen(
                 onChange = viewModel::actualizarFormulario
             )
 
-            SeccionIngresoInformacionFinancieraNueva(
+            SeccionIngresoInformacionFinanciera(
                 form = form,
                 onChange = viewModel::actualizarFormulario
             )
+
+            if (form.formaPago == "Anticipo") {
+                val subtotalNumero = form.subtotal.aDouble()
+                val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
+                val totalRecibido = subtotalNumero + ivaNumero
+
+                SeccionPagosProgramadosIngreso(
+                    pagos = pagosProgramados,
+                    montoTotalProyecto = form.montoTotalProyecto.aDouble(),
+                    montoRecibido = totalRecibido,
+                    onPagosChange = {
+                        pagosProgramados = it
+                    }
+                )
+            }
 
             SeccionIngresoComprobanteNuevo(
                 form = form,
@@ -111,7 +153,9 @@ fun EditarIngresoScreen(
                     navController.popBackStack()
                 },
                 onActualizar = {
-                    viewModel.actualizarIngreso {
+                    viewModel.actualizarIngreso(
+                        pagosProgramados = pagosProgramados
+                    ) {
                         navController.popBackStack()
                     }
                 }

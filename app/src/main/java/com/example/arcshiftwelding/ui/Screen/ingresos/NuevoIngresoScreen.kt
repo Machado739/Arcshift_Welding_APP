@@ -27,12 +27,9 @@ import java.util.TimeZone
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import kotlin.collections.emptyList
+import kotlin.collections.toMutableList
 
-data class PagoProgramadoForm(
-    val fecha: String = "",
-    val monto: String = "",
-    val observaciones: String = ""
-)
 
 @Composable
 fun NuevoIngresoScreen(
@@ -41,8 +38,25 @@ fun NuevoIngresoScreen(
 ) {
     val form by viewModel.formState.collectAsState()
 
+    var pagosProgramados by remember {
+        mutableStateOf(emptyList<PagoProgramadoForm>())
+    }
+
+    var mensajeError by remember {
+        mutableStateOf("")
+    }
+
+    LaunchedEffect(form.formaPago) {
+        if (form.formaPago != "Anticipo") {
+            pagosProgramados = emptyList<PagoProgramadoForm>()
+        }
+
+        mensajeError = ""
+    }
+
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
     val proyectos by viewModel.proyectos.collectAsState(initial = emptyList())
+    val cotizaciones by viewModel.cotizaciones.collectAsState(initial = emptyList())
 
 
 
@@ -98,13 +112,29 @@ fun NuevoIngresoScreen(
             SeccionIngresoInformacionGeneralNueva(
                 form = form,
                 proyectos = proyectos,
+                cotizaciones = cotizaciones,
                 onChange = viewModel::actualizarFormulario
             )
 
-            SeccionIngresoInformacionFinancieraNueva(
+            SeccionIngresoInformacionFinanciera(
                 form = form,
                 onChange = viewModel::actualizarFormulario
             )
+
+            if (form.formaPago == "Anticipo") {
+                val subtotalNumero = form.subtotal.aDouble()
+                val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
+                val totalRecibido = subtotalNumero + ivaNumero
+
+                SeccionPagosProgramadosIngreso(
+                    pagos = pagosProgramados,
+                    montoTotalProyecto = form.montoTotalProyecto.aDouble(),
+                    montoRecibido = totalRecibido,
+                    onPagosChange = {
+                        pagosProgramados = it
+                    }
+                )
+            }
 
             SeccionIngresoComprobanteNuevo(
                 form = form,
@@ -117,12 +147,85 @@ fun NuevoIngresoScreen(
                 onChange = viewModel::actualizarFormulario
             )
 
+            if (mensajeError.isNotBlank()) {
+                Text(
+                    text = mensajeError,
+                    color = Color(0xFFDC2626),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             BotonesNuevoIngreso(
-                onCancelar = {
-                    navController.popBackStack()
-                },
+                onCancelar = { navController.popBackStack() },
                 onGuardar = {
-                    viewModel.guardarIngreso {
+                    mensajeError = ""
+
+                    val subtotalNumero = form.subtotal.aDouble()
+                    val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
+                    val totalRecibido = subtotalNumero + ivaNumero
+
+                    val montoTotalProyecto = form.montoTotalProyecto.aDouble()
+                    val saldoPendiente = (montoTotalProyecto - totalRecibido).coerceAtLeast(0.0)
+
+                    val pagosIncompletos = pagosProgramados.any { pago ->
+                        pago.fecha.isBlank() || pago.monto.aDouble() <= 0.0
+                    }
+
+                    val sumaPagosProgramados = pagosProgramados.sumOf { pago ->
+                        pago.monto.aDouble()
+                    }
+
+                    if (form.trabajo.isBlank()) {
+                        mensajeError = "Ingresa el trabajo o selecciona un proyecto"
+                        return@BotonesNuevoIngreso
+                    }
+
+                    if (form.concepto.isBlank()) {
+                        mensajeError = "Ingresa el concepto o descripción"
+                        return@BotonesNuevoIngreso
+                    }
+
+                    if (subtotalNumero <= 0.0) {
+                        mensajeError = "Ingresa un monto recibido válido"
+                        return@BotonesNuevoIngreso
+                    }
+
+                    if (form.metodoPago.isBlank()) {
+                        mensajeError = "Selecciona el método de pago"
+                        return@BotonesNuevoIngreso
+                    }
+
+                    if (form.formaPago == "Anticipo") {
+                        if (form.proyectoId == null) {
+                            mensajeError = "Para registrar un anticipo selecciona un proyecto"
+                            return@BotonesNuevoIngreso
+                        }
+
+                        if (montoTotalProyecto <= 0.0) {
+                            mensajeError = "Ingresa el monto total del proyecto"
+                            return@BotonesNuevoIngreso
+                        }
+
+                        if (montoTotalProyecto <= totalRecibido) {
+                            mensajeError = "El anticipo debe ser menor al monto total del proyecto"
+                            return@BotonesNuevoIngreso
+                        }
+
+                        if (pagosIncompletos) {
+                            mensajeError = "Completa la fecha y el monto de los pagos programados"
+                            return@BotonesNuevoIngreso
+                        }
+
+                        if (sumaPagosProgramados > saldoPendiente) {
+                            mensajeError = "Los pagos programados superan el saldo pendiente"
+                            return@BotonesNuevoIngreso
+                        }
+                    }
+
+                    viewModel.guardarIngreso(
+                        pagosProgramados = pagosProgramados
+                    ) {
                         navController.popBackStack()
                     }
                 }
@@ -134,6 +237,7 @@ fun NuevoIngresoScreen(
 fun SeccionIngresoInformacionGeneralNueva(
     form: IngresoFormState,
     proyectos: List<ProyectoEntity>,
+    cotizaciones: List<CotizacionEntity>,
     onChange: (IngresoFormState) -> Unit
 ) {
     TarjetaNuevoIngreso(
@@ -147,19 +251,45 @@ fun SeccionIngresoInformacionGeneralNueva(
                 onChange(
                     form.copy(
                         trabajo = nuevoTrabajo,
+                        proyectoId = null,
                         proyecto = "",
-                        cotizacionId = null
+                        clienteId = null,
+                        cotizacionId = null,
+                        montoTotalProyecto = ""
                     )
                 )
             },
             onProyectoSeleccionado = { proyecto ->
+                val cotizacionProyecto = cotizaciones.firstOrNull {
+                    it.id == proyecto.cotizacionId
+                }
+
+                val montoTotalProyecto = when {
+                    cotizacionProyecto != null -> cotizacionProyecto.total
+                    proyecto.presupuestoEstimado > 0.0 -> proyecto.presupuestoEstimado
+                    proyecto.costoTotal > 0.0 -> proyecto.costoTotal
+                    else -> 0.0
+                }
+
+                val ivaProyecto = if (
+                    cotizacionProyecto != null &&
+                    cotizacionProyecto.subtotal > 0.0
+                ) {
+                    (cotizacionProyecto.iva / cotizacionProyecto.subtotal) * 100.0
+                } else {
+                    form.ivaPorcentaje.aDouble().takeIf { it > 0.0 } ?: 16.0
+                }
+
                 onChange(
                     form.copy(
                         proyectoId = proyecto.id,
                         trabajo = proyecto.nombre,
                         proyecto = proyecto.nombre,
                         clienteId = proyecto.clienteId,
-                        cotizacionId = null
+                        cotizacionId = null,
+
+                        montoTotalProyecto = numeroIngresoTexto(montoTotalProyecto),
+                        ivaPorcentaje = numeroIngresoTexto(ivaProyecto)
                     )
                 )
             },
@@ -193,7 +323,13 @@ fun SeccionIngresoInformacionGeneralNueva(
         )
     }
 }
-
+fun numeroIngresoTexto(valor: Double): String {
+    return if (valor % 1.0 == 0.0) {
+        valor.toInt().toString()
+    } else {
+        "%.2f".format(Locale.US, valor)
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampoTrabajoIngreso(
@@ -299,7 +435,7 @@ fun CampoTrabajoIngreso(
 }
 
 @Composable
-fun SeccionIngresoInformacionFinancieraNueva(
+fun SeccionIngresoInformacionFinanciera(
     form: IngresoFormState,
     onChange: (IngresoFormState) -> Unit
 ) {
@@ -320,7 +456,19 @@ fun SeccionIngresoInformacionFinancieraNueva(
 
     val subtotalNumero = form.subtotal.aDouble()
     val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
-    val totalNumero = subtotalNumero + ivaNumero
+    val totalRecibido = subtotalNumero + ivaNumero
+
+    val montoTotalProyecto = if (form.formaPago == "Anticipo") {
+        form.montoTotalProyecto.aDouble()
+    } else {
+        totalRecibido
+    }
+
+    val saldoPendiente = if (form.formaPago == "Anticipo") {
+        (montoTotalProyecto - totalRecibido).coerceAtLeast(0.0)
+    } else {
+        0.0
+    }
 
     TarjetaNuevoIngreso(
         titulo = "Información financiera",
@@ -335,6 +483,7 @@ fun SeccionIngresoInformacionFinancieraNueva(
                 onChange(
                     form.copy(
                         formaPago = tipo,
+                        montoTotalProyecto = "",
                         anticipo = ""
                     )
                 )
@@ -344,12 +493,30 @@ fun SeccionIngresoInformacionFinancieraNueva(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        if (form.formaPago == "Anticipo") {
+            CampoTextoIngreso(
+                titulo = "Monto total del proyecto *",
+                valor = form.montoTotalProyecto,
+                placeholder = "$ 0.00",
+                onValueChange = {
+                    onChange(form.copy(montoTotalProyecto = it))
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             CampoTextoIngreso(
-                titulo = "Subtotal *",
+                titulo = if (form.formaPago == "Anticipo") {
+                    "Subtotal recibido *"
+                } else {
+                    "Subtotal *"
+                },
                 valor = form.subtotal,
                 placeholder = "$ 0.00",
                 onValueChange = { nuevoSubtotal ->
@@ -416,7 +583,7 @@ fun SeccionIngresoInformacionFinancieraNueva(
                 )
 
                 Text(
-                    text = totalNumero.formatoDinero(),
+                    text = totalRecibido.formatoDinero(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (form.formaPago == "Anticipo") {
@@ -431,6 +598,17 @@ fun SeccionIngresoInformacionFinancieraNueva(
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.DarkGray
                 )
+
+                if (form.formaPago == "Anticipo") {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Saldo pendiente: ${saldoPendiente.formatoDinero()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.DarkGray,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
@@ -446,8 +624,256 @@ fun SeccionIngresoInformacionFinancieraNueva(
             },
             modifier = Modifier.fillMaxWidth()
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        CampoTextoIngreso(
+            titulo = "Referencia / Folio",
+            valor = form.folio,
+            placeholder = "Ej. FACT-001, transferencia, recibo",
+            onValueChange = {
+                onChange(form.copy(folio = it))
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
+
+@Composable
+fun SeccionPagosProgramadosIngreso(
+    pagos: List<PagoProgramadoForm>,
+    montoTotalProyecto: Double,
+    montoRecibido: Double,
+    onPagosChange: (List<PagoProgramadoForm>) -> Unit
+) {
+    val sumaProgramada = pagos.sumOf {
+        it.monto.aDouble()
+    }
+
+    val saldoPendiente = (montoTotalProyecto - montoRecibido).coerceAtLeast(0.0)
+    val saldoSinProgramar = (saldoPendiente - sumaProgramada).coerceAtLeast(0.0)
+
+    TarjetaNuevoIngreso(
+        titulo = "Pagos programados",
+        icono = Icons.Default.DateRange
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFEFF6FF)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                FilaResumenPagoProgramado(
+                    titulo = "Monto total del proyecto",
+                    valor = montoTotalProyecto.formatoDinero()
+                )
+
+                FilaResumenPagoProgramado(
+                    titulo = "Anticipo recibido",
+                    valor = montoRecibido.formatoDinero()
+                )
+
+                FilaResumenPagoProgramado(
+                    titulo = "Saldo pendiente",
+                    valor = saldoPendiente.formatoDinero()
+                )
+
+                FilaResumenPagoProgramado(
+                    titulo = "Total programado",
+                    valor = sumaProgramada.formatoDinero()
+                )
+
+                FilaResumenPagoProgramado(
+                    titulo = "Falta por programar",
+                    valor = saldoSinProgramar.formatoDinero()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (pagos.isEmpty()) {
+            Text(
+                text = "No hay pagos programados.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        pagos.forEachIndexed { index, pago ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFF8FAFC)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Pago ${index + 1}",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    CampoFechaIngreso(
+                        titulo = "Fecha programada",
+                        valor = pago.fecha,
+                        onFechaSeleccionada = { nuevaFecha ->
+                            onPagosChange(
+                                pagos.toMutableList().also {
+                                    it[index] = pago.copy(fecha = nuevaFecha)
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    CampoTextoIngreso(
+                        titulo = "Monto",
+                        valor = pago.monto,
+                        placeholder = "$ 0.00",
+                        onValueChange = { nuevoMonto ->
+                            onPagosChange(
+                                pagos.toMutableList().also {
+                                    it[index] = pago.copy(monto = nuevoMonto)
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    val acumuladoHastaEstePago = pagos
+                        .take(index + 1)
+                        .sumOf { it.monto.aDouble() }
+
+                    val saldoDespuesDeEstePago = (
+                            montoTotalProyecto - montoRecibido - acumuladoHastaEstePago
+                            ).coerceAtLeast(0.0)
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            FilaResumenPagoProgramado(
+                                titulo = "Monto de este pago",
+                                valor = pago.monto.aDouble().formatoDinero()
+                            )
+
+                            FilaResumenPagoProgramado(
+                                titulo = "Pagos programados acumulados",
+                                valor = acumuladoHastaEstePago.formatoDinero()
+                            )
+
+                            FilaResumenPagoProgramado(
+                                titulo = "Saldo después de este pago",
+                                valor = saldoDespuesDeEstePago.formatoDinero()
+                            )
+                        }
+                    }
+
+                    CampoTextoIngreso(
+                        titulo = "Observaciones",
+                        valor = pago.observaciones,
+                        placeholder = "Opcional",
+                        onValueChange = { nuevasObservaciones ->
+                            onPagosChange(
+                                pagos.toMutableList().also {
+                                    it[index] = pago.copy(observaciones = nuevasObservaciones)
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedButton(
+                        onClick = {
+                            onPagosChange(
+                                pagos.toMutableList().also {
+                                    it.removeAt(index)
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text("Eliminar pago")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        TextButton(
+            onClick = {
+                onPagosChange(
+                    pagos + PagoProgramadoForm()
+                )
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.AddCircleOutline,
+                contentDescription = null,
+                tint = Color(0xFF16A34A)
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Text(
+                text = "Agregar pago programado",
+                color = Color(0xFF16A34A)
+            )
+        }
+    }
+}
+
+@Composable
+fun FilaResumenPagoProgramado(
+    titulo: String,
+    valor: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.DarkGray
+        )
+
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF2563EB)
+        )
+    }
+}
+
 @Composable
 fun SeccionIngresoComprobanteNuevo(
     form: IngresoFormState,
