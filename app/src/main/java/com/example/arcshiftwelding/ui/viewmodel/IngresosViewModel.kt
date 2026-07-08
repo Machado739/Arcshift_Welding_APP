@@ -72,6 +72,9 @@ data class IngresoUI(
     val formaPago: String,
     val categoria: String,
 
+    val comprobanteUri: String,
+    val tipoComprobante: String,
+
     val observaciones: String,
     val ordenTrabajo: String
 )
@@ -646,6 +649,38 @@ class IngresosViewModel(
         )
     }
 
+    fun IngresoEntity.toForm(): IngresoFormState {
+        return IngresoFormState(
+            id = id,
+            concepto = concepto,
+
+            clienteId = clienteId,
+            cotizacionId = cotizacionId,
+            proyectoId = proyectoId,
+
+            trabajo = trabajo,
+            folio = folio,
+
+            comprobanteUri = comprobanteUri,
+            tipoComprobante = tipoComprobante,
+
+            fecha = fecha,
+
+            subtotal = subtotal.sinDecimalesSiAplica(),
+            ivaPorcentaje = ivaPorcentaje.sinDecimalesSiAplica(),
+            iva = iva.sinDecimalesSiAplica(),
+
+            montoTotalProyecto = montoTotalProyecto.sinDecimalesSiAplica(),
+            anticipo = anticipo.sinDecimalesSiAplica(),
+
+            metodoPago = metodoPago,
+            formaPago = formaPago,
+
+            observaciones = observaciones,
+            ordenTrabajo = ordenTrabajo,
+            proyecto = proyecto
+        )
+    }
 }
 
 class IngresosViewModelFactory(
@@ -722,30 +757,41 @@ fun IngresoConRelaciones.toUi(): IngresoUI {
         formaPago = ingresoActual.formaPago,
         categoria = categoria,
 
+        comprobanteUri = ingresoActual.comprobanteUri,
+        tipoComprobante = ingresoActual.tipoComprobante,
+
         observaciones = ingresoActual.observaciones,
         ordenTrabajo = ingresoActual.ordenTrabajo
     )
 }
 
-fun IngresoEntity.toForm(): IngresoFormState {
+fun IngresoUI.toForm(): IngresoFormState {
     return IngresoFormState(
         id = id,
         concepto = concepto,
+
         clienteId = clienteId,
         cotizacionId = cotizacionId,
         proyectoId = proyectoId,
+
         trabajo = trabajo,
         folio = folio,
+
         comprobanteUri = comprobanteUri,
         tipoComprobante = tipoComprobante,
+
         fecha = fecha,
-        subtotal = subtotal.sinDecimalesSiAplica(),
-        ivaPorcentaje = ivaPorcentaje.sinDecimalesSiAplica(),
-        iva = iva.sinDecimalesSiAplica(),
-        montoTotalProyectoNumero = montoTotalProyecto,
-        anticipo = anticipo.sinDecimalesSiAplica(),
+
+        subtotal = subtotalNumero.sinDecimalesSiAplica(),
+        ivaPorcentaje = if (ivaNumero <= 0.0) "0" else "16",
+        iva = ivaNumero.sinDecimalesSiAplica(),
+
+        montoTotalProyecto = montoTotalProyectoNumero.sinDecimalesSiAplica(),
+        anticipo = anticipoNumero.sinDecimalesSiAplica(),
+
         metodoPago = metodoPago,
         formaPago = formaPago,
+
         observaciones = observaciones,
         ordenTrabajo = ordenTrabajo,
         proyecto = proyecto

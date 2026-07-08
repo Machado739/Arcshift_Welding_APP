@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.ingresos
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,9 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,16 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 
 import androidx.compose.ui.unit.dp
 
@@ -118,11 +108,22 @@ fun DetalleIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            TarjetaPrincipalIngreso(ingresoActual)
+            TarjetaPrincipalIngreso(
+                ingreso = ingresoActual,
+                resumen = resumenCobro
+            )
 
-            SeccionDetalleInformacionGeneralIngreso(ingresoActual)
+            SeccionDetalleInformacionGeneralIngreso(
+                ingreso = ingresoActual,
+                resumen = resumenCobro
+            )
 
-            SeccionDetalleInformacionFinancieraIngreso(ingresoActual)
+            SeccionDetalleInformacionFinancieraIngreso(
+                ingreso = ingresoActual,
+                resumen = resumenCobro
+            )
+
+            SeccionDetalleComprobanteIngreso(ingresoActual)
 
             SeccionPlanPagosIngreso(
                 pagos = pagosProgramados,
@@ -158,10 +159,42 @@ fun DetalleIngresoScreen(
     }
 }
 
+
 @Composable
 fun TarjetaPrincipalIngreso(
-    ingreso: IngresoUI
+    ingreso: IngresoUI,
+    resumen: ResumenCobroIngresoUI
 ) {
+    val estaPagado = resumen.estadoCobro == "Pagado"
+
+    val textoPrincipal = if (estaPagado) {
+        resumen.totalRecibido.formatoDinero()
+    } else {
+        ingreso.total
+    }
+
+    val etiqueta = if (estaPagado) {
+        "Pagos"
+    } else {
+        ingreso.categoria
+    }
+
+    val colorEstado = if (estaPagado) {
+        Color(0xFF16A34A)
+    } else if (ingreso.formaPago == "Anticipo") {
+        Color(0xFFF59E0B)
+    } else {
+        Color(0xFF16A34A)
+    }
+
+    val fondoEstado = if (estaPagado) {
+        Color(0xFFEAF7EE)
+    } else if (ingreso.formaPago == "Anticipo") {
+        Color(0xFFFFF7E6)
+    } else {
+        Color(0xFFEAF7EE)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -179,13 +212,17 @@ fun TarjetaPrincipalIngreso(
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .background(Color(0xFFE8F5E9), CircleShape),
+                    .background(fondoEstado, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.AttachMoney,
+                    imageVector = if (estaPagado) {
+                        Icons.Default.CheckCircle
+                    } else {
+                        Icons.Default.AttachMoney
+                    },
                     contentDescription = null,
-                    tint = Color(0xFF2E7D32),
+                    tint = colorEstado,
                     modifier = Modifier.size(38.dp)
                 )
             }
@@ -196,16 +233,16 @@ fun TarjetaPrincipalIngreso(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = ingreso.concepto,
+                    text = ingreso.concepto.ifBlank { ingreso.trabajo },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
-                    text = ingreso.total,
+                    text = textoPrincipal,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
+                    color = colorEstado
                 )
 
                 Text(
@@ -226,7 +263,7 @@ fun TarjetaPrincipalIngreso(
 
                     DatoIconoPequenoIngreso(
                         icono = Icons.Default.Payment,
-                        texto = ingreso.metodoPago
+                        texto = ingreso.metodoPago.ifBlank { "Sin método" }
                     )
                 }
             }
@@ -234,11 +271,11 @@ fun TarjetaPrincipalIngreso(
             AssistChip(
                 onClick = { },
                 label = {
-                    Text(ingreso.categoria)
+                    Text(etiqueta)
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = Color(0xFFDFF3E3),
-                    labelColor = Color(0xFF2E7D32)
+                    containerColor = fondoEstado,
+                    labelColor = colorEstado
                 )
             )
         }
@@ -248,7 +285,8 @@ fun TarjetaPrincipalIngreso(
 
 @Composable
 fun SeccionDetalleInformacionGeneralIngreso(
-    ingreso: IngresoUI
+    ingreso: IngresoUI,
+    resumen: ResumenCobroIngresoUI
 ) {
     TarjetaDetalleIngreso(
         titulo = "Información general",
@@ -262,29 +300,43 @@ fun SeccionDetalleInformacionGeneralIngreso(
         Spacer(modifier = Modifier.height(10.dp))
 
         ItemDatoDetalleIngreso(
-            titulo = "Trabajo",
-            valor = ingreso.trabajo
+            titulo = "Trabajo / Proyecto",
+            valor = ingreso.trabajo.ifBlank { ingreso.proyecto }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         ItemDatoDetalleIngreso(
-            titulo = "Folio",
-            valor = ingreso.folio
+            titulo = "Folio / Referencia",
+            valor = ingreso.folio.ifBlank { "Sin folio" }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         ItemDatoDetalleIngreso(
-            titulo = "Método de pago",
-            valor = ingreso.metodoPago
+            titulo = "Fecha de ingreso inicial",
+            valor = ingreso.fecha
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         ItemDatoDetalleIngreso(
-            titulo = "Estado",
-            valor = ingreso.categoria
+            titulo = "Método de pago inicial",
+            valor = ingreso.metodoPago.ifBlank { "Sin método" }
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ItemDatoDetalleIngreso(
+            titulo = "Tipo de ingreso inicial",
+            valor = ingreso.formaPago
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ItemDatoDetalleIngreso(
+            titulo = "Estado de cobro",
+            valor = resumen.estadoCobro
         )
     }
 }
@@ -332,49 +384,84 @@ fun SeccionDetalleClienteIngreso() {
 
 @Composable
 fun SeccionDetalleInformacionFinancieraIngreso(
-    ingreso: IngresoUI
+    ingreso: IngresoUI,
+    resumen: ResumenCobroIngresoUI
 ) {
+    val esProyecto = ingreso.proyectoId != null || ingreso.montoTotalProyectoNumero > 0.0
+    val estaPagado = resumen.estadoCobro == "Pagado"
+
     TarjetaDetalleIngreso(
         titulo = "Información financiera",
         icono = Icons.Default.AttachMoney
     ) {
-        FilaMontoDetalleIngreso(
-            titulo = "Subtotal",
-            valor = ingreso.subtotal
-        )
+        if (esProyecto) {
+            FilaMontoDetalleIngreso(
+                titulo = "Monto total del proyecto",
+                valor = resumen.totalProyecto.formatoDinero()
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FilaMontoDetalleIngreso(
-            titulo = "IVA",
-            valor = ingreso.iva
-        )
+            FilaMontoDetalleIngreso(
+                titulo = "Anticipo inicial recibido",
+                valor = resumen.anticipoInicial.formatoDinero()
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FilaMontoDetalleIngreso(
-            titulo = "Anticipo",
-            valor = ingreso.anticipo
-        )
+            FilaMontoDetalleIngreso(
+                titulo = "Pagos posteriores recibidos",
+                valor = resumen.pagosPagados.formatoDinero()
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FilaMontoDetalleIngreso(
-            titulo = "Pendiente",
-            valor = ingreso.pendiente
-        )
+            FilaMontoDetalleIngreso(
+                titulo = "Total recibido",
+                valor = resumen.totalRecibido.formatoDinero(),
+                destacar = true
+            )
 
-        Divider(
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        FilaMontoDetalleIngreso(
-            titulo = "Total",
-            valor = ingreso.total,
-            destacar = true
-        )
+            FilaMontoDetalleIngreso(
+                titulo = "Pendiente por cobrar",
+                valor = resumen.pendiente.formatoDinero()
+            )
+
+            Divider(
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            FilaMontoDetalleIngreso(
+                titulo = "Estado",
+                valor = if (estaPagado) "Pagado completamente" else "Pago parcial",
+                destacar = estaPagado
+            )
+        } else {
+            FilaMontoDetalleIngreso(
+                titulo = "Subtotal",
+                valor = ingreso.subtotal
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FilaMontoDetalleIngreso(
+                titulo = "IVA",
+                valor = ingreso.iva
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FilaMontoDetalleIngreso(
+                titulo = "Total recibido",
+                valor = ingreso.total,
+                destacar = true
+            )
+        }
     }
 }
+
 @Composable
 fun SeccionPlanPagosIngreso(
     pagos: List<PagoProgramadoDetalleUI>,
@@ -511,7 +598,79 @@ fun SeccionPlanPagosIngreso(
     }
 }
 
+@Composable
+fun SeccionDetalleComprobanteIngreso(
+    ingreso: IngresoUI
+) {
+    TarjetaDetalleIngreso(
+        titulo = "Comprobante",
+        icono = Icons.Default.AttachFile
+    ) {
+        if (ingreso.comprobanteUri.isBlank()) {
+            Text(
+                text = "Sin comprobante registrado.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFF8FAFC)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (ingreso.tipoComprobante == "PDF") {
+                            Icons.Default.PictureAsPdf
+                        } else {
+                            Icons.Default.Image
+                        },
+                        contentDescription = null,
+                        tint = if (ingreso.tipoComprobante == "PDF") {
+                            Color(0xFFDC2626)
+                        } else {
+                            Color(0xFF2563EB)
+                        },
+                        modifier = Modifier.size(28.dp)
+                    )
 
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = ingreso.tipoComprobante.ifBlank { "Comprobante" },
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = ingreso.folio.ifBlank { "Archivo registrado" },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray,
+                            maxLines = 1
+                        )
+                    }
+
+                    Text(
+                        text = "Registrado",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF16A34A),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun FilaResumenPlanPago(

@@ -25,7 +25,6 @@ fun EditarIngresoScreen(
     viewModel: IngresosViewModel
 ) {
     val form by viewModel.formState.collectAsState()
-
     var pagosProgramados by remember {
         mutableStateOf(emptyList<PagoProgramadoForm>())
     }
@@ -38,17 +37,10 @@ fun EditarIngresoScreen(
         .obtenerPagosProgramadosPorIngreso(form.id)
         .collectAsState(initial = emptyList())
 
-
     LaunchedEffect(pagosProgramadosDb, form.id) {
         if (!pagosCargados && form.id != 0) {
             pagosProgramados = pagosProgramadosDb
             pagosCargados = true
-        }
-    }
-
-    LaunchedEffect(form.formaPago) {
-        if (form.formaPago != "Anticipo") {
-            pagosProgramados = emptyList()
         }
     }
 
@@ -123,14 +115,13 @@ fun EditarIngresoScreen(
             )
 
             if (form.formaPago == "Anticipo") {
-                val subtotalNumero = form.subtotal.aDouble()
-                val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
-                val totalRecibido = subtotalNumero + ivaNumero
+                val montoRecibido = form.subtotal.aDouble()
+                val montoTotalProyecto = form.montoTotalProyecto.aDouble()
 
                 SeccionPagosProgramadosIngreso(
                     pagos = pagosProgramados,
-                    montoTotalProyecto = form.montoTotalProyecto.aDouble(),
-                    montoRecibido = totalRecibido,
+                    montoTotalProyecto = montoTotalProyecto,
+                    montoRecibido = montoRecibido,
                     onPagosChange = {
                         pagosProgramados = it
                     }
