@@ -19,6 +19,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +52,15 @@ fun DetalleIngresoScreen(
     }
 
     val ingresoActual = ingreso!!
+
+    val pagosProgramados by viewModel
+        .obtenerPagosDetallePorIngreso(ingresoActual.id)
+        .collectAsState(initial = emptyList())
+
+    val resumenCobro = viewModel.calcularResumenCobroIngreso(
+        ingreso = ingresoActual,
+        pagos = pagosProgramados
+    )
 
     Scaffold(
         topBar = {
@@ -103,6 +124,22 @@ fun DetalleIngresoScreen(
 
             SeccionDetalleInformacionFinancieraIngreso(ingresoActual)
 
+            SeccionPlanPagosIngreso(
+                pagos = pagosProgramados,
+                resumen = resumenCobro,
+                onMarcarPagado = { pago, fechaPago, montoPagado, metodoPago, comprobanteUri, tipoComprobante ->
+                    viewModel.marcarPagoProgramadoComoPagado(
+                        pagoId = pago.id,
+                        fechaPago = fechaPago,
+                        montoPagado = montoPagado,
+                        metodoPago = metodoPago,
+                        comprobanteUri = comprobanteUri,
+                        tipoComprobante = tipoComprobante
+                    ) {
+                        // Se actualiza solo por Flow
+                    }
+                }
+            )
             SeccionDetalleObservacionesIngreso(ingresoActual)
 
             SeccionDetalleRelacionadoIngreso(ingresoActual)
@@ -338,6 +375,167 @@ fun SeccionDetalleInformacionFinancieraIngreso(
         )
     }
 }
+@Composable
+fun SeccionPlanPagosIngreso(
+    pagos: List<PagoProgramadoDetalleUI>,
+    resumen: ResumenCobroIngresoUI,
+    onMarcarPagado: (
+        PagoProgramadoDetalleUI,
+        String,
+        Double,
+        String,
+        String,
+        String
+    ) -> Unit
+) {
+    var pagoSeleccionado by remember {
+        mutableStateOf<PagoProgramadoDetalleUI?>(null)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Schedule,
+                    contentDescription = null,
+                    tint = Color(0xFF2563EB),
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = "Plan de pagos",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (resumen.estadoCobro == "Pagado") {
+                        Color(0xFFEAF7EE)
+                    } else {
+                        Color(0xFFFFF7E6)
+                    }
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    FilaResumenPlanPago(
+                        titulo = "Total proyecto",
+                        valor = resumen.totalProyecto.formatoDinero()
+                    )
+
+                    FilaResumenPlanPago(
+                        titulo = "Anticipo inicial",
+                        valor = resumen.anticipoInicial.formatoDinero()
+                    )
+
+                    FilaResumenPlanPago(
+                        titulo = "Pagos recibidos",
+                        valor = resumen.pagosPagados.formatoDinero()
+                    )
+
+                    FilaResumenPlanPago(
+                        titulo = "Total recibido",
+                        valor = resumen.totalRecibido.formatoDinero()
+                    )
+
+                    FilaResumenPlanPago(
+                        titulo = "Pendiente",
+                        valor = resumen.pendiente.formatoDinero()
+                    )
+
+                    FilaResumenPlanPago(
+                        titulo = "Estado",
+                        valor = resumen.estadoCobro
+                    )
+                }
+            }
+
+            if (pagos.isEmpty()) {
+                Text(
+                    text = "No hay pagos programados.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            } else {
+                pagos.forEach { pago ->
+                    ItemPagoProgramadoDetalle(
+                        pago = pago,
+                        onMarcarPagado = {
+                            pagoSeleccionado = pago
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    pagoSeleccionado?.let { pago ->
+        DialogMarcarPagoProgramado(
+            pago = pago,
+            onDismiss = {
+                pagoSeleccionado = null
+            },
+            onConfirmar = { fechaPago, montoPagado, metodoPago, comprobanteUri, tipoComprobante ->
+                onMarcarPagado(
+                    pago,
+                    fechaPago,
+                    montoPagado,
+                    metodoPago,
+                    comprobanteUri,
+                    tipoComprobante
+                )
+
+                pagoSeleccionado = null
+            }
+        )
+    }
+}
+
+
+
+@Composable
+fun FilaResumenPlanPago(
+    titulo: String,
+    valor: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.DarkGray
+        )
+
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF111827)
+        )
+    }
+}
 
 @Composable
 fun SeccionDetalleObservacionesIngreso(
@@ -354,6 +552,274 @@ fun SeccionDetalleObservacionesIngreso(
         )
     }
 }
+
+@Composable
+fun ItemPagoProgramadoDetalle(
+    pago: PagoProgramadoDetalleUI,
+    onMarcarPagado: () -> Unit
+) {
+    val pagado = pago.estado == "Pagado"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (pagado) {
+                Color(0xFFF0FDF4)
+            } else {
+                Color(0xFFF8FAFC)
+            }
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = if (pagado) {
+                        Icons.Default.CheckCircle
+                    } else {
+                        Icons.Default.Schedule
+                    },
+                    contentDescription = null,
+                    tint = if (pagado) {
+                        Color(0xFF16A34A)
+                    } else {
+                        Color(0xFFF59E0B)
+                    },
+                    modifier = Modifier.size(18.dp)
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (pagado) "Pago realizado" else "Pago pendiente",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Text(
+                        text = "Programado: ${pago.fechaProgramada}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                }
+
+                Text(
+                    text = pago.montoProgramado,
+                    fontWeight = FontWeight.Bold,
+                    color = if (pagado) {
+                        Color(0xFF16A34A)
+                    } else {
+                        Color(0xFFF59E0B)
+                    },
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            if (pagado) {
+                Text(
+                    text = "Pagado el ${pago.fechaPago} · ${pago.metodoPago}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.DarkGray
+                )
+
+                if (pago.comprobanteUri.isNotBlank()) {
+                    Text(
+                        text = "Comprobante registrado",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF2563EB),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Button(
+                    onClick = onMarcarPagado,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF16A34A)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text("Marcar como pagado")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DialogMarcarPagoProgramado(
+    pago: PagoProgramadoDetalleUI,
+    onDismiss: () -> Unit,
+    onConfirmar: (
+        String,
+        Double,
+        String,
+        String,
+        String
+    ) -> Unit
+) {
+    var fechaPago by remember {
+        mutableStateOf(fechaActual())
+    }
+
+    var montoPagado by remember {
+        mutableStateOf(pago.montoProgramadoNumero.sinDecimalesSiAplica())
+    }
+
+    var metodoPago by remember {
+        mutableStateOf("")
+    }
+
+    var comprobanteUri by remember {
+        mutableStateOf("")
+    }
+
+    var tipoComprobante by remember {
+        mutableStateOf("")
+    }
+
+    val seleccionarArchivo = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            comprobanteUri = uri.toString()
+            tipoComprobante = if (
+                uri.toString().contains(".pdf", ignoreCase = true)
+            ) {
+                "PDF"
+            } else {
+                "Imagen"
+            }
+        }
+    }
+
+    val metodosPago = listOf(
+        "Efectivo",
+        "Tarjeta",
+        "Transferencia",
+        "Cheque",
+        "Crédito"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Marcar pago como pagado")
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Monto programado: ${pago.montoProgramado}",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                CampoFechaIngreso(
+                    titulo = "Fecha de pago",
+                    valor = fechaPago,
+                    onFechaSeleccionada = {
+                        fechaPago = it
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                CampoTextoIngreso(
+                    titulo = "Monto pagado",
+                    valor = montoPagado,
+                    placeholder = "$ 0.00",
+                    onValueChange = {
+                        montoPagado = it
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                CampoDropdownIngreso(
+                    titulo = "Método de pago",
+                    valor = metodoPago,
+                    opciones = metodosPago,
+                    placeholder = "Selecciona método",
+                    onValueChange = {
+                        metodoPago = it
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            seleccionarArchivo.launch("application/pdf")
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("PDF")
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            seleccionarArchivo.launch("image/*")
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Foto")
+                    }
+                }
+
+                if (comprobanteUri.isNotBlank()) {
+                    Text(
+                        text = "Comprobante seleccionado: $tipoComprobante",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF2563EB),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirmar(
+                        fechaPago,
+                        montoPagado.aDouble(),
+                        metodoPago,
+                        comprobanteUri,
+                        tipoComprobante
+                    )
+                }
+            ) {
+                Text("Guardar pago")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
 
 @Composable
 fun SeccionDetalleRelacionadoIngreso(

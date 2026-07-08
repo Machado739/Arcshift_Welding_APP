@@ -16,7 +16,6 @@ import com.example.arcshiftwelding.data.local.relation.IngresoConRelaciones
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,34 +26,81 @@ import java.util.Locale
 import kotlinx.coroutines.flow.map
 import com.example.arcshiftwelding.data.local.dao.PagoProgramadoDao
 import kotlinx.coroutines.flow.map
-
+import kotlin.collections.emptyList
+import com.example.arcshiftwelding.data.local.relation.PagoProgramadoConRelaciones
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 data class IngresoUI(
     val id: Int,
+    val concepto: String,
+
     val cliente: String,
     val clienteId: Int?,
-    val trabajo: String,
-    val folio: String,
-    val total: String,
-    val anticipo: String,
-    val pendiente: String,
-    val categoria: String,
-    val fecha: String,
-    val concepto: String,
-    val subtotal: String,
-    val iva: String,
-    val ivaPorcentaje: String,
-    val metodoPago: String,
-    val formaPago: String,
-    val observaciones: String,
+
     val cotizacion: String,
     val cotizacionId: Int?,
+
     val proyectoId: Int?,
-    val ordenTrabajo: String,
     val proyecto: String,
+
+    val trabajo: String,
+    val folio: String,
+    val fecha: String,
+
+    val subtotal: String,
+    val subtotalNumero: Double,
+
+    val iva: String,
+    val ivaNumero: Double,
+
+    val total: String,
     val totalNumero: Double,
+
+    val montoTotalProyecto: String,
+    val montoTotalProyectoNumero: Double,
+
+    val anticipo: String,
     val anticipoNumero: Double,
-    val pendienteNumero: Double
+
+    val pendiente: String,
+    val pendienteNumero: Double,
+
+    val metodoPago: String,
+    val formaPago: String,
+    val categoria: String,
+
+    val observaciones: String,
+    val ordenTrabajo: String
+)
+
+data class PagoPorCobrarUI(
+    val id: Int,
+    val ingresoAnticipoId: Int?,
+    val proyectoId: Int?,
+
+    val cliente: String,
+    val proyecto: String,
+    val trabajo: String,
+
+    val fechaProgramada: String,
+
+    val monto: String,
+    val montoNumero: Double,
+
+    val estado: String,
+    val observaciones: String,
+
+    val cantidadPagosPendientes: Int,
+    val cantidadPagosPosteriores: Int,
+
+    val totalPendienteProgramado: String,
+    val totalPendienteProgramadoNumero: Double,
+
+    val totalPagosPosteriores: String,
+    val totalPagosPosterioresNumero: Double
 )
 
 data class IngresoFormState(
@@ -94,6 +140,32 @@ data class PagoProgramadoForm(
     val observaciones: String = ""
 )
 
+data class PagoProgramadoDetalleUI(
+    val id: Int,
+    val fechaProgramada: String,
+    val montoProgramado: String,
+    val montoProgramadoNumero: Double,
+
+    val estado: String,
+    val observaciones: String,
+
+    val fechaPago: String,
+    val montoPagado: String,
+    val montoPagadoNumero: Double,
+    val metodoPago: String,
+    val comprobanteUri: String,
+    val tipoComprobante: String
+)
+data class ResumenCobroIngresoUI(
+    val totalProyecto: Double = 0.0,
+    val anticipoInicial: Double = 0.0,
+    val pagosPagados: Double = 0.0,
+    val totalRecibido: Double = 0.0,
+    val pendiente: Double = 0.0,
+    val cantidadPagosPendientes: Int = 0,
+    val cantidadPagosPagados: Int = 0,
+    val estadoCobro: String = "Parcial"
+)
 class IngresosViewModel(
     private val ingresoDao: IngresoDao,
     private val clienteDao: ClienteDao,
@@ -109,21 +181,67 @@ class IngresosViewModel(
     val cotizaciones: Flow<List<CotizacionEntity>> =
         cotizacionDao.obtenerCotizaciones()
 
-    val ingresos: StateFlow<List<IngresoUI>> =
-        ingresoDao.obtenerIngresosConRelaciones()
-            .map { lista ->
-                lista.map { ingresoConRelaciones ->
-                    ingresoConRelaciones.toUi()
-                }
+    val ingresos = combine(
+        ingresoDao.obtenerIngresosConRelaciones(),
+        pagoProgramadoDao.obtenerTodosLosPagosActivos()
+    ) { ingresosDb, pagosDb ->
+
+        ingresosDb.map { ingresoConRelaciones ->
+            val ingresoUiBase = ingresoConRelaciones.toUi()
+
+            val pagosDelIngreso = pagosDb.filter {
+                it.ingresoAnticipoId == ingresoUiBase.id
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
+
+            val pagosPagados = pagosDelIngreso
+                .filter { it.estado == "Pagado" }
+                .sumOf { pago ->
+                    if (pago.montoPagado > 0.0) {
+                        pago.montoPagado
+                    } else {
+                        pago.montoProgramado
+                    }
+                }
+
+            val totalProyecto = ingresoUiBase.montoTotalProyectoNumero
+                .takeIf { it > 0.0 }
+                ?: ingresoUiBase.totalNumero
+
+            val totalRecibidoReal = ingresoUiBase.totalNumero + pagosPagados
+
+            val pendienteReal = (totalProyecto - totalRecibidoReal).coerceAtLeast(0.0)
+
+            val categoriaReal = when {
+                pendienteReal <= 0.0 && totalProyecto > 0.0 -> "Pagos"
+                ingresoUiBase.formaPago == "Anticipo" -> "Anticipos"
+                else -> "Pagos"
+            }
+
+            ingresoUiBase.copy(
+                categoria = categoriaReal,
+                pendiente = pendienteReal.formatoDinero(),
+                pendienteNumero = pendienteReal
             )
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
 
     val proyectos: Flow<List<ProyectoEntity>> =
         proyectoDao.obtenerProyectos()
+
+
+    val pagosPorCobrar = pagoProgramadoDao.obtenerPagosPendientesConRelaciones()
+        .map { pagos ->
+            pagos.toPagosPorCobrarAgrupadosUi()
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
     private val _formState = MutableStateFlow(IngresoFormState())
     val formState: StateFlow<IngresoFormState> = _formState
@@ -153,6 +271,104 @@ class IngresosViewModel(
         }
     }
 
+    fun List<PagoProgramadoConRelaciones>.toPagosPorCobrarAgrupadosUi(): List<PagoPorCobrarUI> {
+        return this
+            .groupBy { pago ->
+                claveAgrupacionPagoPorCobrar(pago)
+            }
+            .mapNotNull { (_, pagosDelProyecto) ->
+                val pagosOrdenados = pagosDelProyecto.sortedWith(
+                    compareBy<PagoProgramadoConRelaciones> {
+                        fechaOrdenPagoProgramado(it.pago.fechaProgramada)
+                    }.thenBy {
+                        it.pago.id
+                    }
+                )
+
+                val proximoPago = pagosOrdenados.firstOrNull()
+                    ?: return@mapNotNull null
+
+                val pagosPosteriores = pagosOrdenados.drop(1)
+
+                val totalPendienteProgramado = pagosOrdenados.sumOf {
+                    it.pago.montoProgramado
+                }
+
+                val totalPagosPosteriores = pagosPosteriores.sumOf {
+                    it.pago.montoProgramado
+                }
+
+                PagoPorCobrarUI(
+                    id = proximoPago.pago.id,
+                    ingresoAnticipoId = proximoPago.pago.ingresoAnticipoId,
+                    proyectoId = proximoPago.pago.proyectoId,
+
+                    cliente = proximoPago.cliente?.nombre ?: "Sin cliente",
+                    proyecto = proximoPago.proyecto?.nombre
+                        ?: proximoPago.ingresoAnticipo?.proyecto
+                        ?: "Sin proyecto",
+
+                    trabajo = proximoPago.ingresoAnticipo?.trabajo
+                        ?: proximoPago.proyecto?.nombre
+                        ?: "Sin trabajo",
+
+                    fechaProgramada = proximoPago.pago.fechaProgramada,
+
+                    monto = proximoPago.pago.montoProgramado.formatoDinero(),
+                    montoNumero = proximoPago.pago.montoProgramado,
+
+                    estado = proximoPago.pago.estado,
+                    observaciones = proximoPago.pago.observaciones,
+
+                    cantidadPagosPendientes = pagosOrdenados.size,
+                    cantidadPagosPosteriores = pagosPosteriores.size,
+
+                    totalPendienteProgramado = totalPendienteProgramado.formatoDinero(),
+                    totalPendienteProgramadoNumero = totalPendienteProgramado,
+
+                    totalPagosPosteriores = totalPagosPosteriores.formatoDinero(),
+                    totalPagosPosterioresNumero = totalPagosPosteriores
+                )
+            }
+            .sortedWith(
+                compareBy<PagoPorCobrarUI> {
+                    fechaOrdenPagoProgramado(it.fechaProgramada)
+                }.thenBy {
+                    it.id
+                }
+            )
+    }
+
+    private fun claveAgrupacionPagoPorCobrar(
+        pago: PagoProgramadoConRelaciones
+    ): String {
+        return when {
+            pago.pago.proyectoId != null -> "PROYECTO-${pago.pago.proyectoId}"
+            pago.pago.ingresoAnticipoId != null -> "INGRESO-${pago.pago.ingresoAnticipoId}"
+            else -> "PAGO-${pago.pago.id}"
+        }
+    }
+
+    private fun fechaOrdenPagoProgramado(
+        fecha: String
+    ): Long {
+        return try {
+            if (fecha.isBlank() || fecha == "Sin fecha") {
+                Long.MAX_VALUE
+            } else {
+                val formato = java.text.SimpleDateFormat(
+                    "dd/MM/yyyy",
+                    java.util.Locale.getDefault()
+                )
+
+                formato.isLenient = false
+                formato.parse(fecha)?.time ?: Long.MAX_VALUE
+            }
+        } catch (e: Exception) {
+            Long.MAX_VALUE
+        }
+    }
+
     fun guardarIngreso(
         pagosProgramados: List<PagoProgramadoForm> = emptyList(),
         onGuardado: () -> Unit
@@ -167,8 +383,34 @@ class IngresosViewModel(
             return
         }
 
+        val ingresoEntity = form.toEntity()
+
+        val sumaPagosCapturados = pagosProgramados
+            .filter { it.monto.aDouble() > 0.0 }
+            .sumOf { it.monto.aDouble() }
+
+        if (
+            form.formaPago == "Anticipo" &&
+            sumaPagosCapturados > 0.0 &&
+            sumaPagosCapturados > ingresoEntity.pendiente
+        ) {
+            return
+        }
+
         viewModelScope.launch {
-            ingresoDao.insertarIngreso(form.toEntity())
+            val ingresoId = ingresoDao.insertarIngreso(ingresoEntity).toInt()
+
+            val pagosEntities = construirPagosProgramados(
+                form = form,
+                ingresoId = ingresoId,
+                ingresoEntity = ingresoEntity,
+                pagosProgramados = pagosProgramados
+            )
+
+            if (pagosEntities.isNotEmpty()) {
+                pagoProgramadoDao.insertarPagosProgramados(pagosEntities)
+            }
+
             limpiarFormulario()
             onGuardado()
         }
@@ -190,15 +432,15 @@ class IngresosViewModel(
 
         val ingresoEntity = form.toEntity()
 
-        val pagosValidos = pagosProgramados.filter {
-            it.fecha.isNotBlank() && it.monto.aDouble() > 0.0
-        }
+        val sumaPagosCapturados = pagosProgramados
+            .filter { it.monto.aDouble() > 0.0 }
+            .sumOf { it.monto.aDouble() }
 
-        val sumaPagosProgramados = pagosValidos.sumOf {
-            it.monto.aDouble()
-        }
-
-        if (form.formaPago == "Anticipo" && sumaPagosProgramados > ingresoEntity.pendiente) {
+        if (
+            form.formaPago == "Anticipo" &&
+            sumaPagosCapturados > 0.0 &&
+            sumaPagosCapturados > ingresoEntity.pendiente
+        ) {
             return
         }
 
@@ -207,22 +449,14 @@ class IngresosViewModel(
 
             pagoProgramadoDao.desactivarPagosPorIngresoAnticipo(form.id)
 
-            if (form.formaPago == "Anticipo" && pagosValidos.isNotEmpty()) {
-                val pagosEntities = pagosValidos.map { pago ->
-                    PagoProgramadoEntity(
-                        proyectoId = form.proyectoId,
-                        clienteId = form.clienteId,
-                        ingresoAnticipoId = form.id,
-                        ingresoPagadoId = null,
-                        fechaProgramada = pago.fecha,
-                        montoProgramado = pago.monto.aDouble(),
-                        estado = "Pendiente",
-                        observaciones = pago.observaciones.trim(),
-                        fechaRegistro = fechaActual(),
-                        activo = true
-                    )
-                }
+            val pagosEntities = construirPagosProgramados(
+                form = form,
+                ingresoId = form.id,
+                ingresoEntity = ingresoEntity,
+                pagosProgramados = pagosProgramados
+            )
 
+            if (pagosEntities.isNotEmpty()) {
                 pagoProgramadoDao.insertarPagosProgramados(pagosEntities)
             }
 
@@ -254,8 +488,163 @@ class IngresosViewModel(
             }
         }
 
+    private fun construirPagosProgramados(
+        form: IngresoFormState,
+        ingresoId: Int,
+        ingresoEntity: IngresoEntity,
+        pagosProgramados: List<PagoProgramadoForm>
+    ): List<PagoProgramadoEntity> {
+        if (form.formaPago != "Anticipo") {
+            return emptyList()
+        }
 
+        val pagosCapturados = pagosProgramados
+            .filter { pago ->
+                pago.monto.aDouble() > 0.0
+            }
+            .map { pago ->
+                PagoProgramadoEntity(
+                    proyectoId = form.proyectoId,
+                    clienteId = form.clienteId,
+                    ingresoAnticipoId = ingresoId,
+                    ingresoPagadoId = null,
+                    fechaProgramada = pago.fecha.ifBlank { "Sin fecha" },
+                    montoProgramado = pago.monto.aDouble(),
+                    estado = "Pendiente",
+                    observaciones = pago.observaciones.trim(),
+                    fechaRegistro = fechaActual(),
+                    activo = true
+                )
+            }
 
+        if (pagosCapturados.isNotEmpty()) {
+            return pagosCapturados
+        }
+
+        return if (ingresoEntity.pendiente > 0.0) {
+            listOf(
+                PagoProgramadoEntity(
+                    proyectoId = form.proyectoId,
+                    clienteId = form.clienteId,
+                    ingresoAnticipoId = ingresoId,
+                    ingresoPagadoId = null,
+                    fechaProgramada = "Sin fecha",
+                    montoProgramado = ingresoEntity.pendiente,
+                    estado = "Pendiente",
+                    observaciones = "Pago pendiente generado automáticamente",
+                    fechaRegistro = fechaActual(),
+                    activo = true
+                )
+            )
+        } else {
+            emptyList()
+        }
+    }
+
+    fun obtenerPagosDetallePorIngreso(
+        ingresoId: Int
+    ) = pagoProgramadoDao.obtenerPagosPorIngreso(ingresoId)
+        .map { pagos ->
+            pagos.map { pago ->
+                PagoProgramadoDetalleUI(
+                    id = pago.id,
+                    fechaProgramada = pago.fechaProgramada,
+                    montoProgramado = pago.montoProgramado.formatoDinero(),
+                    montoProgramadoNumero = pago.montoProgramado,
+
+                    estado = pago.estado,
+                    observaciones = pago.observaciones,
+
+                    fechaPago = pago.fechaPago,
+                    montoPagado = pago.montoPagado.formatoDinero(),
+                    montoPagadoNumero = pago.montoPagado,
+                    metodoPago = pago.metodoPago,
+                    comprobanteUri = pago.comprobanteUri,
+                    tipoComprobante = pago.tipoComprobante
+                )
+            }
+        }
+
+    fun marcarPagoProgramadoComoPagado(
+        pagoId: Int,
+        fechaPago: String,
+        montoPagado: Double,
+        metodoPago: String,
+        comprobanteUri: String,
+        tipoComprobante: String,
+        onCompletado: () -> Unit
+    ) {
+        if (fechaPago.isBlank()) {
+            return
+        }
+
+        if (montoPagado <= 0.0) {
+            return
+        }
+
+        if (metodoPago.isBlank()) {
+            return
+        }
+
+        viewModelScope.launch {
+            pagoProgramadoDao.marcarPagoComoPagado(
+                pagoId = pagoId,
+                fechaPago = fechaPago,
+                montoPagado = montoPagado,
+                metodoPago = metodoPago,
+                comprobanteUri = comprobanteUri,
+                tipoComprobante = tipoComprobante
+            )
+
+            onCompletado()
+        }
+    }
+
+    fun calcularResumenCobroIngreso(
+        ingreso: IngresoUI,
+        pagos: List<PagoProgramadoDetalleUI>
+    ): ResumenCobroIngresoUI {
+        val totalProyecto = ingreso.montoTotalProyectoNumero
+            .takeIf { it > 0.0 }
+            ?: ingreso.totalNumero
+
+        val anticipoInicial = if (ingreso.formaPago == "Anticipo") {
+            ingreso.totalNumero
+        } else {
+            0.0
+        }
+
+        val pagosPagados = pagos
+            .filter { it.estado == "Pagado" }
+            .sumOf { pago ->
+                if (pago.montoPagadoNumero > 0.0) {
+                    pago.montoPagadoNumero
+                } else {
+                    pago.montoProgramadoNumero
+                }
+            }
+
+        val totalRecibido = ingreso.totalNumero + pagosPagados
+
+        val pendiente = (totalProyecto - totalRecibido).coerceAtLeast(0.0)
+
+        val estadoCobro = if (pendiente <= 0.0 && totalProyecto > 0.0) {
+            "Pagado"
+        } else {
+            "Parcial"
+        }
+
+        return ResumenCobroIngresoUI(
+            totalProyecto = totalProyecto,
+            anticipoInicial = anticipoInicial,
+            pagosPagados = pagosPagados,
+            totalRecibido = totalRecibido,
+            pendiente = pendiente,
+            cantidadPagosPendientes = pagos.count { it.estado == "Pendiente" },
+            cantidadPagosPagados = pagos.count { it.estado == "Pagado" },
+            estadoCobro = estadoCobro
+        )
+    }
 
 }
 
@@ -284,40 +673,57 @@ class IngresosViewModelFactory(
 }
 
 fun IngresoConRelaciones.toUi(): IngresoUI {
+
     val ingresoActual = ingreso
 
     val categoria = when {
         ingresoActual.formaPago == "Anticipo" -> "Anticipos"
-        ingresoActual.pendiente > 0.0 -> "Pendientes"
-        else -> "Pagados"
+        else -> "Pagos"
     }
-
     return IngresoUI(
         id = ingresoActual.id,
+        concepto = ingresoActual.concepto,
+
         cliente = cliente?.nombre ?: "Sin cliente",
         clienteId = ingresoActual.clienteId,
-        trabajo = ingresoActual.trabajo.ifBlank { ingresoActual.concepto },
-        folio = ingresoActual.folio,
-        total = ingresoActual.total.formatoDinero(),
-        anticipo = ingresoActual.anticipo.formatoDinero(),
-        pendiente = ingresoActual.pendiente.formatoDinero(),
-        categoria = categoria,
-        fecha = ingresoActual.fecha,
-        concepto = ingresoActual.concepto,
-        subtotal = ingresoActual.subtotal.formatoDinero(),
-        iva = ingresoActual.iva.formatoDinero(),
-        ivaPorcentaje = ingresoActual.ivaPorcentaje.toString(),
-        metodoPago = ingresoActual.metodoPago,
-        formaPago = ingresoActual.formaPago,
-        observaciones = ingresoActual.observaciones,
+
         cotizacion = cotizacion?.folio ?: "Sin cotización",
         cotizacionId = ingresoActual.cotizacionId,
+
         proyectoId = ingresoActual.proyectoId,
-        ordenTrabajo = ingresoActual.ordenTrabajo,
         proyecto = proyecto?.nombre ?: ingresoActual.proyecto,
+
+        trabajo = ingresoActual.trabajo.ifBlank {
+            proyecto?.nombre ?: "Sin trabajo"
+        },
+
+        folio = ingresoActual.folio,
+        fecha = ingresoActual.fecha,
+
+        subtotal = ingresoActual.subtotal.formatoDinero(),
+        subtotalNumero = ingresoActual.subtotal,
+
+        iva = ingresoActual.iva.formatoDinero(),
+        ivaNumero = ingresoActual.iva,
+
+        total = ingresoActual.total.formatoDinero(),
         totalNumero = ingresoActual.total,
+
+        montoTotalProyecto = ingresoActual.montoTotalProyecto.formatoDinero(),
+        montoTotalProyectoNumero = ingresoActual.montoTotalProyecto,
+
+        anticipo = ingresoActual.anticipo.formatoDinero(),
         anticipoNumero = ingresoActual.anticipo,
-        pendienteNumero = ingresoActual.pendiente
+
+        pendiente = ingresoActual.pendiente.formatoDinero(),
+        pendienteNumero = ingresoActual.pendiente,
+
+        metodoPago = ingresoActual.metodoPago,
+        formaPago = ingresoActual.formaPago,
+        categoria = categoria,
+
+        observaciones = ingresoActual.observaciones,
+        ordenTrabajo = ingresoActual.ordenTrabajo
     )
 }
 
@@ -347,19 +753,32 @@ fun IngresoEntity.toForm(): IngresoFormState {
 }
 
 fun IngresoFormState.toEntity(): IngresoEntity {
-    val subtotalNumero = subtotal.aDouble()
-    val porcentajeIva = ivaPorcentaje.aDouble()
+    val montoRecibidoNumero = subtotal.aDouble()
 
-    val ivaNumero = if (iva.isBlank()) {
-        subtotalNumero * (porcentajeIva / 100.0)
+    val esIngresoDeProyecto = proyectoId != null
+    val esAnticipo = formaPago == "Anticipo"
+
+    val porcentajeIva = if (esIngresoDeProyecto || esAnticipo) {
+        0.0
+    } else {
+        ivaPorcentaje.aDouble()
+    }
+
+    val ivaNumero = if (esIngresoDeProyecto || esAnticipo) {
+        0.0
+    } else if (iva.isBlank()) {
+        montoRecibidoNumero * (porcentajeIva / 100.0)
     } else {
         iva.aDouble()
     }
 
-    val totalRecibidoNumero = subtotalNumero + ivaNumero
-    val esAnticipo = formaPago == "Anticipo"
+    val totalRecibidoNumero = if (esIngresoDeProyecto || esAnticipo) {
+        montoRecibidoNumero
+    } else {
+        montoRecibidoNumero + ivaNumero
+    }
 
-    val montoTotalProyectoNumero = if (esAnticipo) {
+    val montoTotalProyectoNumero = if (esIngresoDeProyecto || esAnticipo) {
         montoTotalProyecto.aDouble()
     } else {
         totalRecibidoNumero
@@ -371,7 +790,7 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         0.0
     }
 
-    val pendienteNumero = if (esAnticipo) {
+    val pendienteNumero = if (esIngresoDeProyecto || esAnticipo) {
         (montoTotalProyectoNumero - totalRecibidoNumero).coerceAtLeast(0.0)
     } else {
         0.0
@@ -391,7 +810,7 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         tipoComprobante = tipoComprobante.trim(),
         fecha = fecha.trim(),
 
-        subtotal = subtotalNumero,
+        subtotal = montoRecibidoNumero,
         ivaPorcentaje = porcentajeIva,
         iva = ivaNumero,
         total = totalRecibidoNumero,
@@ -409,7 +828,6 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         activo = true
     )
 }
-
 fun String.aDouble(): Double {
     return this
         .replace("$", "")

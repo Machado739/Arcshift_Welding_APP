@@ -6,6 +6,9 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.arcshiftwelding.data.local.entity.PagoProgramadoEntity
 import kotlinx.coroutines.flow.Flow
+import androidx.room.Transaction
+import com.example.arcshiftwelding.data.local.relation.PagoProgramadoConRelaciones
+
 
 @Dao
 interface PagoProgramadoDao {
@@ -85,4 +88,48 @@ interface PagoProgramadoDao {
     suspend fun desactivarPagosPorIngresoAnticipo(
         ingresoId: Int
     )
+
+    @Transaction
+    @Query("""
+    SELECT * FROM pagos_programados
+    WHERE estado = 'Pendiente'
+    AND activo = 1
+    ORDER BY fechaProgramada ASC
+""")
+    fun obtenerPagosPendientesConRelaciones(): Flow<List<PagoProgramadoConRelaciones>>
+
+    @Query("""
+    SELECT * FROM pagos_programados
+    WHERE ingresoAnticipoId = :ingresoId
+    AND activo = 1
+    ORDER BY fechaProgramada ASC
+""")
+    fun obtenerPagosPorIngreso(
+        ingresoId: Int
+    ): Flow<List<PagoProgramadoEntity>>
+
+    @Query("""
+    UPDATE pagos_programados
+    SET estado = 'Pagado',
+        fechaPago = :fechaPago,
+        montoPagado = :montoPagado,
+        metodoPago = :metodoPago,
+        comprobanteUri = :comprobanteUri,
+        tipoComprobante = :tipoComprobante
+    WHERE id = :pagoId
+""")
+    suspend fun marcarPagoComoPagado(
+        pagoId: Int,
+        fechaPago: String,
+        montoPagado: Double,
+        metodoPago: String,
+        comprobanteUri: String,
+        tipoComprobante: String
+    )
+
+    @Query("""
+    SELECT * FROM pagos_programados
+    WHERE activo = 1
+""")
+    fun obtenerTodosLosPagosActivos(): Flow<List<PagoProgramadoEntity>>
 }

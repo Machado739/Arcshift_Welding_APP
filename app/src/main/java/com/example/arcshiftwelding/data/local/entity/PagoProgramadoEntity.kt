@@ -57,5 +57,10 @@ data class PagoProgramadoEntity(
     val observaciones: String = "",
 
     val fechaRegistro: String = "",
+    val fechaPago: String = "",
+    val montoPagado: Double = 0.0,
+    val metodoPago: String = "",
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = "",
     val activo: Boolean = true
 )

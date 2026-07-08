@@ -22,7 +22,7 @@ interface IngresoDao {
     suspend fun obtenerIngresoPorIdDirecto(ingresoId: Int): IngresoEntity?
 
     @Insert
-    suspend fun insertarIngreso(ingreso: IngresoEntity)
+    suspend fun insertarIngreso(ingreso: IngresoEntity): Long
 
     @Update
     suspend fun actualizarIngreso(ingreso: IngresoEntity)

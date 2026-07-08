@@ -122,14 +122,13 @@ fun NuevoIngresoScreen(
             )
 
             if (form.formaPago == "Anticipo") {
-                val subtotalNumero = form.subtotal.aDouble()
-                val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
-                val totalRecibido = subtotalNumero + ivaNumero
+                val montoRecibido = form.subtotal.aDouble()
+                val montoTotalProyecto = form.montoTotalProyecto.aDouble()
 
                 SeccionPagosProgramadosIngreso(
                     pagos = pagosProgramados,
-                    montoTotalProyecto = form.montoTotalProyecto.aDouble(),
-                    montoRecibido = totalRecibido,
+                    montoTotalProyecto = montoTotalProyecto,
+                    montoRecibido = montoRecibido,
                     onPagosChange = {
                         pagosProgramados = it
                     }
@@ -161,9 +160,22 @@ fun NuevoIngresoScreen(
                 onGuardar = {
                     mensajeError = ""
 
-                    val subtotalNumero = form.subtotal.aDouble()
-                    val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100.0)
-                    val totalRecibido = subtotalNumero + ivaNumero
+                    val esIngresoDeProyecto = form.proyectoId != null
+                    val esAnticipo = form.formaPago == "Anticipo"
+
+                    val montoRecibido = form.subtotal.aDouble()
+
+                    val ivaNumero = if (esIngresoDeProyecto || esAnticipo) {
+                        0.0
+                    } else {
+                        montoRecibido * (form.ivaPorcentaje.aDouble() / 100.0)
+                    }
+
+                    val totalRecibido = if (esIngresoDeProyecto || esAnticipo) {
+                        montoRecibido
+                    } else {
+                        montoRecibido + ivaNumero
+                    }
 
                     val montoTotalProyecto = form.montoTotalProyecto.aDouble()
                     val saldoPendiente = (montoTotalProyecto - totalRecibido).coerceAtLeast(0.0)
@@ -185,12 +197,12 @@ fun NuevoIngresoScreen(
                         mensajeError = "Ingresa el concepto o descripción"
                         return@BotonesNuevoIngreso
                     }
-
+/*
                     if (subtotalNumero <= 0.0) {
                         mensajeError = "Ingresa un monto recibido válido"
                         return@BotonesNuevoIngreso
                     }
-
+*/
                     if (form.metodoPago.isBlank()) {
                         mensajeError = "Selecciona el método de pago"
                         return@BotonesNuevoIngreso
@@ -207,8 +219,8 @@ fun NuevoIngresoScreen(
                             return@BotonesNuevoIngreso
                         }
 
-                        if (montoTotalProyecto <= totalRecibido) {
-                            mensajeError = "El anticipo debe ser menor al monto total del proyecto"
+                        if (totalRecibido > montoTotalProyecto) {
+                            mensajeError = "El monto recibido no puede ser mayor al monto total del proyecto"
                             return@BotonesNuevoIngreso
                         }
 
@@ -255,7 +267,10 @@ fun SeccionIngresoInformacionGeneralNueva(
                         proyecto = "",
                         clienteId = null,
                         cotizacionId = null,
-                        montoTotalProyecto = ""
+                        montoTotalProyecto = "",
+                        anticipo = "",
+                        ivaPorcentaje = "16",
+                        iva = "0"
                     )
                 )
             },
@@ -271,14 +286,10 @@ fun SeccionIngresoInformacionGeneralNueva(
                     else -> 0.0
                 }
 
-                val ivaProyecto = if (
-                    cotizacionProyecto != null &&
-                    cotizacionProyecto.subtotal > 0.0
-                ) {
-                    (cotizacionProyecto.iva / cotizacionProyecto.subtotal) * 100.0
-                } else {
-                    form.ivaPorcentaje.aDouble().takeIf { it > 0.0 } ?: 16.0
-                }
+                val pagoInicialRequerido = cotizacionProyecto?.anticipo ?: 0.0
+
+                val requiereAnticipo = pagoInicialRequerido > 0.0 &&
+                        pagoInicialRequerido < montoTotalProyecto
 
                 onChange(
                     form.copy(
@@ -288,8 +299,24 @@ fun SeccionIngresoInformacionGeneralNueva(
                         clienteId = proyecto.clienteId,
                         cotizacionId = null,
 
+                        formaPago = if (requiereAnticipo) "Anticipo" else "Pago",
+
                         montoTotalProyecto = numeroIngresoTexto(montoTotalProyecto),
-                        ivaPorcentaje = numeroIngresoTexto(ivaProyecto)
+
+                        subtotal = if (requiereAnticipo) {
+                            numeroIngresoTexto(pagoInicialRequerido)
+                        } else {
+                            ""
+                        },
+
+                        ivaPorcentaje = "0",
+                        iva = "0",
+
+                        anticipo = if (requiereAnticipo) {
+                            numeroIngresoTexto(pagoInicialRequerido)
+                        } else {
+                            ""
+                        }
                     )
                 )
             },
@@ -434,6 +461,7 @@ fun CampoTrabajoIngreso(
     }
 }
 
+
 @Composable
 fun SeccionIngresoInformacionFinanciera(
     form: IngresoFormState,
@@ -454,21 +482,36 @@ fun SeccionIngresoInformacionFinanciera(
         "Crédito"
     )
 
-    val subtotalNumero = form.subtotal.aDouble()
-    val ivaNumero = subtotalNumero * (form.ivaPorcentaje.aDouble() / 100)
-    val totalRecibido = subtotalNumero + ivaNumero
+    val esIngresoDeProyecto = form.proyectoId != null
+    val esAnticipo = form.formaPago == "Anticipo"
 
-    val montoTotalProyecto = if (form.formaPago == "Anticipo") {
+    val montoRecibido = form.subtotal.aDouble()
+
+    val ivaNumero = if (esIngresoDeProyecto || esAnticipo) {
+        0.0
+    } else {
+        montoRecibido * (form.ivaPorcentaje.aDouble() / 100.0)
+    }
+
+    val totalRecibido = if (esIngresoDeProyecto || esAnticipo) {
+        montoRecibido
+    } else {
+        montoRecibido + ivaNumero
+    }
+
+    val montoTotalProyecto = if (esIngresoDeProyecto || esAnticipo) {
         form.montoTotalProyecto.aDouble()
     } else {
         totalRecibido
     }
 
-    val saldoPendiente = if (form.formaPago == "Anticipo") {
+    val saldoPendiente = if (esAnticipo || esIngresoDeProyecto) {
         (montoTotalProyecto - totalRecibido).coerceAtLeast(0.0)
     } else {
         0.0
     }
+
+    val pagoInicialRequerido = form.anticipo.aDouble()
 
     TarjetaNuevoIngreso(
         titulo = "Información financiera",
@@ -483,8 +526,17 @@ fun SeccionIngresoInformacionFinanciera(
                 onChange(
                     form.copy(
                         formaPago = tipo,
-                        montoTotalProyecto = "",
-                        anticipo = ""
+                        iva = "0",
+                        ivaPorcentaje = if (form.proyectoId != null || tipo == "Anticipo") {
+                            "0"
+                        } else {
+                            "16"
+                        },
+                        montoTotalProyecto = if (tipo == "Pago" && form.proyectoId == null) {
+                            ""
+                        } else {
+                            form.montoTotalProyecto
+                        }
                     )
                 )
             },
@@ -493,9 +545,9 @@ fun SeccionIngresoInformacionFinanciera(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        if (form.formaPago == "Anticipo") {
+        if (esAnticipo || esIngresoDeProyecto) {
             CampoTextoIngreso(
-                titulo = "Monto total del proyecto *",
+                titulo = "Monto total del proyecto",
                 valor = form.montoTotalProyecto,
                 placeholder = "$ 0.00",
                 onValueChange = {
@@ -505,50 +557,104 @@ fun SeccionIngresoInformacionFinanciera(
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+            if (pagoInicialRequerido > 0.0 && esAnticipo) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFF7E6)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Pago inicial requerido",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF92400E),
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = pagoInicialRequerido.formatoDinero(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color(0xFF92400E),
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = "Puedes registrar una cantidad mayor; se descontará del saldo pendiente.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.DarkGray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
             CampoTextoIngreso(
-                titulo = if (form.formaPago == "Anticipo") {
-                    "Subtotal recibido *"
+                titulo = if (esAnticipo) {
+                    "Monto recibido como anticipo *"
                 } else {
-                    "Subtotal *"
+                    "Monto recibido *"
                 },
                 valor = form.subtotal,
                 placeholder = "$ 0.00",
-                onValueChange = { nuevoSubtotal ->
-                    val nuevoIva = nuevoSubtotal.aDouble() * (form.ivaPorcentaje.aDouble() / 100)
-
+                onValueChange = { nuevoMonto ->
                     onChange(
                         form.copy(
-                            subtotal = nuevoSubtotal,
-                            iva = nuevoIva.toString()
+                            subtotal = nuevoMonto,
+                            iva = "0",
+                            ivaPorcentaje = "0"
                         )
                     )
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                CampoTextoIngreso(
+                    titulo = "Subtotal *",
+                    valor = form.subtotal,
+                    placeholder = "$ 0.00",
+                    onValueChange = { nuevoSubtotal ->
+                        val nuevoIva = nuevoSubtotal.aDouble() *
+                                (form.ivaPorcentaje.aDouble() / 100.0)
 
-            CampoDropdownIngreso(
-                titulo = "IVA (%)",
-                valor = form.ivaPorcentaje,
-                opciones = opcionesIva,
-                placeholder = "IVA",
-                onValueChange = { nuevoIvaPorcentaje ->
-                    val nuevoIva = form.subtotal.aDouble() * (nuevoIvaPorcentaje.aDouble() / 100)
-
-                    onChange(
-                        form.copy(
-                            ivaPorcentaje = nuevoIvaPorcentaje,
-                            iva = nuevoIva.toString()
+                        onChange(
+                            form.copy(
+                                subtotal = nuevoSubtotal,
+                                iva = nuevoIva.toString()
+                            )
                         )
-                    )
-                },
-                modifier = Modifier.weight(1f)
-            )
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                CampoDropdownIngreso(
+                    titulo = "IVA (%)",
+                    valor = form.ivaPorcentaje,
+                    opciones = opcionesIva,
+                    placeholder = "IVA",
+                    onValueChange = { nuevoIvaPorcentaje ->
+                        val nuevoIva = form.subtotal.aDouble() *
+                                (nuevoIvaPorcentaje.aDouble() / 100.0)
+
+                        onChange(
+                            form.copy(
+                                ivaPorcentaje = nuevoIvaPorcentaje,
+                                iva = nuevoIva.toString()
+                            )
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -557,7 +663,7 @@ fun SeccionIngresoInformacionFinanciera(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (form.formaPago == "Anticipo") {
+                containerColor = if (esAnticipo) {
                     Color(0xFFFFF7E6)
                 } else {
                     Color(0xFFE3F3E6)
@@ -568,13 +674,13 @@ fun SeccionIngresoInformacionFinanciera(
                 modifier = Modifier.padding(12.dp)
             ) {
                 Text(
-                    text = if (form.formaPago == "Anticipo") {
+                    text = if (esAnticipo) {
                         "Anticipo recibido"
                     } else {
                         "Pago recibido"
                     },
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (form.formaPago == "Anticipo") {
+                    color = if (esAnticipo) {
                         Color(0xFF92400E)
                     } else {
                         Color(0xFF2E7D32)
@@ -586,27 +692,33 @@ fun SeccionIngresoInformacionFinanciera(
                     text = totalRecibido.formatoDinero(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = if (form.formaPago == "Anticipo") {
+                    color = if (esAnticipo) {
                         Color(0xFF92400E)
                     } else {
                         Color(0xFF2E7D32)
                     }
                 )
 
-                Text(
-                    text = "IVA calculado: ${ivaNumero.formatoDinero()}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
-                )
-
-                if (form.formaPago == "Anticipo") {
+                if (esIngresoDeProyecto || esAnticipo) {
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Saldo pendiente: ${saldoPendiente.formatoDinero()}",
+                        text = "Monto total del proyecto: ${montoTotalProyecto.formatoDinero()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.DarkGray
+                    )
+
+                    Text(
+                        text = "Saldo restante: ${saldoPendiente.formatoDinero()}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.DarkGray,
                         fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        text = "IVA calculado: ${ivaNumero.formatoDinero()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.DarkGray
                     )
                 }
             }
