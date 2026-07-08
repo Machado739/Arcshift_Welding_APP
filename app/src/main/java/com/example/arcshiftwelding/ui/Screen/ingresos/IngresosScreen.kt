@@ -671,9 +671,14 @@ fun ItemIngreso(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (ingreso.folio.isNotBlank()) {
+                val referenciaCotizacion = ingreso.cotizacion
+                    .takeIf {
+                        it.isNotBlank() && it != "Sin cotización"
+                    }
+
+                if (referenciaCotizacion != null) {
                     Text(
-                        text = "Ref: ${ingreso.folio}",
+                        text = referenciaCotizacion,
                         fontSize = 8.sp,
                         color = Color(0xFF2563EB),
                         modifier = Modifier

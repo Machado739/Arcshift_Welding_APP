@@ -19,7 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
-
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -302,13 +307,6 @@ fun SeccionDetalleInformacionGeneralIngreso(
         ItemDatoDetalleIngreso(
             titulo = "Trabajo / Proyecto",
             valor = ingreso.trabajo.ifBlank { ingreso.proyecto }
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        ItemDatoDetalleIngreso(
-            titulo = "Folio / Referencia",
-            valor = ingreso.folio.ifBlank { "Sin folio" }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -602,6 +600,8 @@ fun SeccionPlanPagosIngreso(
 fun SeccionDetalleComprobanteIngreso(
     ingreso: IngresoUI
 ) {
+    val context = LocalContext.current
+
     TarjetaDetalleIngreso(
         titulo = "Comprobante",
         icono = Icons.Default.AttachFile
@@ -614,7 +614,15 @@ fun SeccionDetalleComprobanteIngreso(
             )
         } else {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        abrirComprobanteIngreso(
+                            context = context,
+                            uriString = ingreso.comprobanteUri,
+                            tipoComprobante = ingreso.tipoComprobante
+                        )
+                    },
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFFF8FAFC)
@@ -653,18 +661,17 @@ fun SeccionDetalleComprobanteIngreso(
                         )
 
                         Text(
-                            text = ingreso.folio.ifBlank { "Archivo registrado" },
+                            text = "Toca para ver el archivo",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray,
-                            maxLines = 1
+                            color = Color.Gray
                         )
                     }
 
-                    Text(
-                        text = "Registrado",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF16A34A),
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = Icons.Default.RemoveRedEye,
+                        contentDescription = "Ver comprobante",
+                        tint = Color(0xFF2563EB),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -717,6 +724,7 @@ fun ItemPagoProgramadoDetalle(
     pago: PagoProgramadoDetalleUI,
     onMarcarPagado: () -> Unit
 ) {
+    val context = LocalContext.current
     val pagado = pago.estado == "Pagado"
 
     Card(
@@ -790,12 +798,51 @@ fun ItemPagoProgramadoDetalle(
                 )
 
                 if (pago.comprobanteUri.isNotBlank()) {
-                    Text(
-                        text = "Comprobante registrado",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF2563EB),
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                abrirComprobanteIngreso(
+                                    context = context,
+                                    uriString = pago.comprobanteUri,
+                                    tipoComprobante = pago.tipoComprobante
+                                )
+                            }
+                            .background(
+                                color = Color(0xFFEFF6FF),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (pago.tipoComprobante == "PDF") {
+                                Icons.Default.PictureAsPdf
+                            } else {
+                                Icons.Default.Image
+                            },
+                            contentDescription = null,
+                            tint = Color(0xFF2563EB),
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text(
+                            text = "Ver comprobante del pago",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2563EB),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.RemoveRedEye,
+                            contentDescription = null,
+                            tint = Color(0xFF2563EB),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             } else {
                 Button(
@@ -834,7 +881,11 @@ fun DialogMarcarPagoProgramado(
     ) -> Unit
 ) {
     var fechaPago by remember {
-        mutableStateOf(fechaActual())
+        mutableStateOf(
+            pago.fechaProgramada.takeIf {
+                it.isNotBlank() && it != "Sin fecha"
+            } ?: fechaActual()
+        )
     }
 
     var montoPagado by remember {
@@ -989,22 +1040,15 @@ fun SeccionDetalleRelacionadoIngreso(
         icono = Icons.Default.Link
     ) {
         ItemDatoConLinkIngreso(
-            titulo = "Cotización:",
-            valor = ingreso.cotizacion.ifBlank { "Sin cotización" }
+            titulo = "Proyecto:",
+            valor = ingreso.proyecto.ifBlank { "Sin proyecto" }
         )
-
-      /*  Spacer(modifier = Modifier.height(6.dp))
-
-        ItemDatoConLinkIngreso(
-            titulo = "Orden de trabajo:",
-            valor = ingreso.ordenTrabajo.ifBlank { "Sin orden" }
-        )*/
 
         Spacer(modifier = Modifier.height(6.dp))
 
         ItemDatoConLinkIngreso(
-            titulo = "Proyecto:",
-            valor = ingreso.proyecto.ifBlank { "Sin proyecto" }
+            titulo = "Cliente:",
+            valor = ingreso.cliente.ifBlank { "Sin cliente" }
         )
     }
 }
@@ -1295,5 +1339,39 @@ fun BotonAccionRapida(
                 maxLines = 1
             )
         }
+    }
+
+}
+
+fun abrirComprobanteIngreso(
+    context: Context,
+    uriString: String,
+    tipoComprobante: String
+) {
+    if (uriString.isBlank()) return
+
+    try {
+        val uri = Uri.parse(uriString)
+
+        val mimeType = when (tipoComprobante) {
+            "PDF" -> "application/pdf"
+            "Imagen" -> "image/*"
+            else -> "*/*"
+        }
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mimeType)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        context.startActivity(
+            Intent.createChooser(intent, "Abrir comprobante")
+        )
+    } catch (e: Exception) {
+        Toast.makeText(
+            context,
+            "No se pudo abrir el comprobante",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

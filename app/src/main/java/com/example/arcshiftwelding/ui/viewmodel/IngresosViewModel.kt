@@ -138,9 +138,17 @@ data class IngresoFormState(
 )
 
 data class PagoProgramadoForm(
+    val id: Int = 0,
     val fecha: String = "",
     val monto: String = "",
-    val observaciones: String = ""
+    val observaciones: String = "",
+
+    val estado: String = "Pendiente",
+    val fechaPago: String = "",
+    val montoPagado: String = "",
+    val metodoPago: String = "",
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = ""
 )
 
 data class PagoProgramadoDetalleUI(
@@ -195,6 +203,8 @@ class IngresosViewModel(
             val pagosDelIngreso = pagosDb.filter {
                 it.ingresoAnticipoId == ingresoUiBase.id
             }
+
+
 
             val pagosPagados = pagosDelIngreso
                 .filter { it.estado == "Pagado" }
@@ -389,6 +399,7 @@ class IngresosViewModel(
         val ingresoEntity = form.toEntity()
 
         val sumaPagosCapturados = pagosProgramados
+            .filter { it.estado != "Pagado" }
             .filter { it.monto.aDouble() > 0.0 }
             .sumOf { it.monto.aDouble() }
 
@@ -435,14 +446,31 @@ class IngresosViewModel(
 
         val ingresoEntity = form.toEntity()
 
+        val totalPagadoAnteriormente = pagosProgramados
+            .filter { it.estado == "Pagado" }
+            .sumOf { pago ->
+                val montoPagado = pago.montoPagado.aDouble()
+
+                if (montoPagado > 0.0) {
+                    montoPagado
+                } else {
+                    pago.monto.aDouble()
+                }
+            }
+
+        val saldoDisponibleParaProgramar = (
+                ingresoEntity.pendiente - totalPagadoAnteriormente
+                ).coerceAtLeast(0.0)
+
         val sumaPagosCapturados = pagosProgramados
+            .filter { it.estado != "Pagado" }
             .filter { it.monto.aDouble() > 0.0 }
             .sumOf { it.monto.aDouble() }
 
         if (
             form.formaPago == "Anticipo" &&
             sumaPagosCapturados > 0.0 &&
-            sumaPagosCapturados > ingresoEntity.pendiente
+            sumaPagosCapturados > saldoDisponibleParaProgramar
         ) {
             return
         }
@@ -450,8 +478,7 @@ class IngresosViewModel(
         viewModelScope.launch {
             ingresoDao.actualizarIngreso(ingresoEntity)
 
-            pagoProgramadoDao.desactivarPagosPorIngresoAnticipo(form.id)
-
+            pagoProgramadoDao.desactivarPagosPendientesPorIngresoAnticipo(form.id)
             val pagosEntities = construirPagosProgramados(
                 form = form,
                 ingresoId = form.id,
@@ -473,22 +500,35 @@ class IngresosViewModel(
         onEliminado: () -> Unit
     ) {
         viewModelScope.launch {
+            pagoProgramadoDao.desactivarTodosLosPagosPorIngresoAnticipo(ingresoId)
+
             ingresoDao.desactivarIngreso(ingresoId)
+
             onEliminado()
         }
     }
 
     fun obtenerPagosProgramadosPorIngreso(
         ingresoId: Int
-    ) = pagoProgramadoDao.obtenerPagosPorIngresoAnticipo(ingresoId)
+    ) = pagoProgramadoDao.obtenerPagosPorIngreso(ingresoId)
         .map { pagos ->
-            pagos.map { pago ->
-                PagoProgramadoForm(
-                    fecha = pago.fechaProgramada,
-                    monto = pago.montoProgramado.sinDecimalesSiAplica(),
-                    observaciones = pago.observaciones
-                )
-            }
+            pagos
+                .filter { it.activo }
+                .map { pago ->
+                    PagoProgramadoForm(
+                        id = pago.id,
+                        fecha = pago.fechaProgramada,
+                        monto = pago.montoProgramado.sinDecimalesSiAplica(),
+                        observaciones = pago.observaciones,
+
+                        estado = pago.estado,
+                        fechaPago = pago.fechaPago,
+                        montoPagado = pago.montoPagado.sinDecimalesSiAplica(),
+                        metodoPago = pago.metodoPago,
+                        comprobanteUri = pago.comprobanteUri,
+                        tipoComprobante = pago.tipoComprobante
+                    )
+                }
         }
 
     private fun construirPagosProgramados(
@@ -501,9 +541,28 @@ class IngresosViewModel(
             return emptyList()
         }
 
+        val totalPagadoAnteriormente = pagosProgramados
+            .filter { pago ->
+                pago.estado == "Pagado"
+            }
+            .sumOf { pago ->
+                val montoPagado = pago.montoPagado.aDouble()
+
+                if (montoPagado > 0.0) {
+                    montoPagado
+                } else {
+                    pago.monto.aDouble()
+                }
+            }
+
+        val saldoPendienteReal = (
+                ingresoEntity.pendiente - totalPagadoAnteriormente
+                ).coerceAtLeast(0.0)
+
         val pagosCapturados = pagosProgramados
             .filter { pago ->
-                pago.monto.aDouble() > 0.0
+                pago.estado != "Pagado" &&
+                        pago.monto.aDouble() > 0.0
             }
             .map { pago ->
                 PagoProgramadoEntity(
@@ -516,6 +575,13 @@ class IngresosViewModel(
                     estado = "Pendiente",
                     observaciones = pago.observaciones.trim(),
                     fechaRegistro = fechaActual(),
+
+                    fechaPago = "",
+                    montoPagado = 0.0,
+                    metodoPago = "",
+                    comprobanteUri = "",
+                    tipoComprobante = "",
+
                     activo = true
                 )
             }
@@ -524,7 +590,7 @@ class IngresosViewModel(
             return pagosCapturados
         }
 
-        return if (ingresoEntity.pendiente > 0.0) {
+        return if (saldoPendienteReal > 0.0) {
             listOf(
                 PagoProgramadoEntity(
                     proyectoId = form.proyectoId,
@@ -532,10 +598,17 @@ class IngresosViewModel(
                     ingresoAnticipoId = ingresoId,
                     ingresoPagadoId = null,
                     fechaProgramada = "Sin fecha",
-                    montoProgramado = ingresoEntity.pendiente,
+                    montoProgramado = saldoPendienteReal,
                     estado = "Pendiente",
                     observaciones = "Pago pendiente generado automáticamente",
                     fechaRegistro = fechaActual(),
+
+                    fechaPago = "",
+                    montoPagado = 0.0,
+                    metodoPago = "",
+                    comprobanteUri = "",
+                    tipoComprobante = "",
+
                     activo = true
                 )
             )
@@ -543,7 +616,6 @@ class IngresosViewModel(
             emptyList()
         }
     }
-
     fun obtenerPagosDetallePorIngreso(
         ingresoId: Int
     ) = pagoProgramadoDao.obtenerPagosPorIngreso(ingresoId)

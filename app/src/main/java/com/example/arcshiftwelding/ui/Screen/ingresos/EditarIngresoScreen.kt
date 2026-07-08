@@ -25,6 +25,7 @@ fun EditarIngresoScreen(
     viewModel: IngresosViewModel
 ) {
     val form by viewModel.formState.collectAsState()
+
     var pagosProgramados by remember {
         mutableStateOf(emptyList<PagoProgramadoForm>())
     }

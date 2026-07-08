@@ -81,22 +81,34 @@ interface PagoProgramadoDao {
     )
 
     @Query("""
-        UPDATE pagos_programados
-        SET activo = 0
-        WHERE ingresoAnticipoId = :ingresoId
-    """)
-    suspend fun desactivarPagosPorIngresoAnticipo(
+    UPDATE pagos_programados
+    SET activo = 0
+    WHERE ingresoAnticipoId = :ingresoId
+    AND estado = 'Pendiente'
+""")
+    suspend fun desactivarPagosPendientesPorIngresoAnticipo(
         ingresoId: Int
     )
 
     @Transaction
     @Query("""
-    SELECT * FROM pagos_programados
-    WHERE estado = 'Pendiente'
-    AND activo = 1
-    ORDER BY fechaProgramada ASC
+    SELECT pp.* FROM pagos_programados pp
+    INNER JOIN ingresos i ON i.id = pp.ingresoAnticipoId
+    WHERE pp.estado = 'Pendiente'
+    AND pp.activo = 1
+    AND i.activo = 1
+    ORDER BY pp.fechaProgramada ASC
 """)
     fun obtenerPagosPendientesConRelaciones(): Flow<List<PagoProgramadoConRelaciones>>
+
+    @Query("""
+    UPDATE pagos_programados
+    SET activo = 0
+    WHERE ingresoAnticipoId = :ingresoId
+""")
+    suspend fun desactivarTodosLosPagosPorIngresoAnticipo(
+        ingresoId: Int
+    )
 
     @Query("""
     SELECT * FROM pagos_programados

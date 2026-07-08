@@ -297,7 +297,7 @@ fun SeccionIngresoInformacionGeneralNueva(
                         trabajo = proyecto.nombre,
                         proyecto = proyecto.nombre,
                         clienteId = proyecto.clienteId,
-                        cotizacionId = null,
+                        cotizacionId = proyecto.cotizacionId,
 
                         formaPago = if (requiereAnticipo) "Anticipo" else "Pago",
 
@@ -758,9 +758,11 @@ fun SeccionPagosProgramadosIngreso(
     montoRecibido: Double,
     onPagosChange: (List<PagoProgramadoForm>) -> Unit
 ) {
-    val sumaProgramada = pagos.sumOf {
-        it.monto.aDouble()
-    }
+    val sumaProgramada = pagos
+        .filter { it.estado != "Pagado" }
+        .sumOf {
+            it.monto.aDouble()
+        }
 
     val saldoPendiente = (montoTotalProyecto - montoRecibido).coerceAtLeast(0.0)
     val saldoSinProgramar = (saldoPendiente - sumaProgramada).coerceAtLeast(0.0)
@@ -820,123 +822,129 @@ fun SeccionPagosProgramadosIngreso(
         }
 
         pagos.forEachIndexed { index, pago ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF8FAFC)
+            val pagado = pago.estado == "Pagado"
+
+            if (pagado) {
+                ItemPagoProgramadoPagadoNoEditable(
+                    pago = pago
                 )
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+            } else {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF8FAFC)
+                    )
                 ) {
-                    Text(
-                        text = "Pago ${index + 1}",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                    CampoFechaIngreso(
-                        titulo = "Fecha programada",
-                        valor = pago.fecha,
-                        onFechaSeleccionada = { nuevaFecha ->
-                            onPagosChange(
-                                pagos.toMutableList().also {
-                                    it[index] = pago.copy(fecha = nuevaFecha)
-                                }
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    CampoTextoIngreso(
-                        titulo = "Monto",
-                        valor = pago.monto,
-                        placeholder = "$ 0.00",
-                        onValueChange = { nuevoMonto ->
-                            onPagosChange(
-                                pagos.toMutableList().also {
-                                    it[index] = pago.copy(monto = nuevoMonto)
-                                }
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    val acumuladoHastaEstePago = pagos
-                        .take(index + 1)
-                        .sumOf { it.monto.aDouble() }
-
-                    val saldoDespuesDeEstePago = (
-                            montoTotalProyecto - montoRecibido - acumuladoHastaEstePago
-                            ).coerceAtLeast(0.0)
-
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        )
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        Text(
+                            text = "Pago ${index + 1}",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        CampoFechaIngreso(
+                            titulo = "Fecha programada",
+                            valor = pago.fecha,
+                            onFechaSeleccionada = { nuevaFecha ->
+                                onPagosChange(
+                                    pagos.toMutableList().also {
+                                        it[index] = pago.copy(fecha = nuevaFecha)
+                                    }
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        CampoTextoIngreso(
+                            titulo = "Monto",
+                            valor = pago.monto,
+                            placeholder = "$ 0.00",
+                            onValueChange = { nuevoMonto ->
+                                onPagosChange(
+                                    pagos.toMutableList().also {
+                                        it[index] = pago.copy(monto = nuevoMonto)
+                                    }
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        val acumuladoHastaEstePago = pagos
+                            .filter { it.estado != "Pagado" }
+                            .takeWhile { it != pago }
+                            .sumOf { it.monto.aDouble() } + pago.monto.aDouble()
+
+                        val saldoDespuesDeEstePago = (
+                                montoTotalProyecto - montoRecibido - acumuladoHastaEstePago
+                                ).coerceAtLeast(0.0)
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White
+                            )
                         ) {
-                            FilaResumenPagoProgramado(
-                                titulo = "Monto de este pago",
-                                valor = pago.monto.aDouble().formatoDinero()
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                FilaResumenPagoProgramado(
+                                    titulo = "Monto de este pago",
+                                    valor = pago.monto.aDouble().formatoDinero()
+                                )
+
+                                FilaResumenPagoProgramado(
+                                    titulo = "Saldo después de este pago",
+                                    valor = saldoDespuesDeEstePago.formatoDinero()
+                                )
+                            }
+                        }
+
+                        CampoTextoIngreso(
+                            titulo = "Observaciones",
+                            valor = pago.observaciones,
+                            placeholder = "Opcional",
+                            onValueChange = { nuevasObservaciones ->
+                                onPagosChange(
+                                    pagos.toMutableList().also {
+                                        it[index] = pago.copy(observaciones = nuevasObservaciones)
+                                    }
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        OutlinedButton(
+                            onClick = {
+                                onPagosChange(
+                                    pagos.toMutableList().also {
+                                        it.removeAt(index)
+                                    }
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null
                             )
 
-                            FilaResumenPagoProgramado(
-                                titulo = "Pagos programados acumulados",
-                                valor = acumuladoHastaEstePago.formatoDinero()
-                            )
+                            Spacer(modifier = Modifier.width(6.dp))
 
-                            FilaResumenPagoProgramado(
-                                titulo = "Saldo después de este pago",
-                                valor = saldoDespuesDeEstePago.formatoDinero()
-                            )
+                            Text("Eliminar pago")
                         }
                     }
-
-                    CampoTextoIngreso(
-                        titulo = "Observaciones",
-                        valor = pago.observaciones,
-                        placeholder = "Opcional",
-                        onValueChange = { nuevasObservaciones ->
-                            onPagosChange(
-                                pagos.toMutableList().also {
-                                    it[index] = pago.copy(observaciones = nuevasObservaciones)
-                                }
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    OutlinedButton(
-                        onClick = {
-                            onPagosChange(
-                                pagos.toMutableList().also {
-                                    it.removeAt(index)
-                                }
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null
-                        )
-
-                        Spacer(modifier = Modifier.width(6.dp))
-
-                        Text("Eliminar pago")
-                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
 
         TextButton(
@@ -961,7 +969,74 @@ fun SeccionPagosProgramadosIngreso(
         }
     }
 }
+@Composable
+fun ItemPagoProgramadoPagadoNoEditable(
+    pago: PagoProgramadoForm
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF0FDF4)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF16A34A),
+                    modifier = Modifier.size(18.dp)
+                )
 
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Pago realizado",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF166534)
+                    )
+
+                    Text(
+                        text = "Programado: ${pago.fecha}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.DarkGray
+                    )
+                }
+
+                Text(
+                    text = pago.monto.aDouble().formatoDinero(),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF16A34A)
+                )
+            }
+
+            if (pago.fechaPago.isNotBlank()) {
+                Text(
+                    text = "Pagado el ${pago.fechaPago} · ${pago.metodoPago.ifBlank { "Sin método" }}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.DarkGray
+                )
+            }
+
+            Text(
+                text = "Este pago ya fue registrado y no se puede editar desde esta pantalla.",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+        }
+    }
+}
 @Composable
 fun FilaResumenPagoProgramado(
     titulo: String,
@@ -1003,8 +1078,7 @@ fun SeccionIngresoComprobanteNuevo(
             onChange(
                 form.copy(
                     comprobanteUri = uri.toString(),
-                    tipoComprobante = tipo,
-                    folio = uri.lastPathSegment ?: "Comprobante"
+                    tipoComprobante = tipo
                 )
             )
         }
@@ -1099,7 +1173,7 @@ fun SeccionIngresoComprobanteNuevo(
                         )
 
                         Text(
-                            text = form.folio.ifBlank { "Archivo seleccionado" },
+                            text = "Archivo seleccionado",
                             color = Color.Gray,
                             style = MaterialTheme.typography.labelSmall,
                             maxLines = 1
@@ -1111,8 +1185,7 @@ fun SeccionIngresoComprobanteNuevo(
                             onChange(
                                 form.copy(
                                     comprobanteUri = "",
-                                    tipoComprobante = "",
-                                    folio = ""
+                                    tipoComprobante = ""
                                 )
                             )
                         }
