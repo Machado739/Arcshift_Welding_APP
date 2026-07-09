@@ -778,6 +778,29 @@ fun AppNavigation() {
                     proyectoIdRelacionado = proyectoId.takeIf { it != 0 }
                 )
             }
+
+            composable(
+                route = AppRoutes.NUEVO_GASTO_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    },
+                    navArgument("proyectoNombre") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId")
+                val proyectoNombre = backStackEntry.arguments?.getString("proyectoNombre")
+
+                NuevoGastoScreen(
+                    navController = navController,
+                    viewModel = gastosViewModel,
+                    proyectoIdRelacionado = proyectoId,
+                    proyectoNombreRelacionado = proyectoNombre
+                )
+            }
 ///                     MAS
 ///                     MAS
 ///                     MAS

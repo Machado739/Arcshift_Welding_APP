@@ -14,20 +14,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.Screen.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    navController: NavController,
-    onLoginClick: () -> Unit,
-    loginViewModel: LoginViewModel = viewModel()
+    onLoginClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context)
+    }
+
+    val loginViewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(database)
+    )
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 

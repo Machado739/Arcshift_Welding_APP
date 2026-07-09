@@ -147,33 +147,6 @@ class ProyectosViewModel(
     }
 
 
-    fun asignarEmpleadoAProyecto(
-        proyectoId: Int,
-        empleado: EmpleadoEntity,
-        fechaAsignacion: String,
-        observaciones: String
-    ) {
-        viewModelScope.launch {
-            val proyectoEmpleado = ProyectoEmpleadoEntity(
-                proyectoId = proyectoId,
-                empleadoId = empleado.id,
-                nombreEmpleado = empleado.nombre,
-                puesto = empleado.puesto,
-                tipoPago = "",
-                pagoAcordado = 0.0,
-                diasTrabajados = 0.0,
-                horasTrabajadas = 0.0,
-                porcentaje = 0.0,
-                costoCalculado = 0.0,
-                fechaAsignacion = fechaAsignacion,
-                observaciones = observaciones
-            )
-
-            proyectoRepository.asignarEmpleado(proyectoEmpleado)
-            _mensaje.value = "Empleado asignado al proyecto"
-        }
-    }
-
     fun registrarMaterialUsado(
         proyectoId: Int,
         productoId: Int,
@@ -484,6 +457,108 @@ class ProyectosViewModel(
         return cotizacionDao.observarCotizacionPorId(cotizacionId)
     }
 
+
+    fun asignarEmpleadoAProyecto(
+        proyectoId: Int,
+        empleado: EmpleadoEntity,
+        presupuestoEstimado: Double,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        fechaAsignacion: String,
+        observaciones: String
+    ) {
+        viewModelScope.launch {
+            val yaExiste = proyectoEmpleadoDao.existeEmpleadoEnProyecto(
+                proyectoId = proyectoId,
+                empleadoId = empleado.id
+            ) > 0
+
+            if (yaExiste) {
+                _mensaje.value = "Este empleado ya está asignado al proyecto"
+                return@launch
+            }
+
+            val tipoPago = empleado.tipoPago
+            val porcentaje = empleado.porcentajeContrato
+                .replace("%", "")
+                .replace(",", ".")
+                .toDoubleOrNull() ?: 0.0
+
+            val costoCalculado = calcularCostoEmpleadoProyecto(
+                tipoPago = tipoPago,
+                pagoAcordado = empleado.salario,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = porcentaje,
+                presupuestoEstimado = presupuestoEstimado
+            )
+
+            val proyectoEmpleado = ProyectoEmpleadoEntity(
+                proyectoId = proyectoId,
+                empleadoId = empleado.id,
+                nombreEmpleado = empleado.nombre,
+                puesto = empleado.puesto,
+                tipoPago = tipoPago,
+                pagoAcordado = empleado.salario,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = porcentaje,
+                costoCalculado = costoCalculado,
+                fechaAsignacion = fechaAsignacion,
+                observaciones = observaciones
+            )
+
+            proyectoRepository.asignarEmpleado(proyectoEmpleado)
+            _mensaje.value = "Empleado asignado al proyecto"
+        }
+    }
+
+    fun actualizarEmpleadoAsignadoProyecto(
+        empleadoProyecto: ProyectoEmpleadoEntity,
+        presupuestoEstimado: Double,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        observaciones: String
+    ) {
+        viewModelScope.launch {
+            val costoCalculado = calcularCostoEmpleadoProyecto(
+                tipoPago = empleadoProyecto.tipoPago,
+                pagoAcordado = empleadoProyecto.pagoAcordado,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = empleadoProyecto.porcentaje,
+                presupuestoEstimado = presupuestoEstimado
+            )
+
+            proyectoEmpleadoDao.actualizarDatosEmpleadoProyecto(
+                id = empleadoProyecto.id,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = empleadoProyecto.porcentaje,
+                costoCalculado = costoCalculado,
+                observaciones = observaciones
+            )
+
+            _mensaje.value = "Empleado actualizado"
+        }
+    }
+    private fun calcularCostoEmpleadoProyecto(
+        tipoPago: String,
+        pagoAcordado: Double,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        porcentaje: Double,
+        presupuestoEstimado: Double
+    ): Double {
+        return when (tipoPago) {
+            "Día" -> diasTrabajados * pagoAcordado
+            "Semana" -> diasTrabajados * pagoAcordado
+            "Hora" -> horasTrabajadas * pagoAcordado
+            "Porcentaje" -> presupuestoEstimado * (porcentaje / 100)
+            "Trabajo" -> pagoAcordado
+            else -> 0.0
+        }
+    }
 
 
 }

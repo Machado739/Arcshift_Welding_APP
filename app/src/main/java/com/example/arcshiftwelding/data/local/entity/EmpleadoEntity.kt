@@ -14,6 +14,7 @@ data class EmpleadoEntity(
     val salario: Double,
     val fechaIngreso: String,
     val activo: Boolean = true,
+    val tipoPago: String = "Día",
     val direccion: String = "",
     val porcentajeContrato: String = "",
     val trabajoActual: String = "",

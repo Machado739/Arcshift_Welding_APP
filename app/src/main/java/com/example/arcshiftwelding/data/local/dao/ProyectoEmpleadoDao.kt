@@ -42,4 +42,34 @@ interface ProyectoEmpleadoDao {
         WHERE proyectoId = :proyectoId
     """)
     fun totalManoObraPorProyecto(proyectoId: Int): Flow<Double>
+
+
+    @Query("""
+    SELECT COUNT(*) 
+    FROM proyecto_empleados
+    WHERE proyectoId = :proyectoId
+    AND empleadoId = :empleadoId
+""")
+    suspend fun existeEmpleadoEnProyecto(
+        proyectoId: Int,
+        empleadoId: Int
+    ): Int
+
+    @Query("""
+    UPDATE proyecto_empleados
+    SET diasTrabajados = :diasTrabajados,
+        horasTrabajadas = :horasTrabajadas,
+        porcentaje = :porcentaje,
+        costoCalculado = :costoCalculado,
+        observaciones = :observaciones
+    WHERE id = :id
+""")
+    suspend fun actualizarDatosEmpleadoProyecto(
+        id: Int,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        porcentaje: Double,
+        costoCalculado: Double,
+        observaciones: String
+    )
 }

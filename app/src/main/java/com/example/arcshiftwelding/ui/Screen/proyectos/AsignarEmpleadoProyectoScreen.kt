@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.ui.Screen.proyectos
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,11 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -35,7 +42,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
@@ -52,10 +61,14 @@ fun AsignarEmpleadoProyectoScreen(
 ) {
     val empleados by proyectosViewModel.empleadosDisponibles.collectAsState()
     val mensaje by proyectosViewModel.mensaje.collectAsState()
+    val proyectos by proyectosViewModel.proyectos.collectAsState()
+
+    val proyectoActual = proyectos.firstOrNull { it.id == proyectoId }
 
     var empleadoSeleccionado by remember { mutableStateOf<EmpleadoEntity?>(null) }
     var busquedaEmpleado by remember { mutableStateOf("") }
     var expandidoEmpleado by remember { mutableStateOf(false) }
+    var tiempoTrabajoTexto by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
 
     val formatoFecha = remember {
@@ -72,6 +85,24 @@ fun AsignarEmpleadoProyectoScreen(
         empleado.nombre.contains(busquedaEmpleado, ignoreCase = true) ||
                 empleado.puesto.contains(busquedaEmpleado, ignoreCase = true)
     }
+
+    val tipoPagoEmpleado = empleadoSeleccionado?.tipoPago.orEmpty()
+    val tipoPagoNormalizado = tipoPagoEmpleado.lowercase(Locale.getDefault())
+
+    val esPagoPorDia = tipoPagoNormalizado.contains("día") ||
+            tipoPagoNormalizado.contains("dia")
+
+    val esPagoPorSemana = tipoPagoNormalizado.contains("semana")
+    val esPagoPorHora = tipoPagoNormalizado.contains("hora")
+
+    val esPagoPorPorcentaje = tipoPagoNormalizado.contains("porcentaje") ||
+            tipoPagoEmpleado.contains("%")
+
+    val requiereTiempo = esPagoPorDia || esPagoPorSemana || esPagoPorHora
+    val tiempoTrabajo = tiempoTrabajoTexto.replace(",", ".").toDoubleOrNull() ?: 0.0
+
+    val formularioValido = empleadoSeleccionado != null &&
+            (!requiereTiempo || tiempoTrabajo > 0.0)
 
     LaunchedEffect(mensaje) {
         if (mensaje == "Empleado asignado al proyecto") {
@@ -138,7 +169,8 @@ fun AsignarEmpleadoProyectoScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
@@ -154,6 +186,7 @@ fun AsignarEmpleadoProyectoScreen(
                         busquedaEmpleado = it
                         expandidoEmpleado = true
                         empleadoSeleccionado = null
+                        tiempoTrabajoTexto = ""
                     },
                     label = { Text("Buscar empleado") },
                     placeholder = { Text("Nombre o puesto") },
@@ -194,7 +227,7 @@ fun AsignarEmpleadoProyectoScreen(
                                             fontWeight = FontWeight.SemiBold
                                         )
                                         Text(
-                                            text = empleado.puesto,
+                                            text = "${empleado.puesto} | ${empleado.tipoPago}",
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
@@ -202,12 +235,121 @@ fun AsignarEmpleadoProyectoScreen(
                                 onClick = {
                                     empleadoSeleccionado = empleado
                                     busquedaEmpleado = empleado.nombre
+                                    tiempoTrabajoTexto = ""
                                     expandidoEmpleado = false
                                 }
                             )
                         }
                     }
                 }
+            }
+
+            if (empleadoSeleccionado != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF8FAFC)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Empleado seleccionado",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF0F172A)
+                        )
+
+                        Text(
+                            text = empleadoSeleccionado!!.nombre,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Text(
+                            text = "Puesto: ${empleadoSeleccionado!!.puesto.ifBlank { "Sin puesto" }}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF64748B)
+                        )
+
+                        Text(
+                            text = "Tipo de pago: ${tipoPagoEmpleado.ifBlank { "No definido" }}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF2563EB),
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        if (esPagoPorPorcentaje) {
+                            Text(
+                                text = "Porcentaje registrado: ${empleadoSeleccionado!!.porcentajeContrato.ifBlank { "0%" }}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF2563EB)
+                            )
+                        } else {
+                            Text(
+                                text = "Pago base: ${formatoMonedaProyecto(empleadoSeleccionado!!.salario)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF2563EB)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (empleadoSeleccionado != null && requiereTiempo) {
+                OutlinedTextField(
+                    value = tiempoTrabajoTexto,
+                    onValueChange = { nuevoValor ->
+                        val valorValido = nuevoValor.isBlank() ||
+                                nuevoValor.matches(Regex("^\\d*([.,]\\d*)?$"))
+
+                        if (valorValido) {
+                            tiempoTrabajoTexto = nuevoValor
+                        }
+                    },
+                    label = {
+                        Text(
+                            when {
+                                esPagoPorSemana -> "Semanas estimadas"
+                                esPagoPorHora -> "Horas estimadas"
+                                else -> "Días estimados"
+                            }
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            when {
+                                esPagoPorSemana -> "Ej. 2"
+                                esPagoPorHora -> "Ej. 8"
+                                else -> "Ej. 5"
+                            }
+                        )
+                    },
+                    supportingText = {
+                        Text("Este dato se puede modificar después si el proyecto se alarga.")
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            if (empleadoSeleccionado != null && esPagoPorPorcentaje) {
+                Text(
+                    text = "El costo se calculará con el porcentaje del empleado sobre el presupuesto del proyecto.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF2563EB),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = Color(0xFFEFF6FF),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .padding(10.dp)
+                )
             }
 
             OutlinedTextField(
@@ -241,7 +383,11 @@ fun AsignarEmpleadoProyectoScreen(
             if (!mensaje.isNullOrBlank()) {
                 Text(
                     text = mensaje ?: "",
-                    color = MaterialTheme.colorScheme.error,
+                    color = if (mensaje == "Este empleado ya está asignado al proyecto") {
+                        Color(0xFFDC2626)
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -252,14 +398,27 @@ fun AsignarEmpleadoProyectoScreen(
                 onClick = {
                     val empleado = empleadoSeleccionado ?: return@Button
 
+                    val diasTrabajados = when {
+                        esPagoPorDia || esPagoPorSemana -> tiempoTrabajo
+                        else -> 0.0
+                    }
+
+                    val horasTrabajadas = when {
+                        esPagoPorHora -> tiempoTrabajo
+                        else -> 0.0
+                    }
+
                     proyectosViewModel.asignarEmpleadoAProyecto(
                         proyectoId = proyectoId,
                         empleado = empleado,
+                        presupuestoEstimado = proyectoActual?.presupuestoEstimado ?: 0.0,
+                        diasTrabajados = diasTrabajados,
+                        horasTrabajadas = horasTrabajadas,
                         fechaAsignacion = fechaAsignacion,
                         observaciones = observaciones
                     )
                 },
-                enabled = empleadoSeleccionado != null,
+                enabled = formularioValido,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Asignar empleado")

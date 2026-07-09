@@ -55,7 +55,7 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         ProyectoCostoEntity::class
 
                ],
-    version = 24,
+    version = 25,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {

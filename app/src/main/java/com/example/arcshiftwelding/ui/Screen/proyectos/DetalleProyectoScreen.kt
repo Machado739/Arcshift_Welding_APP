@@ -298,52 +298,21 @@ fun DetalleProyectoScreen(
                 )
             }
 
-            CardSeccionDetalleProyecto(
-                titulo = "Empleados y material",
-                icono = Icons.Default.Groups
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    BotonAccionProyecto(
-                        icono = Icons.Default.Groups,
-                        titulo = "Empleados",
-                        subtitulo = "Asignar personal",
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            // Después conectamos AsignarEmpleadosProyectoScreen
-                        }
-                    )
-
-                    BotonAccionProyecto(
-                        icono = Icons.Default.Inventory,
-                        titulo = "Material",
-                        subtitulo = "Registrar uso",
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            // Después conectamos AgregarMaterialProyectoScreen
-                        }
-                    )
-                }
-            }
-
-
-
             SeccionResumenCostosProyecto(
                 resumen = resumenCostos
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
 
             SeccionEmpleadosProyecto(
                 empleados = empleados,
                 onAgregarEmpleado = {
                     navController.navigate(AppRoutes.asignarEmpleadoProyecto(proyecto.id))
+                },
+                onEditarEmpleado = { empleadoProyecto ->
+                    // Aquí puedes abrir un diálogo o navegar a editar empleado del proyecto
                 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
 
             SeccionMaterialesProyecto(
                 materiales = materiales,
@@ -355,12 +324,16 @@ fun DetalleProyectoScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
 
             SeccionGastosProyecto(
                 gastos = gastosProyecto,
                 onAgregarGasto = {
-                    navController.navigate(AppRoutes.nuevoGastoProyecto(proyecto.id))
+                    navController.navigate(
+                        AppRoutes.nuevoGastoProyecto(
+                            proyectoId = proyecto.id,
+                            proyectoNombre = proyecto.nombre
+                        )
+                    )
                 }
             )
 
@@ -533,23 +506,20 @@ fun FilaCostoProyecto(
         )
     }
 }
-
 @Composable
 fun SeccionEmpleadosProyecto(
     empleados: List<ProyectoEmpleadoEntity>,
-    onAgregarEmpleado: () -> Unit
+    onAgregarEmpleado: () -> Unit,
+    onEditarEmpleado: (ProyectoEmpleadoEntity) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -558,7 +528,8 @@ fun SeccionEmpleadosProyecto(
                 Text(
                     text = "Empleados asignados",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A)
                 )
 
                 TextButton(onClick = onAgregarEmpleado) {
@@ -566,40 +537,144 @@ fun SeccionEmpleadosProyecto(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             if (empleados.isEmpty()) {
                 Text(
                     text = "No hay empleados asignados.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color(0xFF64748B)
                 )
             } else {
                 empleados.forEach { empleado ->
-                    Column(
+
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp)
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF8FAFC)
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
                     ) {
-                        Text(
-                            text = empleado.nombreEmpleado,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
 
-                        Text(
-                            text = "${empleado.puesto} - ${empleado.tipoPago}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = empleado.nombreEmpleado,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F172A)
+                                    )
 
-                        Text(
-                            text = "Costo: $${String.format("%.2f", empleado.costoCalculado)}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                                    Text(
+                                        text = empleado.puesto.ifBlank { "Sin puesto" },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF64748B)
+                                    )
+                                }
+
+                                TextButton(
+                                    onClick = { onEditarEmpleado(empleado) }
+                                ) {
+                                    Text("Editar")
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                ChipDatoProyecto(
+                                    titulo = "Pago",
+                                    valor = empleado.tipoPago.ifBlank { "No definido" },
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                ChipDatoProyecto(
+                                    titulo = when (empleado.tipoPago) {
+                                        "Semana" -> "Semanas"
+                                        "Hora" -> "Horas"
+                                        "Porcentaje" -> "Porcentaje"
+                                        else -> "Días"
+                                    },
+                                    valor = when (empleado.tipoPago) {
+                                        "Hora" -> empleado.horasTrabajadas.toString()
+                                        "Porcentaje" -> "${empleado.porcentaje}%"
+                                        else -> empleado.diasTrabajados.toString()
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = Color(0xFFEFF6FF),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Costo calculado",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF1E40AF),
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                Text(
+                                    text = formatoMonedaProyecto(empleado.costoCalculado),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF1E40AF),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
-
-                    Divider()
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ChipDatoProyecto(
+    titulo: String,
+    valor: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(
+                color = Color.White,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .padding(8.dp)
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color(0xFF64748B)
+        )
+
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF0F172A),
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 @Composable
@@ -610,15 +685,12 @@ fun SeccionMaterialesProyecto(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -627,7 +699,8 @@ fun SeccionMaterialesProyecto(
                 Text(
                     text = "Material usado",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A)
                 )
 
                 TextButton(onClick = onRegistrarMaterial) {
@@ -635,53 +708,82 @@ fun SeccionMaterialesProyecto(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             if (materiales.isEmpty()) {
                 Text(
                     text = "No hay material registrado.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color(0xFF64748B)
                 )
             } else {
                 materiales.forEach { material ->
-                    Row(
+
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF9FAFB)
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                     ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = material.nombreProducto,
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            Text(
-                                text = "${material.cantidadUsada} ${material.unidad} x $${String.format("%.2f", material.costoUnitario)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
-
-                            Text(
-                                text = "Subtotal: $${String.format("%.2f", material.subtotal)}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-
-                        IconButton(
-                            onClick = {
-                                onEliminarMaterial(material)
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .background(
+                                        color = Color(0xFFECFDF5),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Inventory,
+                                    contentDescription = null,
+                                    tint = Color(0xFF16A34A)
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar material"
-                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = material.nombreProducto,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF0F172A)
+                                )
+
+                                Text(
+                                    text = "${material.cantidadUsada} ${material.unidad} x ${formatoMonedaProyecto(material.costoUnitario)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF64748B)
+                                )
+
+                                Text(
+                                    text = "Subtotal: ${formatoMonedaProyecto(material.subtotal)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF166534),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { onEliminarMaterial(material) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar material",
+                                    tint = Color(0xFF991B1B)
+                                )
+                            }
                         }
                     }
-
-                    Divider()
                 }
             }
         }
@@ -1063,6 +1165,7 @@ fun BotonRapidoInferiorProyecto(
     }
 }
 
+
 @Composable
 fun SeccionGastosProyecto(
     gastos: List<GastoEntity>,
@@ -1070,15 +1173,12 @@ fun SeccionGastosProyecto(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1087,7 +1187,8 @@ fun SeccionGastosProyecto(
                 Text(
                     text = "Gastos del proyecto",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A)
                 )
 
                 TextButton(onClick = onAgregarGasto) {
@@ -1095,37 +1196,65 @@ fun SeccionGastosProyecto(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             if (gastos.isEmpty()) {
                 Text(
                     text = "No hay gastos relacionados con este proyecto.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = Color(0xFF64748B)
                 )
             } else {
                 gastos.forEach { gasto ->
-                    Column(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 6.dp)
+                            .padding(vertical = 6.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFFBEB)
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFFFDE68A))
                     ) {
-                        Text(
-                            text = gasto.concepto,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Column(modifier = Modifier.padding(12.dp)) {
 
-                        Text(
-                            text = gasto.categoria,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = gasto.concepto,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F172A)
+                                    )
 
-                        Text(
-                            text = "$${String.format("%.2f", gasto.total)}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                                    Text(
+                                        text = "${gasto.categoria} | ${gasto.fecha}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF92400E)
+                                    )
+                                }
+
+                                Text(
+                                    text = formatoMonedaProyecto(gasto.total),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF92400E)
+                                )
+                            }
+
+                            if (!gasto.proveedor.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Proveedor: ${gasto.proveedor}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF64748B)
+                                )
+                            }
+                        }
                     }
-
-                    Divider()
                 }
             }
         }

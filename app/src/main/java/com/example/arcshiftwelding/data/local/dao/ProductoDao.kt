@@ -163,5 +163,4 @@ interface ProductoDao {
     ///test
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarProductos(productos: List<ProductoEntity>)
-
 }

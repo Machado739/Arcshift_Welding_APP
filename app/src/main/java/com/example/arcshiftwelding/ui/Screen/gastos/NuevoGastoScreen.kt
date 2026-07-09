@@ -33,7 +33,8 @@ import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 fun NuevoGastoScreen(
     navController: NavController,
     viewModel: GastosViewModel,
-    proyectoIdRelacionado: Int? = null
+    proyectoIdRelacionado: Int? = null,
+    proyectoNombreRelacionado: String? = null
 ) {
     var concepto by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
@@ -47,7 +48,10 @@ fun NuevoGastoScreen(
 
     var observaciones by remember { mutableStateOf("") }
 
-    var proyecto by remember { mutableStateOf("") }
+    var proyecto by remember {
+        mutableStateOf(proyectoNombreRelacionado ?: "")
+    }
+
     var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
     var cotizacionSeleccionadaId by remember { mutableStateOf<Int?>(null) }
     val proyectosDb by viewModel.proyectos.collectAsState(initial = emptyList())
@@ -366,13 +370,41 @@ fun NuevoGastoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CampoSelectorProyectoNuevoGasto(
-                        label = "Proyecto",
-                        proyectos = proyectosDb,
-                        proyectoSeleccionado = proyecto,
-                        onProyectoSeleccionado = { proyecto = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (proyectoIdRelacionado != null) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFEFF6FF)
+                            ),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Text(
+                                    text = "Gasto relacionado al proyecto",
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1D4ED8)
+                                )
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Text(
+                                    text = proyectoNombreRelacionado ?: "Proyecto #$proyectoIdRelacionado",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF1E40AF)
+                                )
+                            }
+                        }
+                    } else {
+                        CampoSelectorProyectoNuevoGasto(
+                            label = "Proyecto",
+                            proyectos = proyectosDb,
+                            proyectoSeleccionado = proyecto,
+                            onProyectoSeleccionado = { proyecto = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     CampoSelectorClienteNuevoGasto(
                         label = "Cliente",
@@ -439,7 +471,7 @@ fun NuevoGastoScreen(
                                 ivaPorcentaje = ivaValor,
                                 iva = ivaCalculado,
                                 proyectoId = proyectoIdRelacionado,
-                                proyectoNombre = "",
+                                proyectoNombre = proyectoNombreRelacionado ?: proyecto,
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = "",
@@ -447,7 +479,7 @@ fun NuevoGastoScreen(
                                 correoProveedor = correoProveedor.ifBlank { null },
                                 rfcProveedor = rfcProveedor.ifBlank { null },
                                 observaciones = observaciones.ifBlank { null },
-                                proyecto = proyecto.takeIf { it.isNotBlank() },
+                                proyecto = (proyectoNombreRelacionado ?: proyecto).takeIf { it.isNotBlank() },
                                 clienteId = clienteSeleccionadoId,
                                 cotizacionId = cotizacionSeleccionadaId
                             )

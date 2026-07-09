@@ -190,6 +190,14 @@ object AppRoutes {
         return "nuevo_gasto?proyectoId=$proyectoId"
     }
 
+    const val NUEVO_GASTO_PROYECTO = "nuevo_gasto_proyecto/{proyectoId}/{proyectoNombre}"
+
+    fun nuevoGastoProyecto(
+        proyectoId: Int,
+        proyectoNombre: String
+    ): String {
+        return "nuevo_gasto_proyecto/$proyectoId/$proyectoNombre"
+    }
 ///                     MAS
 ///                     MAS
 ///                     MAS

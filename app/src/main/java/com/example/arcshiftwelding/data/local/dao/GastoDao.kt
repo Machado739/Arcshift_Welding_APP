@@ -47,7 +47,7 @@ interface GastoDao {
     @Query("""
     SELECT * FROM gastos
     WHERE proyectoId = :proyectoId
-    ORDER BY fecha DESC
+    ORDER BY id DESC
 """)
     fun obtenerGastosPorProyecto(proyectoId: Int): Flow<List<GastoEntity>>
 
@@ -57,5 +57,7 @@ interface GastoDao {
     WHERE proyectoId = :proyectoId
 """)
     fun totalGastosPorProyecto(proyectoId: Int): Flow<Double>
+
+
 
 }

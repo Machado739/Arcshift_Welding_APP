@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 @Entity(
     tableName = "gastos",
     foreignKeys = [
@@ -19,11 +19,18 @@ import androidx.room.PrimaryKey
             parentColumns = ["id"],
             childColumns = ["cotizacionId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = ProyectoEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["proyectoId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
     indices = [
         Index(value = ["clienteId"]),
-        Index(value = ["cotizacionId"])
+        Index(value = ["cotizacionId"]),
+        Index(value = ["proyectoId"])
     ]
 )
 data class GastoEntity(
@@ -52,4 +59,5 @@ data class GastoEntity(
 
     val clienteId: Int?,
     val cotizacionId: Int?
+
 )
