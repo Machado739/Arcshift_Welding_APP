@@ -73,6 +73,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.TextButton
+import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
@@ -146,9 +147,7 @@ fun DetalleProyectoScreen(
         .obtenerMaterialesProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val costos by viewModel
-        .obtenerCostosProyecto(proyecto.id)
-        .collectAsState(initial = emptyList())
+
 
     val resumenCostos by viewModel
         .obtenerResumenCostosProyecto(
@@ -160,6 +159,10 @@ fun DetalleProyectoScreen(
                 precioCotizado = proyecto.presupuestoEstimado
             )
         )
+
+    val gastosProyecto by viewModel
+        .obtenerGastosProyecto(proyecto.id)
+        .collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
@@ -354,10 +357,10 @@ fun DetalleProyectoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            SeccionCostosProyecto(
-                costos = costos,
-                onAgregarCosto = {
-                    navController.navigate(AppRoutes.agregarCostoProyecto(proyecto.id))
+            SeccionGastosProyecto(
+                gastos = gastosProyecto,
+                onAgregarGasto = {
+                    navController.navigate(AppRoutes.nuevoGastoProyecto(proyecto.id))
                 }
             )
 
@@ -1056,6 +1059,75 @@ fun BotonRapidoInferiorProyecto(
                 color = Color(0xFF0F172A),
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+fun SeccionGastosProyecto(
+    gastos: List<GastoEntity>,
+    onAgregarGasto: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Gastos del proyecto",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(onClick = onAgregarGasto) {
+                    Text("Agregar")
+                }
+            }
+
+            if (gastos.isEmpty()) {
+                Text(
+                    text = "No hay gastos relacionados con este proyecto.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            } else {
+                gastos.forEach { gasto ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = gasto.concepto,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Text(
+                            text = gasto.categoria,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+
+                        Text(
+                            text = "$${String.format("%.2f", gasto.total)}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Divider()
+                }
+            }
         }
     }
 }

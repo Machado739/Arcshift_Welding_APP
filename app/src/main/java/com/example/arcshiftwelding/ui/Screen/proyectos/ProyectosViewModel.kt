@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
+import com.example.arcshiftwelding.data.local.dao.GastoDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoCostoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoDao
@@ -13,6 +14,8 @@ import com.example.arcshiftwelding.data.local.dao.ProyectoMaterialDao
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
+import com.example.arcshiftwelding.data.local.entity.GastoEntity
+import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoCostoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
@@ -77,6 +80,7 @@ class ProyectosViewModel(
     private val cotizacionDao: CotizacionDao,
     private val empleadoDao: EmpleadoDao,
     private val productoDao: ProductoDao,
+    private val gastoDao: GastoDao,
     private val proyectoEmpleadoDao: ProyectoEmpleadoDao,
     private val proyectoMaterialDao: ProyectoMaterialDao,
     private val proyectoCostoDao: ProyectoCostoDao,
@@ -86,6 +90,27 @@ class ProyectosViewModel(
 
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje.asStateFlow()
+
+
+    val productosInventario: StateFlow<List<ProductoEntity>> =
+        productoDao.obtenerProductosParaProyecto()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+    val empleadosDisponibles: StateFlow<List<EmpleadoEntity>> =
+        empleadoDao.obtenerEmpleadosParaProyecto()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+    fun obtenerGastosProyecto(proyectoId: Int): Flow<List<GastoEntity>> {
+        return gastoDao.obtenerGastosPorProyecto(proyectoId)
+    }
 
     fun obtenerEmpleadosProyecto(proyectoId: Int): Flow<List<ProyectoEmpleadoEntity>> {
         return proyectoEmpleadoDao.obtenerPorProyecto(proyectoId)
@@ -106,13 +131,13 @@ class ProyectosViewModel(
         return combine(
             proyectoMaterialDao.totalMaterialesPorProyecto(proyectoId),
             proyectoEmpleadoDao.totalManoObraPorProyecto(proyectoId),
-            proyectoCostoDao.totalCostosPorProyecto(proyectoId)
-        ) { materiales, manoObra, costos ->
+            gastoDao.totalGastosPorProyecto(proyectoId)
+        ) { materiales, manoObra, gastos ->
             ResumenCostosProyecto(
                 precioCotizado = presupuestoEstimado,
                 costoMateriales = materiales,
                 costoManoObra = manoObra,
-                costosAdicionales = costos
+                costosAdicionales = gastos
             )
         }
     }
@@ -125,36 +150,21 @@ class ProyectosViewModel(
     fun asignarEmpleadoAProyecto(
         proyectoId: Int,
         empleado: EmpleadoEntity,
-        tipoPago: String,
-        pagoAcordado: Double,
-        diasTrabajados: Double,
-        horasTrabajadas: Double,
-        porcentaje: Double,
-        precioCotizado: Double,
         fechaAsignacion: String,
         observaciones: String
     ) {
         viewModelScope.launch {
-            val costoCalculado = calcularCostoEmpleado(
-                tipoPago = tipoPago,
-                pagoAcordado = pagoAcordado,
-                diasTrabajados = diasTrabajados,
-                horasTrabajadas = horasTrabajadas,
-                porcentaje = porcentaje,
-                precioCotizado = precioCotizado
-            )
-
             val proyectoEmpleado = ProyectoEmpleadoEntity(
                 proyectoId = proyectoId,
                 empleadoId = empleado.id,
                 nombreEmpleado = empleado.nombre,
                 puesto = empleado.puesto,
-                tipoPago = tipoPago,
-                pagoAcordado = pagoAcordado,
-                diasTrabajados = diasTrabajados,
-                horasTrabajadas = horasTrabajadas,
-                porcentaje = porcentaje,
-                costoCalculado = costoCalculado,
+                tipoPago = "",
+                pagoAcordado = 0.0,
+                diasTrabajados = 0.0,
+                horasTrabajadas = 0.0,
+                porcentaje = 0.0,
+                costoCalculado = 0.0,
                 fechaAsignacion = fechaAsignacion,
                 observaciones = observaciones
             )

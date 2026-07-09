@@ -34,4 +34,11 @@ interface EmpleadoDao {
     ORDER BY nombre ASC
 """)
     fun obtenerTodosLosEmpleados(): kotlinx.coroutines.flow.Flow<List<EmpleadoEntity>>
+
+
+    @Query("""
+    SELECT * FROM empleados
+    ORDER BY nombre ASC
+""")
+    fun obtenerEmpleadosParaProyecto(): Flow<List<EmpleadoEntity>>
 }

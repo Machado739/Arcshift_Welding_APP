@@ -78,6 +78,8 @@ class GastosViewModel(
         observaciones: String?,
         proyecto: String?,
         clienteId: Int?,
+        proyectoNombre: String?,
+        proyectoId: Int?,
         cotizacionId: Int?,
         onFinish: () -> Unit = {}
     ) {
@@ -99,7 +101,9 @@ class GastosViewModel(
                 observaciones = observaciones,
                 proyecto = proyecto,
                 clienteId = clienteId,
-                cotizacionId = cotizacionId
+                cotizacionId = cotizacionId,
+                proyectoId = proyectoId,
+                proyectoNombre = proyectoNombre,
             )
 
             gastoDao.insertarGasto(nuevoGasto)

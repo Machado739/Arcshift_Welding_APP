@@ -44,6 +44,18 @@ interface GastoDao {
     @Query("SELECT * FROM gastos WHERE cotizacionId = :cotizacionId ORDER BY id DESC")
     fun obtenerGastosPorCotizacion(cotizacionId: Int): Flow<List<GastoEntity>>
 
+    @Query("""
+    SELECT * FROM gastos
+    WHERE proyectoId = :proyectoId
+    ORDER BY fecha DESC
+""")
+    fun obtenerGastosPorProyecto(proyectoId: Int): Flow<List<GastoEntity>>
 
+    @Query("""
+    SELECT COALESCE(SUM(total), 0)
+    FROM gastos
+    WHERE proyectoId = :proyectoId
+""")
+    fun totalGastosPorProyecto(proyectoId: Int): Flow<Double>
 
 }

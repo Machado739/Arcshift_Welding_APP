@@ -184,6 +184,12 @@ object AppRoutes {
         return "nuevo_proyecto_desde_cotizacion/$cotizacionId"
     }
 
+    const val NUEVO_GASTO_CON_PROYECTO = "nuevo_gasto?proyectoId={proyectoId}"
+
+    fun nuevoGastoProyecto(proyectoId: Int): String {
+        return "nuevo_gasto?proyectoId=$proyectoId"
+    }
+
 ///                     MAS
 ///                     MAS
 ///                     MAS

@@ -760,6 +760,24 @@ fun AppNavigation() {
             }
 
 
+            composable(
+                route = AppRoutes.NUEVO_GASTO_CON_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                        defaultValue = 0
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                NuevoGastoScreen(
+                    navController = navController,
+                    viewModel = gastosViewModel,
+                    proyectoIdRelacionado = proyectoId.takeIf { it != 0 }
+                )
+            }
 ///                     MAS
 ///                     MAS
 ///                     MAS

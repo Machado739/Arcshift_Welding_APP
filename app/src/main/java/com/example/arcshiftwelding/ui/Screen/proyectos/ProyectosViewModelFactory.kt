@@ -18,6 +18,7 @@ class ProyectosViewModelFactory(
                 cotizacionDao = database.cotizacionDao(),
                 empleadoDao = database.empleadoDao(),
                 productoDao = database.productoDao(),
+                gastoDao = database.gastoDao(),
                 proyectoEmpleadoDao = database.proyectoEmpleadoDao(),
                 proyectoMaterialDao = database.proyectoMaterialDao(),
                 proyectoCostoDao = database.proyectoCostoDao(),

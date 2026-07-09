@@ -32,7 +32,8 @@ import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 @Composable
 fun NuevoGastoScreen(
     navController: NavController,
-    viewModel: GastosViewModel
+    viewModel: GastosViewModel,
+    proyectoIdRelacionado: Int? = null
 ) {
     var concepto by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf("") }
@@ -437,6 +438,8 @@ fun NuevoGastoScreen(
                                 subtotal = subtotalValor,
                                 ivaPorcentaje = ivaValor,
                                 iva = ivaCalculado,
+                                proyectoId = proyectoIdRelacionado,
+                                proyectoNombre = "",
                                 total = totalCalculado,
                                 metodoPago = metodoPago,
                                 formaPago = "",

@@ -152,5 +152,11 @@ interface ProductoDao {
         cantidad: Int
     ): Int
 
+    @Query("""
+    SELECT * FROM productos
+    ORDER BY nombre ASC
+""")
+    fun obtenerProductosParaProyecto(): Flow<List<ProductoEntity>>
+
 
 }

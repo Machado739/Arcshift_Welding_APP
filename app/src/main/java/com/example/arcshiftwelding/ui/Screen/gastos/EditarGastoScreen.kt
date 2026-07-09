@@ -17,9 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.entity.GastoEntity
-import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.gastos.TarjetaDetalleGasto
-import com.example.arcshiftwelding.ui.gastos.GastosViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
