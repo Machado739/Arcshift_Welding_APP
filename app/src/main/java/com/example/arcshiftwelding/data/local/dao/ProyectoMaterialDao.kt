@@ -1,24 +1,45 @@
 package com.example.arcshiftwelding.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProyectoMaterialDao {
 
-    @Query("SELECT * FROM proyecto_materiales WHERE proyectoId = :proyectoId ORDER BY id DESC")
-    fun obtenerMaterialesPorProyecto(proyectoId: Int): Flow<List<ProyectoMaterialEntity>>
-
     @Insert
-    suspend fun agregarMaterial(proyectoMaterial: ProyectoMaterialEntity)
+    suspend fun insertar(material: ProyectoMaterialEntity)
+
+    @Update
+    suspend fun actualizar(material: ProyectoMaterialEntity)
 
     @Delete
-    suspend fun eliminarMaterial(proyectoMaterial: ProyectoMaterialEntity)
+    suspend fun eliminar(material: ProyectoMaterialEntity)
 
-    @Query("SELECT SUM(subtotal) FROM proyecto_materiales WHERE proyectoId = :proyectoId")
-    suspend fun obtenerCostoMaterialesProyecto(proyectoId: Int): Double?
+    @Query("""
+        SELECT * FROM proyecto_materiales
+        WHERE proyectoId = :proyectoId
+        ORDER BY fechaUso DESC
+    """)
+    fun obtenerPorProyecto(proyectoId: Int): Flow<List<ProyectoMaterialEntity>>
+
+    @Query("""
+        SELECT * FROM proyecto_materiales
+        WHERE id = :id
+        LIMIT 1
+    """)
+    suspend fun obtenerPorId(id: Int): ProyectoMaterialEntity?
+
+    @Query("""
+        DELETE FROM proyecto_materiales
+        WHERE proyectoId = :proyectoId
+    """)
+    suspend fun eliminarPorProyecto(proyectoId: Int)
+
+    @Query("""
+        SELECT COALESCE(SUM(subtotal), 0)
+        FROM proyecto_materiales
+        WHERE proyectoId = :proyectoId
+    """)
+    fun totalMaterialesPorProyecto(proyectoId: Int): Flow<Double>
 }

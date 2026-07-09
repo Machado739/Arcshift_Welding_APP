@@ -704,6 +704,64 @@ fun AppNavigation() {
                 )
             }
 
+            ///         projects
+
+            composable(
+                route = AppRoutes.ASIGNAR_EMPLEADO_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                AsignarEmpleadoProyectoScreen(
+                    proyectoId = proyectoId,
+                    navController = navController,
+                    proyectoViewModel = proyectoViewModel
+                )
+            }
+
+            composable(
+                route = AppRoutes.REGISTRAR_MATERIAL_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                RegistrarMaterialProyectoScreen(
+                    proyectoId = proyectoId,
+                    navController = navController,
+                    proyectoViewModel = proyectoViewModel,
+                    productoViewModel = productoViewModel
+                )
+            }
+
+            composable(
+                route = AppRoutes.AGREGAR_COSTO_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+
+                AgregarCostoProyectoScreen(
+                    proyectoId = proyectoId,
+                    navController = navController,
+                    proyectoViewModel = proyectoViewModel
+                )
+            }
+
+
 ///                     MAS
 ///                     MAS
 ///                     MAS

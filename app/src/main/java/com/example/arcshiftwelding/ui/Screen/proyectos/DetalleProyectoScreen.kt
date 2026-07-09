@@ -72,7 +72,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.TextButton
+import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
+import com.example.arcshiftwelding.data.repository.ResumenCostosProyecto
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
+import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +91,29 @@ fun DetalleProyectoScreen(
     var mostrarDialogoTerminar by remember { mutableStateOf(false) }
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
+
+    val empleados by proyectosViewModel
+        .obtenerEmpleadosProyecto(proyecto.id)
+        .collectAsState(initial = emptyList())
+
+    val materiales by proyectosViewModel
+        .obtenerMaterialesProyecto(proyecto.id)
+        .collectAsState(initial = emptyList())
+
+    val costos by proyectoViewModel
+        .obtenerCostosProyecto(proyecto.id)
+        .collectAsState(initial = emptyList())
+
+    val resumenCostos by ProyectosViewModel
+        .obtenerResumenCostosProyecto(
+            proyectoId = proyecto.id,
+            precioCotizado = proyecto.precioCotizado
+        )
+        .collectAsState(
+            initial = ResumenCostosProyecto(
+                precioCotizado = proyecto.precioCotizado
+            )
+        )
 
     Scaffold(
         topBar = {
@@ -154,6 +182,8 @@ fun DetalleProyectoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
+
             CardSeccionDetalleProyecto(
                 titulo = "Información general",
                 icono = Icons.Default.Work
@@ -258,6 +288,41 @@ fun DetalleProyectoScreen(
                     )
                 }
             }
+
+            SeccionResumenCostosProyecto(
+                resumen = resumenCostos
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SeccionEmpleadosProyecto(
+                empleados = empleados,
+                onAgregarEmpleado = {
+                    navController.navigate(AppRoutes.asignarEmpleadoProyecto(proyecto.id))
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SeccionMaterialesProyecto(
+                materiales = materiales,
+                onRegistrarMaterial = {
+                    navController.navigate(AppRoutes.registrarMaterialProyecto(proyecto.id))
+                },
+                onEliminarMaterial = { material ->
+                    proyectoViewModel.eliminarMaterialUsado(material.id)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            SeccionCostosProyecto(
+                costos = costos,
+                onAgregarCosto = {
+                    navController.navigate(AppRoutes.agregarCostoProyecto(proyecto.id))
+                }
+            )
+
             CardSeccionDetalleProyecto(
                 titulo = "Observaciones",
                 icono = Icons.Default.Description
@@ -351,6 +416,236 @@ fun DetalleProyectoScreen(
     }
 }
 
+@Composable
+fun SeccionResumenCostosProyecto(
+    resumen: ResumenCostosProyecto
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Resumen de costos",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            FilaCostoProyecto("Cotizado", resumen.precioCotizado)
+            FilaCostoProyecto("Material usado", resumen.costoMateriales)
+            FilaCostoProyecto("Mano de obra", resumen.costoManoObra)
+            FilaCostoProyecto("Costos adicionales", resumen.costosAdicionales)
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            FilaCostoProyecto(
+                titulo = "Costo total",
+                monto = resumen.costoTotal,
+                resaltado = true
+            )
+
+            FilaCostoProyecto(
+                titulo = "Utilidad estimada",
+                monto = resumen.utilidad,
+                resaltado = true
+            )
+        }
+    }
+}
+
+@Composable
+fun FilaCostoProyecto(
+    titulo: String,
+    monto: Double,
+    resaltado: Boolean = false
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = titulo,
+            style = if (resaltado) {
+                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            } else {
+                MaterialTheme.typography.bodyMedium
+            }
+        )
+
+        Text(
+            text = "$${String.format("%.2f", monto)}",
+            style = if (resaltado) {
+                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            } else {
+                MaterialTheme.typography.bodyMedium
+            }
+        )
+    }
+}
+
+@Composable
+fun SeccionEmpleadosProyecto(
+    empleados: List<ProyectoEmpleadoEntity>,
+    onAgregarEmpleado: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Empleados asignados",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(onClick = onAgregarEmpleado) {
+                    Text("Agregar")
+                }
+            }
+
+            if (empleados.isEmpty()) {
+                Text(
+                    text = "No hay empleados asignados.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            } else {
+                empleados.forEach { empleado ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = empleado.nombreEmpleado,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Text(
+                            text = "${empleado.puesto} - ${empleado.tipoPago}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+
+                        Text(
+                            text = "Costo: $${String.format("%.2f", empleado.costoCalculado)}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+
+                    Divider()
+                }
+            }
+        }
+    }
+}
+@Composable
+fun SeccionMaterialesProyecto(
+    materiales: List<ProyectoMaterialEntity>,
+    onRegistrarMaterial: () -> Unit,
+    onEliminarMaterial: (ProyectoMaterialEntity) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Material usado",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                TextButton(onClick = onRegistrarMaterial) {
+                    Text("Registrar")
+                }
+            }
+
+            if (materiales.isEmpty()) {
+                Text(
+                    text = "No hay material registrado.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            } else {
+                materiales.forEach { material ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = material.nombreProducto,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            Text(
+                                text = "${material.cantidadUsada} ${material.unidad} x $${String.format("%.2f", material.costoUnitario)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+
+                            Text(
+                                text = "Subtotal: $${String.format("%.2f", material.subtotal)}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                onEliminarMaterial(material)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar material"
+                            )
+                        }
+                    }
+
+                    Divider()
+                }
+            }
+        }
+    }
+}
 @Composable
 fun HeaderDetalleProyecto(
     proyecto: ProyectoUI

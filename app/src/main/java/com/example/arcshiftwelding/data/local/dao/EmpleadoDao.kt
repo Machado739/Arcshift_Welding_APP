@@ -13,9 +13,6 @@ interface EmpleadoDao {
     @Query("SELECT * FROM empleados WHERE id = :id LIMIT 1")
     fun observarEmpleadoPorId(id: Int): Flow<EmpleadoEntity?>
 
-    @Query("SELECT * FROM empleados WHERE id = :id LIMIT 1")
-    suspend fun obtenerEmpleadoPorId(id: Int): EmpleadoEntity?
-
     @Insert
     suspend fun insertarEmpleado(empleado: EmpleadoEntity)
 
@@ -24,4 +21,17 @@ interface EmpleadoDao {
 
     @Delete
     suspend fun eliminarEmpleado(empleado: EmpleadoEntity)
+
+    @Query("""
+    SELECT * FROM empleados
+    WHERE id = :empleadoId
+    LIMIT 1
+""")
+    suspend fun obtenerEmpleadoPorId(empleadoId: Int): EmpleadoEntity?
+
+    @Query("""
+    SELECT * FROM empleados
+    ORDER BY nombre ASC
+""")
+    fun obtenerTodosLosEmpleados(): kotlinx.coroutines.flow.Flow<List<EmpleadoEntity>>
 }

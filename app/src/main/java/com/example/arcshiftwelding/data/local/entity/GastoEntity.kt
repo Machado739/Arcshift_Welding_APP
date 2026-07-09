@@ -29,7 +29,8 @@ import androidx.room.PrimaryKey
 data class GastoEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
+    val proyectoId: Int? = null,
+    val proyectoNombre: String = "",
     val concepto: String,
     val categoria: String,
     val fecha: String,

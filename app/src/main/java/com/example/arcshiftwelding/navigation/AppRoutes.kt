@@ -140,15 +140,35 @@ object AppRoutes {
     }
 
     /// PROYECTOS
+
     const val PROYECTOS = "proyectos"
     const val NUEVO_PROYECTO = "nuevo_proyecto"
     const val DETALLE_PROYECTO = "detalle_proyecto/{proyectoId}"
     const val EDITAR_PROYECTO = "editar_proyecto/{proyectoId}"
-    const val ELIMINAR_PROYECTO = "eliminar_proyecto/{proyectoId}"
+
+    const val ASIGNAR_EMPLEADO_PROYECTO = "asignar_empleado_proyecto/{proyectoId}"
+    const val REGISTRAR_MATERIAL_PROYECTO = "registrar_material_proyecto/{proyectoId}"
+    const val AGREGAR_COSTO_PROYECTO = "agregar_costo_proyecto/{proyectoId}"
 
     fun detalleProyecto(proyectoId: Int): String {
         return "detalle_proyecto/$proyectoId"
     }
+
+
+
+    fun asignarEmpleadoProyecto(proyectoId: Int): String {
+        return "asignar_empleado_proyecto/$proyectoId"
+    }
+
+    fun registrarMaterialProyecto(proyectoId: Int): String {
+        return "registrar_material_proyecto/$proyectoId"
+    }
+
+    fun agregarCostoProyecto(proyectoId: Int): String {
+        return "agregar_costo_proyecto/$proyectoId"
+    }
+
+    const val ELIMINAR_PROYECTO = "eliminar_proyecto/{proyectoId}"
 
     fun editarProyecto(proyectoId: Int): String {
         return "editar_proyecto/$proyectoId"

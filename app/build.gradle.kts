@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.material)
 
@@ -68,6 +69,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.runtime)
     testImplementation(libs.junit.jupiter)
     ksp(libs.androidx.room.compiler)
 

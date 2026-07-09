@@ -1,25 +1,45 @@
 package com.example.arcshiftwelding.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProyectoEmpleadoDao {
 
-    @Query("SELECT * FROM proyecto_empleados WHERE proyectoId = :proyectoId")
-    fun obtenerEmpleadosPorProyecto(proyectoId: Int): Flow<List<ProyectoEmpleadoEntity>>
+    @Insert
+    suspend fun insertar(proyectoEmpleado: ProyectoEmpleadoEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun asignarEmpleado(proyectoEmpleado: ProyectoEmpleadoEntity)
+    @Update
+    suspend fun actualizar(proyectoEmpleado: ProyectoEmpleadoEntity)
 
     @Delete
-    suspend fun quitarEmpleado(proyectoEmpleado: ProyectoEmpleadoEntity)
+    suspend fun eliminar(proyectoEmpleado: ProyectoEmpleadoEntity)
 
-    @Query("DELETE FROM proyecto_empleados WHERE proyectoId = :proyectoId AND empleadoId = :empleadoId")
-    suspend fun quitarEmpleadoDeProyecto(proyectoId: Int, empleadoId: Int)
+    @Query("""
+        SELECT * FROM proyecto_empleados
+        WHERE proyectoId = :proyectoId
+        ORDER BY nombreEmpleado ASC
+    """)
+    fun obtenerPorProyecto(proyectoId: Int): Flow<List<ProyectoEmpleadoEntity>>
+
+    @Query("""
+        SELECT * FROM proyecto_empleados
+        WHERE id = :id
+        LIMIT 1
+    """)
+    suspend fun obtenerPorId(id: Int): ProyectoEmpleadoEntity?
+
+    @Query("""
+        DELETE FROM proyecto_empleados
+        WHERE proyectoId = :proyectoId
+    """)
+    suspend fun eliminarPorProyecto(proyectoId: Int)
+
+    @Query("""
+        SELECT COALESCE(SUM(costoCalculado), 0)
+        FROM proyecto_empleados
+        WHERE proyectoId = :proyectoId
+    """)
+    fun totalManoObraPorProyecto(proyectoId: Int): Flow<Double>
 }

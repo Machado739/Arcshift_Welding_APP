@@ -5,20 +5,25 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoDao
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.data.repository.ProyectoRepository
 
 class ProyectosViewModelFactory(
-    private val proyectoDao: ProyectoDao,
-    private val clienteDao: ClienteDao,
-    private val cotizacionDao: CotizacionDao
+    private val database: ArcshiftWeldingDatabase
+
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ProyectosViewModel::class.java)) {
             return ProyectosViewModel(
-                proyectoDao = proyectoDao,
-                clienteDao = clienteDao,
-                cotizacionDao = cotizacionDao
+                proyectoDao = database.proyectoDao(),
+                empleadoDao = database.empleadoDao(),
+                productoDao = database.productoDao(),
+                proyectoEmpleadoDao = database.proyectoEmpleadoDao(),
+                proyectoMaterialDao = database.proyectoMaterialDao(),
+                proyectoCostoDao = database.proyectoCostoDao(),
+                proyectoRepository = ProyectoRepository(database)
             ) as T
         }
 

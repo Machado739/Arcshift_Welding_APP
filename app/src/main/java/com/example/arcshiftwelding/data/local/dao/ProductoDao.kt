@@ -18,8 +18,7 @@ interface ProductoDao {
     @Query("SELECT * FROM productos WHERE activo = 1 ORDER BY nombre ASC")
     fun obtenerProductos(): Flow<List<ProductoEntity>>
 
-    @Query("SELECT * FROM productos WHERE id = :productoId LIMIT 1")
-    suspend fun obtenerProductoPorId(productoId: Int): ProductoEntity?
+
 
     @Query("""
         SELECT * FROM productos 
@@ -114,4 +113,33 @@ interface ProductoDao {
     LIMIT 1
 """)
     suspend fun obtenerUltimoCodigoPorPrefijo(prefijo: String): String?
+
+    @Query("""
+    SELECT * FROM productos
+    WHERE id = :productoId
+    LIMIT 1
+""")
+    suspend fun obtenerProductoPorId(productoId: Int): ProductoEntity?
+
+    @Query("""
+    UPDATE productos
+    SET stock = stock - :cantidad
+    WHERE id = :productoId AND stock >= :cantidad
+""")
+    suspend fun descontarStockSiDisponible(
+        productoId: Int,
+        cantidad: Double
+    ): Int
+
+    @Query("""
+    UPDATE productos
+    SET stock = stock + :cantidad
+    WHERE id = :productoId
+""")
+    suspend fun regresarStock(
+        productoId: Int,
+        cantidad: Double
+    ): Int
+
+
 }

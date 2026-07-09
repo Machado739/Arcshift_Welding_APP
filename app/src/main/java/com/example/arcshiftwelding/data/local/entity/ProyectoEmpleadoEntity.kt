@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.data.local.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "proyecto_empleados",
@@ -27,10 +28,29 @@ import androidx.room.Index
     ]
 )
 data class ProyectoEmpleadoEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
     val proyectoId: Int,
     val empleadoId: Int,
-    val rol: String = "",
+
+    val nombreEmpleado: String,
+    val puesto: String = "",
+
     val tipoPago: String = "",
+    // Día, Semana, Porcentaje, Trabajo, Hora
+
     val pagoAcordado: Double = 0.0,
-    val fechaAsignacion: String = ""
+
+    val diasTrabajados: Double = 0.0,
+    val horasTrabajadas: Double = 0.0,
+    val porcentaje: Double = 0.0,
+
+    val costoCalculado: Double = 0.0,
+
+    val fechaAsignacion: String = "",
+    val estado: String = "Asignado",
+    // Asignado, En trabajo, Finalizado
+
+    val observaciones: String = ""
 )

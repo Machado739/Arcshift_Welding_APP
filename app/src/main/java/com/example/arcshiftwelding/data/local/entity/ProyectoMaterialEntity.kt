@@ -29,12 +29,20 @@ import androidx.room.PrimaryKey
 data class ProyectoMaterialEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+
     val proyectoId: Int,
     val productoId: Int,
-    val cantidad: Double,
+
+    val nombreProducto: String,
+    val codigoProducto: String = "",
+    val categoria: String = "",
+
+    val cantidadUsada: Double,
     val unidad: String = "",
-    val costoUnitario: Double = 0.0,
-    val subtotal: Double = 0.0,
+
+    val costoUnitario: Double,
+    val subtotal: Double,
+
     val fechaUso: String = "",
     val observaciones: String = ""
 )
