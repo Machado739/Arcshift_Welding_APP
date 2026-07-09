@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 fun AgregarCostoProyectoScreen(
     proyectoId: Int,
     navController: NavController,
-    proyectoViewModel: ProyectosViewModel
+    proyectosViewModel: ProyectosViewModel
 ) {
     var tipo by remember { mutableStateOf("Transporte") }
     var descripcion by remember { mutableStateOf("") }
@@ -111,7 +111,7 @@ fun AgregarCostoProyectoScreen(
                     val montoDouble = monto.toDoubleOrNull()
 
                     if (descripcion.isNotBlank() && montoDouble != null) {
-                        proyectoViewModel.agregarCostoProyecto(
+                        proyectosViewModel.agregarCostoProyecto(
                             proyectoId = proyectoId,
                             tipo = tipo,
                             descripcion = descripcion,

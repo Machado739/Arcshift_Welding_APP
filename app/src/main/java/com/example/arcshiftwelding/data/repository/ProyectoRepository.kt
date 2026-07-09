@@ -17,14 +17,14 @@ class ProyectoRepository(
     suspend fun registrarMaterialUsado(
         proyectoId: Int,
         productoId: Int,
-        cantidadUsada: Double,
+        cantidadUsada: Int,
         fechaUso: String,
         observaciones: String
     ): Result<Unit> {
         return try {
             database.withTransaction {
                 val producto = productoDao.obtenerProductoPorId(productoId)
-                    ?: return@withTransaction
+                    ?: throw IllegalStateException("Producto no encontrado")
 
                 val actualizado = productoDao.descontarStockSiDisponible(
                     productoId = productoId,
@@ -44,7 +44,7 @@ class ProyectoRepository(
                     nombreProducto = producto.nombre,
                     codigoProducto = producto.codigo,
                     categoria = producto.categoria,
-                    cantidadUsada = cantidadUsada,
+                    cantidadUsada = cantidadUsada.toDouble(),
                     unidad = producto.unidad,
                     costoUnitario = costoUnitario,
                     subtotal = subtotal,
@@ -65,11 +65,11 @@ class ProyectoRepository(
         return try {
             database.withTransaction {
                 val material = proyectoMaterialDao.obtenerPorId(materialId)
-                    ?: return@withTransaction
+                    ?: throw IllegalStateException("Material no encontrado")
 
                 productoDao.regresarStock(
                     productoId = material.productoId,
-                    cantidad = material.cantidadUsada
+                    cantidad = material.cantidadUsada.toInt()
                 )
 
                 proyectoMaterialDao.eliminar(material)

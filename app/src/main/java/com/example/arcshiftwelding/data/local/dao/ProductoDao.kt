@@ -123,22 +123,33 @@ interface ProductoDao {
 
     @Query("""
     UPDATE productos
-    SET stock = stock - :cantidad
-    WHERE id = :productoId AND stock >= :cantidad
+    SET stock = stock - :cantidad,
+        estado = CASE
+            WHEN stock - :cantidad = 0 THEN 'Agotado'
+            WHEN stock - :cantidad <= stockMinimo THEN 'Bajo Stock'
+            ELSE 'En Stock'
+        END
+    WHERE id = :productoId
+    AND (permitirStockNegativo = 1 OR stock >= :cantidad)
 """)
     suspend fun descontarStockSiDisponible(
         productoId: Int,
-        cantidad: Double
+        cantidad: Int
     ): Int
 
     @Query("""
     UPDATE productos
-    SET stock = stock + :cantidad
+    SET stock = stock + :cantidad,
+        estado = CASE
+            WHEN stock + :cantidad = 0 THEN 'Agotado'
+            WHEN stock + :cantidad <= stockMinimo THEN 'Bajo Stock'
+            ELSE 'En Stock'
+        END
     WHERE id = :productoId
 """)
     suspend fun regresarStock(
         productoId: Int,
-        cantidad: Double
+        cantidad: Int
     ): Int
 
 

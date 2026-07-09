@@ -3,31 +3,35 @@ package com.example.arcshiftwelding.ui.Screen.proyectos
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
-import com.example.arcshiftwelding.data.local.dao.ProyectoDao
-import com.example.arcshiftwelding.data.local.entity.ClienteEntity
-import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoCostoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoEmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoMaterialDao
-import kotlinx.coroutines.flow.combine
+import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoCostoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import com.example.arcshiftwelding.data.repository.ProyectoRepository
 import com.example.arcshiftwelding.data.repository.ResumenCostosProyecto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 data class ProyectoUI(
     val id: Int,
@@ -55,13 +59,13 @@ data class ProyectoUI(
 
 data class CotizacionProyectoUI(
     val id: Int,
-    val folio: String,
+    val folio: String = "",
     val texto: String,
     val clienteId: Int,
     val total: Double,
-    val proyecto: String,
-    val descripcionTrabajo: String,
-    val vigencia: String
+    val proyecto: String = "",
+    val descripcionTrabajo: String = "",
+    val vigencia: String = ""
 )
 
 data class ResumenProyectosUI(
@@ -74,6 +78,8 @@ data class ResumenProyectosUI(
 
 class ProyectosViewModel(
     private val proyectoDao: ProyectoDao,
+    private val clienteDao: ClienteDao,
+    private val cotizacionDao: CotizacionDao,
     private val empleadoDao: EmpleadoDao,
     private val productoDao: ProductoDao,
     private val proyectoEmpleadoDao: ProyectoEmpleadoDao,
@@ -81,6 +87,7 @@ class ProyectosViewModel(
     private val proyectoCostoDao: ProyectoCostoDao,
     private val proyectoRepository: ProyectoRepository
 ) : ViewModel() {
+
 
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> = _mensaje.asStateFlow()
@@ -99,7 +106,7 @@ class ProyectosViewModel(
 
     fun obtenerResumenCostosProyecto(
         proyectoId: Int,
-        precioCotizado: Double
+        presupuestoEstimado: Double
     ): Flow<ResumenCostosProyecto> {
         return combine(
             proyectoMaterialDao.totalMaterialesPorProyecto(proyectoId),
@@ -107,13 +114,18 @@ class ProyectosViewModel(
             proyectoCostoDao.totalCostosPorProyecto(proyectoId)
         ) { materiales, manoObra, costos ->
             ResumenCostosProyecto(
-                precioCotizado = precioCotizado,
+                precioCotizado = presupuestoEstimado,
                 costoMateriales = materiales,
                 costoManoObra = manoObra,
                 costosAdicionales = costos
             )
         }
     }
+
+    fun limpiarMensaje() {
+        _mensaje.value = null
+    }
+
 
     fun asignarEmpleadoAProyecto(
         proyectoId: Int,
@@ -160,7 +172,7 @@ class ProyectosViewModel(
     fun registrarMaterialUsado(
         proyectoId: Int,
         productoId: Int,
-        cantidadUsada: Double,
+        cantidadUsada: Int,
         fechaUso: String,
         observaciones: String
     ) {
@@ -236,14 +248,8 @@ class ProyectosViewModel(
         }
     }
 
-    fun limpiarMensaje() {
-        _mensaje.value = null
-    }
-
-
-
     val clientes: StateFlow<List<ClienteEntity>> =
-        ClienteDao.obtenerClientesActivos()
+        clienteDao.obtenerClientesActivos()
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
@@ -251,7 +257,7 @@ class ProyectosViewModel(
             )
 
     val cotizaciones: StateFlow<List<CotizacionProyectoUI>> =
-        CotizacionDao.obtenerCotizaciones()
+        cotizacionDao.obtenerCotizaciones()
             .combine(clientes) { cotizaciones, clientes ->
                 cotizaciones.map { cotizacion ->
                     val cliente = clientes.find { it.id == cotizacion.clienteId }
@@ -277,8 +283,8 @@ class ProyectosViewModel(
     val proyectos: StateFlow<List<ProyectoUI>> =
         combine(
             proyectoDao.obtenerProyectos(),
-            clienteDao.obtenerClientesActivos(),
-            cotizacionDao.obtenerCotizaciones()
+            ClienteDao.obtenerClientesActivos(),
+            CotizacionDao.obtenerCotizaciones()
         ) { proyectos, clientes, cotizaciones ->
 
             proyectos.map { proyecto ->
@@ -472,4 +478,20 @@ class ProyectosViewModel(
     fun obtenerCotizacionPorId(cotizacionId: Int): Flow<CotizacionEntity?> {
         return cotizacionDao.observarCotizacionPorId(cotizacionId)
     }
+
+
+
+}
+
+data class ResumenCostosProyecto(
+    val precioCotizado: Double = 0.0,
+    val costoMateriales: Double = 0.0,
+    val costoManoObra: Double = 0.0,
+    val costosAdicionales: Double = 0.0
+) {
+    val costoTotal: Double
+        get() = costoMateriales + costoManoObra + costosAdicionales
+
+    val utilidad: Double
+        get() = precioCotizado - costoTotal
 }

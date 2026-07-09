@@ -30,7 +30,7 @@ import androidx.navigation.NavController
 fun AsignarEmpleadoProyectoScreen(
     proyectoId: Int,
     navController: NavController,
-    proyectoViewModel: ProyectosViewModel
+    proyectosViewModel: ProyectosViewModel
 ) {
     var empleadoIdTexto by remember { mutableStateOf("") }
     var tipoPago by remember { mutableStateOf("Día") }

@@ -34,20 +34,19 @@ import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
 fun RegistrarMaterialProyectoScreen(
     proyectoId: Int,
     navController: NavController,
-    proyectoViewModel: ProyectosViewModel,
-    productoViewModel: ProductoViewModel
+    proyectosViewModel: ProyectosViewModel
 ) {
     var productoIdTexto by remember { mutableStateOf("") }
     var cantidadTexto by remember { mutableStateOf("") }
     var fechaUso by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
 
-    val mensaje by proyectoViewModel.mensaje.collectAsState()
+    val mensaje by proyectosViewModel.mensaje.collectAsState()
 
     LaunchedEffect(mensaje) {
         if (mensaje == "Material registrado correctamente") {
             navController.popBackStack()
-            proyectoViewModel.limpiarMensaje()
+            proyectosViewModel.limpiarMensaje()
         }
     }
 
@@ -113,10 +112,10 @@ fun RegistrarMaterialProyectoScreen(
             Button(
                 onClick = {
                     val productoId = productoIdTexto.toIntOrNull()
-                    val cantidad = cantidadTexto.toDoubleOrNull()
+                    val cantidad = cantidadTexto.toIntOrNull()
 
                     if (productoId != null && cantidad != null && cantidad > 0) {
-                        proyectoViewModel.registrarMaterialUsado(
+                        proyectosViewModel.registrarMaterialUsado(
                             proyectoId = proyectoId,
                             productoId = productoId,
                             cantidadUsada = cantidad,

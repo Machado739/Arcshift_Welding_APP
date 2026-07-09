@@ -1,30 +1,14 @@
 package com.example.arcshiftwelding.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "proyecto_empleados",
-    primaryKeys = ["proyectoId", "empleadoId"],
-    foreignKeys = [
-        ForeignKey(
-            entity = ProyectoEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["proyectoId"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
-            entity = EmpleadoEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["empleadoId"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
     indices = [
-        Index("proyectoId"),
-        Index("empleadoId")
+        Index(value = ["proyectoId"]),
+        Index(value = ["empleadoId"])
     ]
 )
 data class ProyectoEmpleadoEntity(
@@ -38,8 +22,6 @@ data class ProyectoEmpleadoEntity(
     val puesto: String = "",
 
     val tipoPago: String = "",
-    // Día, Semana, Porcentaje, Trabajo, Hora
-
     val pagoAcordado: Double = 0.0,
 
     val diasTrabajados: Double = 0.0,
@@ -50,7 +32,6 @@ data class ProyectoEmpleadoEntity(
 
     val fechaAsignacion: String = "",
     val estado: String = "Asignado",
-    // Asignado, En trabajo, Finalizado
 
     val observaciones: String = ""
 )

@@ -71,12 +71,15 @@ import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import androidx.navigation.navArgument
+import com.example.arcshiftwelding.ui.Screen.proyectos.AgregarCostoProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.AsignarEmpleadoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.DetalleProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.EditarProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.RegistrarMaterialProyectoScreen
 
 @Composable
 fun AppNavigation() {
@@ -127,11 +130,7 @@ fun AppNavigation() {
     )
 
     val proyectosViewModel: ProyectosViewModel = viewModel(
-        factory = ProyectosViewModelFactory(
-            proyectoDao = database.proyectoDao(),
-            clienteDao = database.clienteDao(),
-            cotizacionDao = database.cotizacionDao()
-        )
+        factory = ProyectosViewModelFactory(database)
     )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -720,7 +719,7 @@ fun AppNavigation() {
                 AsignarEmpleadoProyectoScreen(
                     proyectoId = proyectoId,
                     navController = navController,
-                    proyectoViewModel = proyectoViewModel
+                    proyectosViewModel = proyectosViewModel
                 )
             }
 
@@ -738,8 +737,7 @@ fun AppNavigation() {
                 RegistrarMaterialProyectoScreen(
                     proyectoId = proyectoId,
                     navController = navController,
-                    proyectoViewModel = proyectoViewModel,
-                    productoViewModel = productoViewModel
+                    proyectosViewModel = proyectosViewModel
                 )
             }
 
@@ -757,7 +755,7 @@ fun AppNavigation() {
                 AgregarCostoProyectoScreen(
                     proyectoId = proyectoId,
                     navController = navController,
-                    proyectoViewModel = proyectoViewModel
+                    proyectosViewModel = proyectosViewModel
                 )
             }
 

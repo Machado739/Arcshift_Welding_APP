@@ -92,26 +92,26 @@ fun DetalleProyectoScreen(
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
 
-    val empleados by proyectosViewModel
+    val empleados by ProyectosViewModel
         .obtenerEmpleadosProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val materiales by proyectosViewModel
+    val materiales by ProyectosViewModel
         .obtenerMaterialesProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val costos by proyectoViewModel
+    val costos by ProyectosViewModel
         .obtenerCostosProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
     val resumenCostos by ProyectosViewModel
         .obtenerResumenCostosProyecto(
             proyectoId = proyecto.id,
-            precioCotizado = proyecto.precioCotizado
+            presupuestoEstimado = proyecto.presupuestoEstimado
         )
         .collectAsState(
             initial = ResumenCostosProyecto(
-                precioCotizado = proyecto.precioCotizado
+                precioCotizado = proyecto.presupuestoEstimado
             )
         )
 
@@ -310,7 +310,7 @@ fun DetalleProyectoScreen(
                     navController.navigate(AppRoutes.registrarMaterialProyecto(proyecto.id))
                 },
                 onEliminarMaterial = { material ->
-                    proyectoViewModel.eliminarMaterialUsado(material.id)
+                    proyectosViewModel.eliminarMaterialUsado(material.id)
                 }
             )
 
