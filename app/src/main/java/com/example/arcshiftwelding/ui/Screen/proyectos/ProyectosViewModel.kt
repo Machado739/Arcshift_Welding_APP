@@ -18,20 +18,15 @@ import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import com.example.arcshiftwelding.data.repository.ProyectoRepository
-import com.example.arcshiftwelding.data.repository.ResumenCostosProyecto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 
 data class ProyectoUI(
     val id: Int,
@@ -283,8 +278,8 @@ class ProyectosViewModel(
     val proyectos: StateFlow<List<ProyectoUI>> =
         combine(
             proyectoDao.obtenerProyectos(),
-            ClienteDao.obtenerClientesActivos(),
-            CotizacionDao.obtenerCotizaciones()
+            clienteDao.obtenerClientesActivos(),
+            cotizacionDao.obtenerCotizaciones()
         ) { proyectos, clientes, cotizaciones ->
 
             proyectos.map { proyecto ->

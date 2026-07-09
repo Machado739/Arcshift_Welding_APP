@@ -75,7 +75,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.TextButton
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
-import com.example.arcshiftwelding.data.repository.ResumenCostosProyecto
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 import kotlin.collections.emptyList
 
@@ -91,20 +90,67 @@ fun DetalleProyectoScreen(
     var mostrarDialogoTerminar by remember { mutableStateOf(false) }
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
+    if (proyecto == null) {
+        Scaffold(
+            topBar = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(
+                            start = 17.dp,
+                            top = 8.dp,
+                            end = 14.dp,
+                            bottom = 8.dp
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
+                    }
 
-    val empleados by ProyectosViewModel
+                    Text(
+                        text = "Detalle proyecto",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            },
+            containerColor = Color(0xFFF5F5F5),
+            contentWindowInsets = WindowInsets(0)
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Proyecto no encontrado")
+            }
+        }
+
+        return
+    }
+
+    val empleados by viewModel
         .obtenerEmpleadosProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val materiales by ProyectosViewModel
+    val materiales by viewModel
         .obtenerMaterialesProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val costos by ProyectosViewModel
+    val costos by viewModel
         .obtenerCostosProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
 
-    val resumenCostos by ProyectosViewModel
+    val resumenCostos by viewModel
         .obtenerResumenCostosProyecto(
             proyectoId = proyecto.id,
             presupuestoEstimado = proyecto.presupuestoEstimado
@@ -162,17 +208,7 @@ fun DetalleProyectoScreen(
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
-        if (proyecto == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Proyecto no encontrado")
-            }
-            return@Scaffold
-        }
+
 
         Column(
             modifier = Modifier
@@ -289,6 +325,8 @@ fun DetalleProyectoScreen(
                 }
             }
 
+
+
             SeccionResumenCostosProyecto(
                 resumen = resumenCostos
             )
@@ -310,7 +348,7 @@ fun DetalleProyectoScreen(
                     navController.navigate(AppRoutes.registrarMaterialProyecto(proyecto.id))
                 },
                 onEliminarMaterial = { material ->
-                    proyectosViewModel.eliminarMaterialUsado(material.id)
+                    viewModel.eliminarMaterialUsado(material.id)
                 }
             )
 
