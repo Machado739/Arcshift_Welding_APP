@@ -86,22 +86,23 @@ fun AsignarEmpleadoProyectoScreen(
                 empleado.puesto.contains(busquedaEmpleado, ignoreCase = true)
     }
 
-    val tipoPagoEmpleado = empleadoSeleccionado?.tipoPago.orEmpty()
-    val tipoPagoNormalizado = tipoPagoEmpleado.lowercase(Locale.getDefault())
+    val contratoEmpleado = empleadoSeleccionado?.porcentajeContrato.orEmpty()
+    val tipoPagoEmpleado = obtenerTipoPagoEmpleadoProyecto(contratoEmpleado)
+    val valorPagoEmpleado = obtenerValorPagoEmpleadoProyecto(
+        contrato = contratoEmpleado,
+        salarioRespaldo = empleadoSeleccionado?.salario ?: 0.0
+    )
 
-    val esPagoPorDia = tipoPagoNormalizado.contains("día") ||
-            tipoPagoNormalizado.contains("dia")
-
-    val esPagoPorSemana = tipoPagoNormalizado.contains("semana")
-    val esPagoPorHora = tipoPagoNormalizado.contains("hora")
-
-    val esPagoPorPorcentaje = tipoPagoNormalizado.contains("porcentaje") ||
-            tipoPagoEmpleado.contains("%")
+    val esPagoPorDia = tipoPagoEmpleado == "Día"
+    val esPagoPorSemana = tipoPagoEmpleado == "Semana"
+    val esPagoPorHora = tipoPagoEmpleado == "Hora"
+    val esPagoPorPorcentaje = tipoPagoEmpleado == "Porcentaje"
 
     val requiereTiempo = esPagoPorDia || esPagoPorSemana || esPagoPorHora
     val tiempoTrabajo = tiempoTrabajoTexto.replace(",", ".").toDoubleOrNull() ?: 0.0
 
     val formularioValido = empleadoSeleccionado != null &&
+            tipoPagoEmpleado != "Sin definir" &&
             (!requiereTiempo || tiempoTrabajo > 0.0)
 
     LaunchedEffect(mensaje) {
@@ -227,7 +228,8 @@ fun AsignarEmpleadoProyectoScreen(
                                             fontWeight = FontWeight.SemiBold
                                         )
                                         Text(
-                                            text = "${empleado.puesto} | ${empleado.tipoPago}",
+                                            text = "${empleado.puesto} | ${empleado.porcentajeContrato.ifBlank { "Sin contrato" }}",
+
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
@@ -275,7 +277,7 @@ fun AsignarEmpleadoProyectoScreen(
                         )
 
                         Text(
-                            text = "Tipo de pago: ${tipoPagoEmpleado.ifBlank { "No definido" }}",
+                            text = "Tipo de pago: ${textoTipoPagoEmpleadoProyecto(tipoPagoEmpleado)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF2563EB),
                             fontWeight = FontWeight.SemiBold
@@ -283,13 +285,13 @@ fun AsignarEmpleadoProyectoScreen(
 
                         if (esPagoPorPorcentaje) {
                             Text(
-                                text = "Porcentaje registrado: ${empleadoSeleccionado!!.porcentajeContrato.ifBlank { "0%" }}",
+                                text = "Porcentaje registrado: ${"%.2f".format(valorPagoEmpleado)}%",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF2563EB)
                             )
                         } else {
                             Text(
-                                text = "Pago base: ${formatoMonedaProyecto(empleadoSeleccionado!!.salario)}",
+                                text = "Pago base: ${formatoMonedaProyecto(valorPagoEmpleado)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF2563EB)
                             )
@@ -424,5 +426,59 @@ fun AsignarEmpleadoProyectoScreen(
                 Text("Asignar empleado")
             }
         }
+    }
+}
+
+fun obtenerTipoPagoEmpleadoProyecto(contrato: String): String {
+    val contratoLimpio = contrato.trim()
+
+    return when {
+        contratoLimpio.contains("% por trabajo", ignoreCase = true) -> "Porcentaje"
+        contratoLimpio.contains("por trabajo", ignoreCase = true) -> "Porcentaje"
+        contratoLimpio.contains("%") -> "Porcentaje"
+
+        contratoLimpio.contains("pago por día", ignoreCase = true) -> "Día"
+        contratoLimpio.contains("pago por dia", ignoreCase = true) -> "Día"
+        contratoLimpio.contains("día", ignoreCase = true) -> "Día"
+        contratoLimpio.contains("dia", ignoreCase = true) -> "Día"
+
+        contratoLimpio.contains("semana", ignoreCase = true) -> "Semana"
+        contratoLimpio.contains("hora", ignoreCase = true) -> "Hora"
+
+        else -> "Sin definir"
+    }
+}
+
+fun obtenerValorPagoEmpleadoProyecto(
+    contrato: String,
+    salarioRespaldo: Double
+): Double {
+    val contratoLimpio = contrato.trim()
+
+    if (contratoLimpio.isBlank()) {
+        return salarioRespaldo
+    }
+
+    val textoValor = if (contratoLimpio.contains(":")) {
+        contratoLimpio.substringAfter(":")
+    } else {
+        contratoLimpio
+    }
+
+    return textoValor
+        .replace("$", "")
+        .replace("%", "")
+        .replace(",", "")
+        .trim()
+        .toDoubleOrNull() ?: salarioRespaldo
+}
+
+fun textoTipoPagoEmpleadoProyecto(tipoPago: String): String {
+    return when (tipoPago) {
+        "Porcentaje" -> "% por trabajo"
+        "Día" -> "Pago por día"
+        "Semana" -> "Pago por semana"
+        "Hora" -> "Pago por hora"
+        else -> "Sin definir"
     }
 }

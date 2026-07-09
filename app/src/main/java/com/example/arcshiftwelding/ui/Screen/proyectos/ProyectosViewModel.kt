@@ -478,15 +478,22 @@ class ProyectosViewModel(
                 return@launch
             }
 
-            val tipoPago = empleado.tipoPago
-            val porcentaje = empleado.porcentajeContrato
-                .replace("%", "")
-                .replace(",", ".")
-                .toDoubleOrNull() ?: 0.0
+            val tipoPago = obtenerTipoPagoDesdeContratoEmpleado(empleado.porcentajeContrato)
+            val valorContrato = obtenerValorDesdeContratoEmpleado(empleado.porcentajeContrato)
+
+            val pagoAcordado = when (tipoPago) {
+                "Día", "Semana", "Hora" -> valorContrato
+                else -> 0.0
+            }
+
+            val porcentaje = when (tipoPago) {
+                "Porcentaje" -> valorContrato
+                else -> 0.0
+            }
 
             val costoCalculado = calcularCostoEmpleadoProyecto(
                 tipoPago = tipoPago,
-                pagoAcordado = empleado.salario,
+                pagoAcordado = pagoAcordado,
                 diasTrabajados = diasTrabajados,
                 horasTrabajadas = horasTrabajadas,
                 porcentaje = porcentaje,
@@ -499,7 +506,7 @@ class ProyectosViewModel(
                 nombreEmpleado = empleado.nombre,
                 puesto = empleado.puesto,
                 tipoPago = tipoPago,
-                pagoAcordado = empleado.salario,
+                pagoAcordado = pagoAcordado,
                 diasTrabajados = diasTrabajados,
                 horasTrabajadas = horasTrabajadas,
                 porcentaje = porcentaje,
@@ -512,7 +519,6 @@ class ProyectosViewModel(
             _mensaje.value = "Empleado asignado al proyecto"
         }
     }
-
     fun actualizarEmpleadoAsignadoProyecto(
         empleadoProyecto: ProyectoEmpleadoEntity,
         presupuestoEstimado: Double,
@@ -555,10 +561,50 @@ class ProyectosViewModel(
             "Semana" -> diasTrabajados * pagoAcordado
             "Hora" -> horasTrabajadas * pagoAcordado
             "Porcentaje" -> presupuestoEstimado * (porcentaje / 100)
-            "Trabajo" -> pagoAcordado
             else -> 0.0
         }
     }
+    private fun obtenerTipoPagoDesdeContratoEmpleado(contrato: String): String {
+        val contratoLimpio = contrato.trim()
+
+        return when {
+            contratoLimpio.contains("% por trabajo", ignoreCase = true) -> "Porcentaje"
+            contratoLimpio.contains("por trabajo", ignoreCase = true) -> "Porcentaje"
+            contratoLimpio.contains("%") -> "Porcentaje"
+
+            contratoLimpio.contains("pago por día", ignoreCase = true) -> "Día"
+            contratoLimpio.contains("pago por dia", ignoreCase = true) -> "Día"
+            contratoLimpio.contains("día", ignoreCase = true) -> "Día"
+            contratoLimpio.contains("dia", ignoreCase = true) -> "Día"
+
+            contratoLimpio.contains("semana", ignoreCase = true) -> "Semana"
+            contratoLimpio.contains("hora", ignoreCase = true) -> "Hora"
+
+            else -> "Sin definir"
+        }
+    }
+
+    private fun obtenerValorDesdeContratoEmpleado(contrato: String): Double {
+        val contratoLimpio = contrato.trim()
+
+        if (contratoLimpio.isBlank()) {
+            return 0.0
+        }
+
+        val textoValor = if (contratoLimpio.contains(":")) {
+            contratoLimpio.substringAfter(":")
+        } else {
+            contratoLimpio
+        }
+
+        return textoValor
+            .replace("$", "")
+            .replace("%", "")
+            .replace(",", "")
+            .trim()
+            .toDoubleOrNull() ?: 0.0
+    }
+
 
 
 }

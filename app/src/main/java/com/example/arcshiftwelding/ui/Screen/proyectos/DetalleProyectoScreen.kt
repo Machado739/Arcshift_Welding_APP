@@ -247,56 +247,8 @@ fun DetalleProyectoScreen(
             }
 
 
-            CardSeccionDetalleProyecto(
-                titulo = "Costos del proyecto",
-                icono = Icons.Default.AttachMoney
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    CajaDetalleProyecto(
-                        titulo = "Presupuesto",
-                        valor = formatoMonedaProyecto(proyecto.presupuestoEstimado),
-                        modifier = Modifier.weight(1f)
-                    )
 
-                    CajaDetalleProyecto(
-                        titulo = "Costo real",
-                        valor = formatoMonedaProyecto(proyecto.costoTotal),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    CajaDetalleProyecto(
-                        titulo = "Material",
-                        valor = formatoMonedaProyecto(proyecto.costoMaterial),
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    CajaDetalleProyecto(
-                        titulo = "Mano de obra",
-                        valor = formatoMonedaProyecto(proyecto.costoManoObra),
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                val utilidad = proyecto.presupuestoEstimado - proyecto.costoTotal
-
-                CajaDetalleProyecto(
-                    titulo = "Utilidad estimada",
-                    valor = formatoMonedaProyecto(utilidad),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
 
             SeccionResumenCostosProyecto(
                 resumen = resumenCostos
