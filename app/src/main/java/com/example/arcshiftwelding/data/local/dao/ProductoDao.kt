@@ -159,4 +159,9 @@ interface ProductoDao {
     fun obtenerProductosParaProyecto(): Flow<List<ProductoEntity>>
 
 
+
+    ///test
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarProductos(productos: List<ProductoEntity>)
+
 }

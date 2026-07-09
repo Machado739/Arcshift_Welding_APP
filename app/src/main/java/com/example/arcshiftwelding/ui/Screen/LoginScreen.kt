@@ -16,11 +16,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.arcshiftwelding.ui.Screen.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit
+    navController: NavController,
+    onLoginClick: () -> Unit,
+    loginViewModel: LoginViewModel = viewModel()
 ) {
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -131,6 +137,38 @@ fun LoginScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        loginViewModel.cargarDatosPrueba()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    enabled = !loginViewModel.cargandoDatosPrueba
+                ) {
+                    Text(
+                        text = if (loginViewModel.cargandoDatosPrueba)
+                            "Cargando datos..."
+                        else
+                            "Cargar datos de prueba"
+                    )
+                }
+
+                loginViewModel.mensajeDatosPrueba?.let { mensaje ->
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = mensaje,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
@@ -142,3 +180,4 @@ fun LoginScreen(
         }
     }
 }
+

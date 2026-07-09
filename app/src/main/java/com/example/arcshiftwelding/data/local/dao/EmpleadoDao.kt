@@ -41,4 +41,10 @@ interface EmpleadoDao {
     ORDER BY nombre ASC
 """)
     fun obtenerEmpleadosParaProyecto(): Flow<List<EmpleadoEntity>>
+
+
+    ///test
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarEmpleados(empleados: List<EmpleadoEntity>)
 }
