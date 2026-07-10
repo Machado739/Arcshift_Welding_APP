@@ -150,7 +150,14 @@ object AppRoutes {
     const val REGISTRAR_MATERIAL_PROYECTO = "registrar_material_proyecto/{proyectoId}"
     const val AGREGAR_COSTO_PROYECTO = "agregar_costo_proyecto/{proyectoId}"
 
-    const val EDITAR_EMPLEADO_PROYECTO = "editar_empleado_proyecto/{proyectoId}/{empleadoProyectoId}"
+    const val EDITAR_EMPLEADO_PROYECTO =
+        "editar_empleado_proyecto/{proyectoId}/{empleadoProyectoId}"
+
+    const val HISTORIAL_MOVIMIENTOS_PRODUCTO = "historial_movimientos_producto/{productoId}"
+
+    fun historialMovimientosProducto(productoId: Int): String {
+        return "historial_movimientos_producto/$productoId"
+    }
 
     fun editarEmpleadoProyecto(
         proyectoId: Int,

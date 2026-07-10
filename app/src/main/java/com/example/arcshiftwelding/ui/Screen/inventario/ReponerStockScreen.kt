@@ -348,20 +348,15 @@ fun ReponerStockScreen(
                             unidad = unidadMedida,
                             fecha = fechaActual,
                             hora = horaActual,
-                            usuario = "Admin",
-                            referencia = referencia.ifBlank {
-                                "ENT-${producto.id}-${System.currentTimeMillis()}"
-                            },
+                            usuario = "",
+                            referencia = referencia.trim(),
                             observaciones = buildString {
                                 append("Reposición de stock")
-
                                 if (proveedor.isNotBlank()) {
                                     append(". Proveedor: ${proveedor.trim()}")
                                 }
-
                                 append(". Costo unitario: ${formatoDineroReponer(costoUnitario)}")
                                 append(". Costo total: ${formatoDineroReponer(costoMovimiento)}")
-
                                 if (notas.isNotBlank()) {
                                     append(". Notas: ${notas.trim()}")
                                 }

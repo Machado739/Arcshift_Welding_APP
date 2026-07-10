@@ -15,10 +15,21 @@ class MovimientoInventarioViewModel(
     private val _movimientosRecientes = MutableStateFlow<List<MovimientoInventarioEntity>>(emptyList())
     val movimientosRecientes: StateFlow<List<MovimientoInventarioEntity>> = _movimientosRecientes
 
+    private val _movimientosProducto = MutableStateFlow<List<MovimientoInventarioEntity>>(emptyList())
+    val movimientosProducto: StateFlow<List<MovimientoInventarioEntity>> = _movimientosProducto
+
     fun cargarMovimientosRecientes(productoId: Int) {
         viewModelScope.launch {
             repository.obtenerMovimientosRecientes(productoId).collect { movimientos ->
                 _movimientosRecientes.value = movimientos
+            }
+        }
+    }
+
+    fun cargarMovimientosProducto(productoId: Int) {
+        viewModelScope.launch {
+            repository.obtenerMovimientosPorProducto(productoId).collect { movimientos ->
+                _movimientosProducto.value = movimientos
             }
         }
     }

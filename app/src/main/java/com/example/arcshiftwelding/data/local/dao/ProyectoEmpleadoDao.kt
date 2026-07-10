@@ -75,17 +75,42 @@ interface ProyectoEmpleadoDao {
 
     @Query("""
     SELECT * FROM proyecto_empleados
-    WHERE id = :id
+    WHERE id = :empleadoProyectoId
     LIMIT 1
 """)
-    fun observarEmpleadoProyectoPorId(id: Int): Flow<ProyectoEmpleadoEntity?>
+    fun observarEmpleadoProyectoPorId(
+        empleadoProyectoId: Int
+    ): Flow<ProyectoEmpleadoEntity?>
 
-
+    @Query("""
+    UPDATE proyecto_empleados
+    SET diasTrabajados = :diasTrabajados,
+        horasTrabajadas = :horasTrabajadas,
+        porcentaje = :porcentaje,
+        costoCalculado = :costoCalculado,
+        observaciones = :observaciones
+    WHERE id = :empleadoProyectoId
+""")
+    suspend fun actualizarEmpleadoProyecto(
+        empleadoProyectoId: Int,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        porcentaje: Double,
+        costoCalculado: Double,
+        observaciones: String
+    )
 
     @Query("""
     DELETE FROM proyecto_empleados
-    WHERE id = :id
+    WHERE id = :empleadoProyectoId
 """)
-    suspend fun eliminarEmpleadoProyectoPorId(id: Int)
+    suspend fun eliminarEmpleadoProyectoPorId(
+        empleadoProyectoId: Int
+    )
+
+    @Query("""
+    SELECT * FROM proyecto_empleados
+""")
+    fun obtenerTodosEmpleadosProyecto(): Flow<List<ProyectoEmpleadoEntity>>
 
 }

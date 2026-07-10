@@ -28,4 +28,23 @@ interface ProyectoDao {
     @Delete
     suspend fun eliminarProyecto(proyecto: ProyectoEntity)
 
+    @Query("""
+    UPDATE proyectos
+    SET avance = :avance,
+        estado = :estado
+    WHERE id = :proyectoId
+""")
+    suspend fun actualizarAvanceProyecto(
+        proyectoId: Int,
+        avance: Int,
+        estado: String
+    )
+
+    @Query("""
+    SELECT * FROM proyectos
+    WHERE id = :proyectoId
+    LIMIT 1
+""")
+    suspend fun obtenerProyectoPorIdDirecto(proyectoId: Int): ProyectoEntity?
+
 }

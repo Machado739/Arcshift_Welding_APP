@@ -87,7 +87,7 @@ fun GastosScreen(
             gastos = gastos
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BarraBusquedaFiltros(
             textoBusqueda = textoBusqueda,
@@ -96,7 +96,7 @@ fun GastosScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -113,7 +113,6 @@ fun GastosScreen(
             Text("Nuevo gasto")
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosCategoriaGastos(
             seleccionada = categoriaSeleccionada,
@@ -338,7 +337,7 @@ fun BarraBusquedaFiltros(
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
-
+/*
         OutlinedButton(
             onClick = { },
             shape = RoundedCornerShape(8.dp),
@@ -356,7 +355,7 @@ fun BarraBusquedaFiltros(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

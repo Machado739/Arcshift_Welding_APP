@@ -130,7 +130,7 @@ class GastosViewModel(
         onFinalizado: () -> Unit
     ) {
         viewModelScope.launch {
-            gastoDao.eliminarGasto(gastoId)
+            gastoDao.eliminarGastoPorId(gastoId)
             onFinalizado()
         }
     }

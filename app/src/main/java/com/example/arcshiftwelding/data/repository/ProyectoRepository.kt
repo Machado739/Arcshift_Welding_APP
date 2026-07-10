@@ -5,7 +5,9 @@ import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.data.local.entity.ProyectoCostoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
-
+import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 class ProyectoRepository(
     private val database: ArcshiftWeldingDatabase
 ) {
@@ -13,7 +15,8 @@ class ProyectoRepository(
     private val proyectoMaterialDao = database.proyectoMaterialDao()
     private val proyectoEmpleadoDao = database.proyectoEmpleadoDao()
     private val proyectoCostoDao = database.proyectoCostoDao()
-
+    private val proyectoDao = database.proyectoDao()
+    private val movimientoInventarioDao = database.movimientoInventarioDao()
     suspend fun registrarMaterialUsado(
         proyectoId: Int,
         productoId: Int,
@@ -53,6 +56,35 @@ class ProyectoRepository(
                 )
 
                 proyectoMaterialDao.insertar(material)
+
+                val proyecto = proyectoDao.obtenerProyectoPorIdDirecto(proyectoId)
+
+                val referenciaProyecto = proyecto?.nombre
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "Proyecto #$proyectoId"
+
+                val movimiento = MovimientoInventarioEntity(
+                    productoId = producto.id,
+                    clienteId = null,
+                    cotizacionId = null,
+                    tipo = "Salida",
+                    cantidad = cantidadUsada,
+                    stockAnterior = producto.stock,
+                    stockNuevo = producto.stock - cantidadUsada,
+                    unidad = producto.unidad,
+                    fecha = fechaUso,
+                    hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    usuario = "",
+                    referencia = referenciaProyecto,
+                    observaciones = buildString {
+                        append("Material usado en proyecto: $referenciaProyecto")
+                        if (observaciones.isNotBlank()) {
+                            append(". ${observaciones.trim()}")
+                        }
+                    }
+                )
+
+                movimientoInventarioDao.insertarMovimiento(movimiento)
             }
 
             Result.success(Unit)
@@ -67,10 +99,37 @@ class ProyectoRepository(
                 val material = proyectoMaterialDao.obtenerPorId(materialId)
                     ?: throw IllegalStateException("Material no encontrado")
 
+                val producto = productoDao.obtenerProductoPorId(material.productoId)
+                    ?: throw IllegalStateException("Producto no encontrado")
+
                 productoDao.regresarStock(
                     productoId = material.productoId,
                     cantidad = material.cantidadUsada.toInt()
                 )
+
+                val cantidadDevuelta = material.cantidadUsada.toInt()
+                val proyecto = proyectoDao.obtenerProyectoPorIdDirecto(material.proyectoId)
+
+                val referenciaProyecto = proyecto?.nombre
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "Proyecto #${material.proyectoId}"
+                val movimiento = MovimientoInventarioEntity(
+                    productoId = material.productoId,
+                    clienteId = null,
+                    cotizacionId = null,
+                    tipo = "Entrada",
+                    cantidad = cantidadDevuelta,
+                    stockAnterior = producto.stock,
+                    stockNuevo = producto.stock + cantidadDevuelta,
+                    unidad = material.unidad,
+                    fecha = obtenerFechaActualMovimientoProyecto(),
+                    hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    usuario = "",
+                    referencia = "Devolución - $referenciaProyecto",
+                    observaciones = "Se eliminó material usado del proyecto: $referenciaProyecto."
+                )
+
+                movimientoInventarioDao.insertarMovimiento(movimiento)
 
                 proyectoMaterialDao.eliminar(material)
             }
@@ -91,5 +150,12 @@ class ProyectoRepository(
         costo: ProyectoCostoEntity
     ) {
         proyectoCostoDao.insertar(costo)
+    }
+
+    private fun obtenerFechaActualMovimientoProyecto(): String {
+        return java.text.SimpleDateFormat(
+            "dd/MM/yyyy",
+            java.util.Locale.getDefault()
+        ).format(java.util.Date())
     }
 }

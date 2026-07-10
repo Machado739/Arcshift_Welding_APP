@@ -78,7 +78,7 @@ import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 import kotlin.collections.emptyList
-
+import androidx.compose.material3.Slider
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleProyectoScreen(
@@ -88,6 +88,10 @@ fun DetalleProyectoScreen(
 ) {
     val proyectos by viewModel.proyectos.collectAsState()
     val proyecto = proyectos.find { it.id == proyectoId }
+
+    var mostrarDialogoAvance by remember { mutableStateOf(false) }
+    var avanceTemporal by remember { mutableStateOf(0) }
+
     var mostrarDialogoTerminar by remember { mutableStateOf(false) }
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
@@ -246,7 +250,65 @@ fun DetalleProyectoScreen(
                 )
             }
 
+            CardSeccionDetalleProyecto(
+                titulo = "Avance del proyecto",
+                icono = Icons.Default.CalendarMonth
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Avance actual",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF64748B)
+                        )
 
+                        Text(
+                            text = "${proyecto.avance}%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = colorEstadoProyecto(proyecto.estado)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { proyecto.avance / 100f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(50)),
+                        color = colorEstadoProyecto(proyecto.estado),
+                        trackColor = Color(0xFFE2E8F0)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            avanceTemporal = proyecto.avance
+                            mostrarDialogoAvance = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text("Modificar avance")
+                    }
+                }
+            }
 
 
 
@@ -261,7 +323,15 @@ fun DetalleProyectoScreen(
                     navController.navigate(AppRoutes.asignarEmpleadoProyecto(proyecto.id))
                 },
                 onEditarEmpleado = { empleadoProyecto ->
-                    // Aquí puedes abrir un diálogo o navegar a editar empleado del proyecto
+                    navController.navigate(
+                        AppRoutes.editarEmpleadoProyecto(
+                            proyectoId = proyecto.id,
+                            empleadoProyectoId = empleadoProyecto.id
+                        )
+                    )
+                },
+                onEliminarEmpleado = { empleadoProyecto ->
+                    viewModel.eliminarEmpleadoAsignadoProyecto(empleadoProyecto.id)
                 }
             )
 
@@ -286,6 +356,9 @@ fun DetalleProyectoScreen(
                             proyectoNombre = proyecto.nombre
                         )
                     )
+                },
+                onEliminarGasto = { gasto ->
+                    viewModel.eliminarGastoProyecto(gasto.id)
                 }
             )
 
@@ -312,6 +385,92 @@ fun DetalleProyectoScreen(
                     mostrarDialogoEliminar = true
                 }
             )
+            if (mostrarDialogoAvance) {
+                AlertDialog(
+                    onDismissRequest = {
+                        mostrarDialogoAvance = false
+                    },
+                    title = {
+                        Text("Modificar avance")
+                    },
+                    text = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "Selecciona el avance actual del proyecto.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF64748B)
+                            )
+
+                            Text(
+                                text = "$avanceTemporal%",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2563EB)
+                            )
+
+                            Slider(
+                                value = avanceTemporal.toFloat(),
+                                onValueChange = { valor ->
+                                    avanceTemporal = valor.toInt()
+                                },
+                                valueRange = 0f..100f,
+                                steps = 99
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = { avanceTemporal = 0 },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("0%")
+                                }
+
+                                OutlinedButton(
+                                    onClick = { avanceTemporal = 50 },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("50%")
+                                }
+
+                                OutlinedButton(
+                                    onClick = { avanceTemporal = 100 },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("100%")
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.actualizarAvanceProyecto(
+                                    proyectoId = proyecto.id,
+                                    avance = avanceTemporal
+                                )
+
+                                mostrarDialogoAvance = false
+                            }
+                        ) {
+                            Text("Guardar")
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedButton(
+                            onClick = {
+                                mostrarDialogoAvance = false
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -458,11 +617,13 @@ fun FilaCostoProyecto(
         )
     }
 }
+
 @Composable
 fun SeccionEmpleadosProyecto(
     empleados: List<ProyectoEmpleadoEntity>,
     onAgregarEmpleado: () -> Unit,
-    onEditarEmpleado: (ProyectoEmpleadoEntity) -> Unit
+    onEditarEmpleado: (ProyectoEmpleadoEntity) -> Unit,
+    onEliminarEmpleado: (ProyectoEmpleadoEntity) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -532,10 +693,22 @@ fun SeccionEmpleadosProyecto(
                                     )
                                 }
 
-                                TextButton(
-                                    onClick = { onEditarEmpleado(empleado) }
-                                ) {
-                                    Text("Editar")
+                                Row {
+                                    TextButton(
+                                        onClick = { onEditarEmpleado(empleado) }
+                                    ) {
+                                        Text("Editar")
+                                    }
+
+                                    IconButton(
+                                        onClick = { onEliminarEmpleado(empleado) }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Eliminar empleado",
+                                            tint = Color(0xFFDC2626)
+                                        )
+                                    }
                                 }
                             }
 
@@ -1121,7 +1294,8 @@ fun BotonRapidoInferiorProyecto(
 @Composable
 fun SeccionGastosProyecto(
     gastos: List<GastoEntity>,
-    onAgregarGasto: () -> Unit
+    onAgregarGasto: () -> Unit,
+    onEliminarGasto: (GastoEntity) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1168,26 +1342,34 @@ fun SeccionGastosProyecto(
                         ),
                         border = BorderStroke(1.dp, Color(0xFFFDE68A))
                     ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = gasto.concepto,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF0F172A)
+                                )
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = gasto.concepto,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0F172A)
-                                    )
+                                Text(
+                                    text = "${gasto.categoria} | ${gasto.fecha}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF92400E)
+                                )
 
+                                if (!gasto.proveedor.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "${gasto.categoria} | ${gasto.fecha}",
+                                        text = "Proveedor: ${gasto.proveedor}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF92400E)
+                                        color = Color(0xFF64748B)
                                     )
                                 }
+
+                                Spacer(modifier = Modifier.height(4.dp))
 
                                 Text(
                                     text = formatoMonedaProyecto(gasto.total),
@@ -1197,12 +1379,13 @@ fun SeccionGastosProyecto(
                                 )
                             }
 
-                            if (!gasto.proveedor.isNullOrBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Proveedor: ${gasto.proveedor}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF64748B)
+                            IconButton(
+                                onClick = { onEliminarGasto(gasto) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar gasto",
+                                    tint = Color(0xFFDC2626)
                                 )
                             }
                         }

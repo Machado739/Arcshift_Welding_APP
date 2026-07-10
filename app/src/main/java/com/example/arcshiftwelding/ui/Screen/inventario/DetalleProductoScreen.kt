@@ -190,9 +190,11 @@ fun DetalleProductoScreen(
                     )
 
                     SeccionMovimientosRecientes(
-                        movimientos = movimientosRecientes
+                        movimientos = movimientosRecientes,
+                        onVerTodo = {
+                            navController.navigate(AppRoutes.historialMovimientosProducto(productoId))
+                        }
                     )
-
                     SeccionAccionesRapidas(
                         onEditar = {
                             navController.navigate(AppRoutes.editarProducto(productoId))
@@ -651,7 +653,8 @@ fun SeccionDetalleCostos(
 
 @Composable
 fun SeccionMovimientosRecientes(
-    movimientos: List<MovimientoInventarioEntity>
+    movimientos: List<MovimientoInventarioEntity>,
+    onVerTodo: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -685,9 +688,7 @@ fun SeccionMovimientosRecientes(
                 )
 
                 TextButton(
-                    onClick = {
-                        // Aquí después puedes navegar a historial completo
-                    }
+                    onClick = onVerTodo
                 ) {
                     Text(
                         text = "Ver todo",
@@ -719,44 +720,20 @@ fun SeccionMovimientosRecientes(
 
                 movimientos.take(5).forEach { movimiento ->
 
+                    val esSalida = movimiento.tipo.contains("Salida", ignoreCase = true)
+                    val esEntrada = movimiento.tipo.contains("Entrada", ignoreCase = true) ||
+                            movimiento.tipo == "Registro inicial"
+
                     val cantidadTexto = when {
-                        movimiento.tipo == "Salida" -> {
-                            "- ${movimiento.cantidad} ${movimiento.unidad}"
-                        }
-
-                        movimiento.tipo == "Entrada" -> {
-                            "+ ${movimiento.cantidad} ${movimiento.unidad}"
-                        }
-
-                        movimiento.tipo == "Registro inicial" -> {
-                            "+ ${movimiento.cantidad} ${movimiento.unidad}"
-                        }
-
+                        esSalida -> "- ${movimiento.cantidad} ${movimiento.unidad}"
+                        esEntrada -> "+ ${movimiento.cantidad} ${movimiento.unidad}"
                         movimiento.tipo == "Ajuste" && movimiento.stockNuevo > movimiento.stockAnterior -> {
                             "+ ${movimiento.cantidad} ${movimiento.unidad}"
                         }
-
                         movimiento.tipo == "Ajuste" && movimiento.stockNuevo < movimiento.stockAnterior -> {
                             "- ${movimiento.cantidad} ${movimiento.unidad}"
                         }
-
-                        else -> {
-                            "${movimiento.cantidad} ${movimiento.unidad}"
-                        }
-                    }
-
-                    val esEntrada = when {
-                        movimiento.tipo == "Salida" -> false
-
-                        movimiento.tipo == "Entrada" -> true
-
-                        movimiento.tipo == "Registro inicial" -> true
-
-                        movimiento.tipo == "Ajuste" -> {
-                            movimiento.stockNuevo > movimiento.stockAnterior
-                        }
-
-                        else -> true
+                        else -> "${movimiento.cantidad} ${movimiento.unidad}"
                     }
 
                     MovimientoItem(
@@ -764,9 +741,8 @@ fun SeccionMovimientosRecientes(
                         hora = movimiento.hora,
                         tipo = movimiento.tipo,
                         cantidad = cantidadTexto,
-                        usuario = movimiento.usuario,
                         referencia = movimiento.referencia.ifBlank { "-" },
-                        esEntrada = esEntrada
+                        esEntrada = !esSalida
                     )
                 }
             }
@@ -784,8 +760,7 @@ fun EncabezadoTablaMovimientos() {
         TextoTabla("Fecha", Modifier.weight(1.1f), esHeader = true)
         TextoTabla("Tipo", Modifier.weight(1f), esHeader = true)
         TextoTabla("Cantidad", Modifier.weight(1f), esHeader = true)
-        TextoTabla("Usuario", Modifier.weight(1f), esHeader = true)
-        TextoTabla("Referencia", Modifier.weight(1f), esHeader = true)
+        TextoTabla("Referencia", Modifier.weight(1.2f), esHeader = true)
     }
 }
 
@@ -795,7 +770,6 @@ fun MovimientoItem(
     hora: String,
     tipo: String,
     cantidad: String,
-    usuario: String,
     referencia: String,
     esEntrada: Boolean
 ) {
@@ -830,8 +804,7 @@ fun MovimientoItem(
         )
 
         TextoTabla(cantidad, Modifier.weight(1f))
-        TextoTabla(usuario, Modifier.weight(1f))
-        TextoTabla(referencia, Modifier.weight(1f))
+        TextoTabla(referencia, Modifier.weight(1.2f))
     }
 
     Divider(color = Color(0xFFF1F1F1))

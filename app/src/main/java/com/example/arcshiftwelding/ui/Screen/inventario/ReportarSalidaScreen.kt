@@ -103,7 +103,7 @@ fun ReportarSalidaScreen(
     var cantidadSalida by remember { mutableStateOf("") }
     var motivo by remember { mutableStateOf("") }
     var referencia by remember { mutableStateOf("") }
-    var responsable by remember { mutableStateOf("") }
+   /* var responsable by remember { mutableStateOf("") }*/
     var notas by remember { mutableStateOf("") }
     var mensajeError by remember { mutableStateOf("") }
 
@@ -222,8 +222,8 @@ fun ReportarSalidaScreen(
                 },
                 referencia = referencia,
                 onReferenciaChange = { referencia = it },
-                responsable = responsable,
-                onResponsableChange = { responsable = it },
+              /*  responsable = responsable,
+                onResponsableChange = { responsable = it },*/
                 notas = notas,
                 onNotasChange = { notas = it }
             )
@@ -330,7 +330,7 @@ fun ReportarSalidaScreen(
                             unidad = unidadMedida,
                             fecha = fechaActual,
                             hora = horaActual,
-                            usuario = responsable.ifBlank { "Admin" },
+                      /*      usuario = responsable.ifBlank { "Admin" },*/
                             referencia = referencia.ifBlank { "SAL-${producto.id}" },
                             observaciones = buildString {
                                 append("Motivo: ${motivo.trim()}")
@@ -641,8 +641,8 @@ fun CardDatosSalida(
     onMotivoChange: (String) -> Unit,
     referencia: String,
     onReferenciaChange: (String) -> Unit,
-    responsable: String,
-    onResponsableChange: (String) -> Unit,
+ /*   responsable: String,
+    onResponsableChange: (String) -> Unit,*/
     notas: String,
     onNotasChange: (String) -> Unit
 ) {
@@ -706,7 +706,7 @@ fun CardDatosSalida(
                 singleLine = true
             )
 
-            OutlinedTextField(
+           /* OutlinedTextField(
                 value = responsable,
                 onValueChange = onResponsableChange,
                 label = {
@@ -717,7 +717,7 @@ fun CardDatosSalida(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
-            )
+            )*/
 
             OutlinedTextField(
                 value = notas,

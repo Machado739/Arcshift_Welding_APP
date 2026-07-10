@@ -262,12 +262,32 @@ class ProyectosViewModel(
         combine(
             proyectoDao.obtenerProyectos(),
             clienteDao.obtenerClientesActivos(),
-            cotizacionDao.obtenerCotizaciones()
-        ) { proyectos, clientes, cotizaciones ->
+            cotizacionDao.obtenerCotizaciones(),
+            proyectoEmpleadoDao.obtenerTodosEmpleadosProyecto(),
+            proyectoMaterialDao.obtenerTodosMaterialesProyecto()
+        ) { proyectos, clientes, cotizaciones, empleadosProyecto, materialesProyecto ->
 
             proyectos.map { proyecto ->
                 val cliente = clientes.find { it.id == proyecto.clienteId }
                 val cotizacion = cotizaciones.find { it.id == proyecto.cotizacionId }
+
+                val empleadosDelProyecto = empleadosProyecto.filter {
+                    it.proyectoId == proyecto.id
+                }
+
+                val materialesDelProyecto = materialesProyecto.filter {
+                    it.proyectoId == proyecto.id
+                }
+
+                val costoMaterialCalculado = materialesDelProyecto.sumOf {
+                    it.subtotal
+                }
+
+                val costoManoObraCalculado = empleadosDelProyecto.sumOf {
+                    it.costoCalculado
+                }
+
+                val costoTotalCalculado = costoMaterialCalculado + costoManoObraCalculado
 
                 ProyectoUI(
                     id = proyecto.id,
@@ -283,12 +303,14 @@ class ProyectosViewModel(
                     estado = proyecto.estado,
                     avance = proyecto.avance,
                     presupuestoEstimado = proyecto.presupuestoEstimado,
-                    costoMaterial = proyecto.costoMaterial,
-                    costoManoObra = proyecto.costoManoObra,
-                    costoTotal = proyecto.costoTotal,
+
+                    costoMaterial = costoMaterialCalculado,
+                    costoManoObra = costoManoObraCalculado,
+                    costoTotal = costoTotalCalculado,
+
                     observaciones = proyecto.observaciones,
-                    empleadosAsignados = 0,
-                    materialesUsados = 0
+                    empleadosAsignados = empleadosDelProyecto.size,
+                    materialesUsados = materialesDelProyecto.size
                 )
             }
         }.stateIn(
@@ -520,7 +542,6 @@ class ProyectosViewModel(
         }
     }
 
-
     private fun calcularCostoEmpleadoProyecto(
         tipoPago: String,
         pagoAcordado: Double,
@@ -578,11 +599,23 @@ class ProyectosViewModel(
             .toDoubleOrNull() ?: 0.0
     }
 
-    fun obtenerEmpleadoProyectoPorId(empleadoProyectoId: Int): Flow<ProyectoEmpleadoEntity?> {
+
+    fun eliminarGastoProyecto(gasto: GastoEntity) {
+        viewModelScope.launch {
+            gastoDao.eliminarGasto(gasto)
+            _mensaje.value = "Gasto eliminado"
+        }
+    }
+
+    fun obtenerEmpleadoProyectoPorId(
+        empleadoProyectoId: Int
+    ): Flow<ProyectoEmpleadoEntity?> {
         return proyectoEmpleadoDao.observarEmpleadoProyectoPorId(empleadoProyectoId)
     }
 
-    fun eliminarEmpleadoAsignadoProyecto(empleadoProyectoId: Int) {
+    fun eliminarEmpleadoAsignadoProyecto(
+        empleadoProyectoId: Int
+    ) {
         viewModelScope.launch {
             proyectoEmpleadoDao.eliminarEmpleadoProyectoPorId(empleadoProyectoId)
             _mensaje.value = "Empleado eliminado del proyecto"
@@ -606,8 +639,8 @@ class ProyectosViewModel(
                 presupuestoEstimado = presupuestoEstimado
             )
 
-            proyectoEmpleadoDao.actualizarDatosEmpleadoProyecto(
-                id = empleadoProyecto.id,
+            proyectoEmpleadoDao.actualizarEmpleadoProyecto(
+                empleadoProyectoId = empleadoProyecto.id,
                 diasTrabajados = diasTrabajados,
                 horasTrabajadas = horasTrabajadas,
                 porcentaje = empleadoProyecto.porcentaje,
@@ -619,13 +652,35 @@ class ProyectosViewModel(
         }
     }
 
-    fun eliminarGastoProyecto(gasto: GastoEntity) {
+    fun eliminarGastoProyecto(
+        gastoId: Int
+    ) {
         viewModelScope.launch {
-            gastoDao.eliminarGasto(gasto)
+            gastoDao.eliminarGastoPorId(gastoId)
             _mensaje.value = "Gasto eliminado"
         }
     }
 
+    fun actualizarAvanceProyecto(
+        proyectoId: Int,
+        avance: Int
+    ) {
+        viewModelScope.launch {
+            val estado = when {
+                avance >= 100 -> "Terminado"
+                avance <= 0 -> "Pendiente"
+                else -> "En trabajo"
+            }
+
+            proyectoDao.actualizarAvanceProyecto(
+                proyectoId = proyectoId,
+                avance = avance.coerceIn(0, 100),
+                estado = estado
+            )
+
+            _mensaje.value = "Avance actualizado"
+        }
+    }
 }
 
 data class ResumenCostosProyecto(

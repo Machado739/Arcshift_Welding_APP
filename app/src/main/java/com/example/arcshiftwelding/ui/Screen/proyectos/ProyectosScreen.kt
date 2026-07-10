@@ -120,14 +120,14 @@ fun ProyectosScreen(
             resumen = resumen
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BuscadorProyectos(
             textoBusqueda = textoBusqueda,
             onTextoBusquedaChange = { textoBusqueda = it }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -149,7 +149,6 @@ fun ProyectosScreen(
             Text("Nuevo proyecto")
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosEstadoProyectos(
             seleccionada = filtroSeleccionado,
@@ -373,7 +372,7 @@ fun BuscadorProyectos(
             shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
-
+/*
         OutlinedButton(
             onClick = { },
             modifier = Modifier.height(48.dp),
@@ -392,7 +391,7 @@ fun BuscadorProyectos(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

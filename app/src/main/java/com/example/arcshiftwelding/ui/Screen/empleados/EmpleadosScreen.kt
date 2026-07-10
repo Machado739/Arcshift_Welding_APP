@@ -116,7 +116,7 @@ fun EmpleadosScreen(
 
         ResumenEmpleados(empleados = empleados)
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BuscadorEmpleados(
             textoBusqueda = textoBusqueda,
@@ -125,7 +125,7 @@ fun EmpleadosScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BotonNuevoEmpleado(
             onClick = {
@@ -133,7 +133,6 @@ fun EmpleadosScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosCategoriaEmpleados(
             seleccionada = categoriaSeleccionada,
@@ -142,7 +141,7 @@ fun EmpleadosScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         ListaEmpleados(
             empleados = empleadosFiltrados,
@@ -346,7 +345,7 @@ fun BuscadorEmpleados(
             shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
-
+/*
         OutlinedButton(
             onClick = { },
             modifier = Modifier.height(48.dp),
@@ -366,7 +365,7 @@ fun BuscadorEmpleados(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

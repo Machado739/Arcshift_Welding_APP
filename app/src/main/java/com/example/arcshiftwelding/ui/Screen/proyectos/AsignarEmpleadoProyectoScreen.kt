@@ -67,7 +67,6 @@ fun AsignarEmpleadoProyectoScreen(
 
     var empleadoSeleccionado by remember { mutableStateOf<EmpleadoEntity?>(null) }
     var busquedaEmpleado by remember { mutableStateOf("") }
-    var expandidoEmpleado by remember { mutableStateOf(false) }
     var tiempoTrabajoTexto by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
 
@@ -81,10 +80,7 @@ fun AsignarEmpleadoProyectoScreen(
 
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
-    val empleadosFiltrados = empleados.filter { empleado ->
-        empleado.nombre.contains(busquedaEmpleado, ignoreCase = true) ||
-                empleado.puesto.contains(busquedaEmpleado, ignoreCase = true)
-    }
+
 
     val contratoEmpleado = empleadoSeleccionado?.porcentajeContrato.orEmpty()
     val tipoPagoEmpleado = obtenerTipoPagoEmpleadoProyecto(contratoEmpleado)
@@ -175,76 +171,30 @@ fun AsignarEmpleadoProyectoScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            ExposedDropdownMenuBox(
-                expanded = expandidoEmpleado,
-                onExpandedChange = {
-                    expandidoEmpleado = !expandidoEmpleado
-                }
-            ) {
-                OutlinedTextField(
-                    value = busquedaEmpleado,
-                    onValueChange = {
-                        busquedaEmpleado = it
-                        expandidoEmpleado = true
-                        empleadoSeleccionado = null
-                        tiempoTrabajoTexto = ""
-                    },
-                    label = { Text("Buscar empleado") },
-                    placeholder = { Text("Nombre o puesto") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoEmpleado)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
 
-                ExposedDropdownMenu(
-                    expanded = expandidoEmpleado,
-                    onDismissRequest = {
-                        expandidoEmpleado = false
-                    }
-                ) {
-                    if (empleadosFiltrados.isEmpty()) {
-                        DropdownMenuItem(
-                            text = {
-                                Text("No se encontraron empleados")
-                            },
-                            onClick = {}
-                        )
-                    } else {
-                        empleadosFiltrados.forEach { empleado ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(
-                                            text = empleado.nombre,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            text = "${empleado.puesto} | ${empleado.porcentajeContrato.ifBlank { "Sin contrato" }}",
-
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    empleadoSeleccionado = empleado
-                                    busquedaEmpleado = empleado.nombre
-                                    tiempoTrabajoTexto = ""
-                                    expandidoEmpleado = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
+            BuscadorListaProyecto(
+                textoBusqueda = busquedaEmpleado,
+                onTextoBusquedaChange = { texto ->
+                    busquedaEmpleado = texto
+                    empleadoSeleccionado = null
+                    tiempoTrabajoTexto = ""
+                },
+                label = "Buscar empleado",
+                placeholder = "Nombre o puesto",
+                elementos = empleados,
+                textoPrincipal = { empleado ->
+                    empleado.nombre
+                },
+                textoSecundario = { empleado ->
+                    "${empleado.puesto} | ${empleado.porcentajeContrato.ifBlank { "Sin contrato" }}"
+                },
+                onSeleccionar = { empleado ->
+                    empleadoSeleccionado = empleado
+                    busquedaEmpleado = empleado.nombre
+                    tiempoTrabajoTexto = ""
+                },
+                mostrarLista = empleadoSeleccionado == null
+            )
 
             if (empleadoSeleccionado != null) {
                 Card(

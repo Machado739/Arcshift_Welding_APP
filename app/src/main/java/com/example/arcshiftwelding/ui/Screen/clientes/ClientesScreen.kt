@@ -88,7 +88,7 @@ fun ClientesScreen(
 
             ResumenClientes(clientes = clientes)
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             BuscadorClientes(
                 textoBusqueda = textoBusqueda,
@@ -97,9 +97,9 @@ fun ClientesScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
+        Button(
                 onClick = {
                     navController.navigate(AppRoutes.NUEVO_CLIENTE)
                 },
@@ -113,8 +113,6 @@ fun ClientesScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Nuevo Cliente")
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
 
 
             FiltrosCategoriaClientes(
@@ -319,7 +317,7 @@ fun BuscadorClientes(
             shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
-
+/*
         OutlinedButton(
             onClick = { },
             modifier = Modifier.height(48.dp),
@@ -338,7 +336,7 @@ fun BuscadorClientes(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

@@ -71,9 +71,11 @@ import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import androidx.navigation.navArgument
+import com.example.arcshiftwelding.ui.Screen.inventario.HistorialMovimientosProductoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.AgregarCostoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.AsignarEmpleadoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.DetalleProyectoScreen
+import com.example.arcshiftwelding.ui.Screen.proyectos.EditarEmpleadoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
@@ -822,6 +824,23 @@ fun AppNavigation() {
                     empleadoProyectoId = empleadoProyectoId,
                     navController = navController,
                     proyectosViewModel = proyectosViewModel
+                )
+            }
+
+            composable(
+                route = AppRoutes.HISTORIAL_MOVIMIENTOS_PRODUCTO,
+                arguments = listOf(
+                    navArgument("productoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val productoId = backStackEntry.arguments?.getInt("productoId") ?: 0
+
+                HistorialMovimientosProductoScreen(
+                    navController = navController,
+                    productoId = productoId
                 )
             }
 ///                     MAS

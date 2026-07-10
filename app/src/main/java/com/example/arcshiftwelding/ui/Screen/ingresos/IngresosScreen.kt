@@ -91,14 +91,14 @@ fun IngresosScreen(
             pagosPorCobrar = pagosPorCobrar
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BarraBusquedaIngresos(
             busqueda = busqueda,
             onBusquedaChange = { busqueda = it }
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -115,7 +115,6 @@ fun IngresosScreen(
             Text("Nuevo Ingreso")
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosCategoriaIngresos(
             seleccionada = categoriaSeleccionada,
@@ -370,7 +369,7 @@ fun BarraBusquedaIngresos(
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
-
+/*
         OutlinedButton(
             onClick = { },
             modifier = Modifier.height(48.dp),
@@ -389,7 +388,7 @@ fun BarraBusquedaIngresos(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

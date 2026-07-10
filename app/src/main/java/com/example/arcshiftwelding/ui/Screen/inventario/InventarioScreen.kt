@@ -165,14 +165,14 @@ fun InventarioScreen(
                 sinStock = productos.count { it.stock == 0 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             BarraBusquedaFiltrosInventario(
                 busqueda = busqueda,
                 onBusquedaChange = { busqueda = it }
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -206,7 +206,6 @@ fun InventarioScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
 
             FiltrosCategoriaInventario(
                 seleccionada = categoriaSeleccionada,
@@ -401,7 +400,7 @@ fun BarraBusquedaFiltrosInventario(
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
-
+/*
         OutlinedButton(
             onClick = { },
             shape = RoundedCornerShape(8.dp),
@@ -419,7 +418,7 @@ fun BarraBusquedaFiltrosInventario(
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

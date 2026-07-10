@@ -70,11 +70,11 @@ fun CotizacionesScreen(
             cotizaciones = cotizaciones
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BarraBusquedaCotizaciones()
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -90,8 +90,6 @@ fun CotizacionesScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Nueva Cotización")
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
 
         FiltrosCategoriaCotizaciones(
             seleccionada = categoriaSeleccionada,
@@ -301,7 +299,7 @@ fun BarraBusquedaCotizaciones() {
             singleLine = true,
             shape = RoundedCornerShape(8.dp)
         )
-
+/*
         OutlinedButton(
             onClick = { },
             modifier = Modifier.height(48.dp),
@@ -320,7 +318,7 @@ fun BarraBusquedaCotizaciones() {
                 text = "Filtros",
                 fontSize = 12.sp
             )
-        }
+        }*/
     }
 }
 

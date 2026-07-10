@@ -127,7 +127,7 @@ fun EditarEmpleadoProyectoScreen(
         else -> 0.0
     }
 
-    val costoEstimado = calcularCostoEmpleadoAsignadoPreview(
+    val costoPreview = calcularCostoEmpleadoAsignadoPreview(
         tipoPago = empleado.tipoPago,
         pagoAcordado = empleado.pagoAcordado,
         diasTrabajados = diasTrabajados,
@@ -293,7 +293,7 @@ fun EditarEmpleadoProyectoScreen(
                     )
 
                     Text(
-                        text = formatoMonedaProyecto(costoEstimado),
+                        text = formatoMonedaProyecto(costoPreview),
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color(0xFF1E40AF),
                         fontWeight = FontWeight.Bold
@@ -403,7 +403,9 @@ fun calcularCostoEmpleadoAsignadoPreview(
     }
 }
 
-fun textoTipoPagoEmpleadoAsignado(tipoPago: String): String {
+fun textoTipoPagoEmpleadoAsignado(
+    tipoPago: String
+): String {
     return when (tipoPago) {
         "Día" -> "Pago por día"
         "Semana" -> "Pago por semana"

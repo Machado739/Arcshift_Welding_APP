@@ -60,7 +60,6 @@ fun RegistrarMaterialProyectoScreen(
 
     var productoSeleccionado by remember { mutableStateOf<ProductoEntity?>(null) }
     var busquedaProducto by remember { mutableStateOf("") }
-    var expandidoProducto by remember { mutableStateOf(false) }
 
     var cantidadTexto by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
@@ -75,11 +74,6 @@ fun RegistrarMaterialProyectoScreen(
 
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
-    val productosFiltrados = productos.filter { producto ->
-        producto.nombre.contains(busquedaProducto, ignoreCase = true) ||
-                producto.codigo.contains(busquedaProducto, ignoreCase = true) ||
-                producto.categoria.contains(busquedaProducto, ignoreCase = true)
-    }
 
     val stockDisponible = productoSeleccionado?.stock ?: 0
     val cantidadUsada = cantidadTexto.toIntOrNull() ?: 0
@@ -156,74 +150,30 @@ fun RegistrarMaterialProyectoScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            ExposedDropdownMenuBox(
-                expanded = expandidoProducto,
-                onExpandedChange = {
-                    expandidoProducto = !expandidoProducto
-                }
-            ) {
-                OutlinedTextField(
-                    value = busquedaProducto,
-                    onValueChange = {
-                        busquedaProducto = it
-                        expandidoProducto = true
-                        productoSeleccionado = null
-                    },
-                    label = { Text("Buscar material") },
-                    placeholder = { Text("Nombre, código o categoría") },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoProducto)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
+            BuscadorListaProyecto(
+                textoBusqueda = busquedaProducto,
+                onTextoBusquedaChange = { texto ->
+                    busquedaProducto = texto
+                    productoSeleccionado = null
+                    cantidadTexto = ""
+                },
+                label = "Buscar material",
+                placeholder = "Nombre, código o categoría",
+                elementos = productos,
+                textoPrincipal = { producto ->
+                    producto.nombre
+                },
+                textoSecundario = { producto ->
+                    "${producto.codigo} | ${producto.categoria} | Stock: ${producto.stock} ${producto.unidad}"
+                },
+                onSeleccionar = { producto ->
+                    productoSeleccionado = producto
+                    busquedaProducto = producto.nombre
+                    cantidadTexto = ""
+                },
+                mostrarLista = productoSeleccionado == null
+            )
 
-                ExposedDropdownMenu(
-                    expanded = expandidoProducto,
-                    onDismissRequest = {
-                        expandidoProducto = false
-                    }
-                ) {
-                    if (productosFiltrados.isEmpty()) {
-                        DropdownMenuItem(
-                            text = {
-                                Text("No se encontraron productos")
-                            },
-                            onClick = {}
-                        )
-                    } else {
-                        productosFiltrados.forEach { producto ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(
-                                            text = producto.nombre,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            text = "${producto.codigo} | Stock: ${producto.stock} ${producto.unidad}",
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
-                                },
-                                onClick = {
-                                    productoSeleccionado = producto
-                                    busquedaProducto = producto.nombre
-                                    expandidoProducto = false
-                                    cantidadTexto = ""
-                                }
-                            )
-                        }
-                    }
-                }
-            }
 
             if (productoSeleccionado != null) {
                 Card(

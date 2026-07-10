@@ -42,4 +42,9 @@ interface ProyectoMaterialDao {
         WHERE proyectoId = :proyectoId
     """)
     fun totalMaterialesPorProyecto(proyectoId: Int): Flow<Double>
+
+    @Query("""
+    SELECT * FROM proyecto_materiales
+""")
+    fun obtenerTodosMaterialesProyecto(): Flow<List<ProyectoMaterialEntity>>
 }

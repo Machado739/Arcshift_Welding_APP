@@ -1,6 +1,7 @@
 package com.example.arcshiftwelding.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -27,8 +28,11 @@ interface GastoDao {
     @Update
     suspend fun actualizarGasto(gasto: GastoEntity)
 
-    @Query("DELETE FROM gastos WHERE id = :id")
-    suspend fun eliminarGasto(id: GastoEntity)
+    @Delete
+    suspend fun eliminarGasto(gasto: GastoEntity)
+
+    @Query("DELETE FROM gastos WHERE id = :gastoId")
+    suspend fun eliminarGastoPorId(gastoId: Int)
 
     @Transaction
     @Query("SELECT * FROM gastos ORDER BY id DESC")

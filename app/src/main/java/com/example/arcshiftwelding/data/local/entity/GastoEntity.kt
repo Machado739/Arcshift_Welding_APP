@@ -5,9 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
-import com.example.arcshiftwelding.data.local.entity.ClienteEntity
-import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
-
 @Entity(
     tableName = "gastos",
     foreignKeys = [
@@ -45,7 +42,6 @@ data class GastoEntity(
     val categoria: String,
     val fecha: String,
     val proveedor: String,
-
 
     val subtotal: Double,
     val ivaPorcentaje: Double,
