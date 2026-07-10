@@ -801,6 +801,29 @@ fun AppNavigation() {
                     proyectoNombreRelacionado = proyectoNombre
                 )
             }
+
+            composable(
+                route = AppRoutes.EDITAR_EMPLEADO_PROYECTO,
+                arguments = listOf(
+                    navArgument("proyectoId") {
+                        type = NavType.IntType
+                    },
+                    navArgument("empleadoProyectoId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+
+                val proyectoId = backStackEntry.arguments?.getInt("proyectoId") ?: 0
+                val empleadoProyectoId = backStackEntry.arguments?.getInt("empleadoProyectoId") ?: 0
+
+                EditarEmpleadoProyectoScreen(
+                    proyectoId = proyectoId,
+                    empleadoProyectoId = empleadoProyectoId,
+                    navController = navController,
+                    proyectosViewModel = proyectosViewModel
+                )
+            }
 ///                     MAS
 ///                     MAS
 ///                     MAS

@@ -72,4 +72,20 @@ interface ProyectoEmpleadoDao {
         costoCalculado: Double,
         observaciones: String
     )
+
+    @Query("""
+    SELECT * FROM proyecto_empleados
+    WHERE id = :id
+    LIMIT 1
+""")
+    fun observarEmpleadoProyectoPorId(id: Int): Flow<ProyectoEmpleadoEntity?>
+
+
+
+    @Query("""
+    DELETE FROM proyecto_empleados
+    WHERE id = :id
+""")
+    suspend fun eliminarEmpleadoProyectoPorId(id: Int)
+
 }

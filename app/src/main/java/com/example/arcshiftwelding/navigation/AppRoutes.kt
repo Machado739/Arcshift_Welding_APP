@@ -150,6 +150,14 @@ object AppRoutes {
     const val REGISTRAR_MATERIAL_PROYECTO = "registrar_material_proyecto/{proyectoId}"
     const val AGREGAR_COSTO_PROYECTO = "agregar_costo_proyecto/{proyectoId}"
 
+    const val EDITAR_EMPLEADO_PROYECTO = "editar_empleado_proyecto/{proyectoId}/{empleadoProyectoId}"
+
+    fun editarEmpleadoProyecto(
+        proyectoId: Int,
+        empleadoProyectoId: Int
+    ): String {
+        return "editar_empleado_proyecto/$proyectoId/$empleadoProyectoId"
+    }
     fun detalleProyecto(proyectoId: Int): String {
         return "detalle_proyecto/$proyectoId"
     }

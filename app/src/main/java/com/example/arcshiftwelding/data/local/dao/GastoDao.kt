@@ -28,7 +28,7 @@ interface GastoDao {
     suspend fun actualizarGasto(gasto: GastoEntity)
 
     @Query("DELETE FROM gastos WHERE id = :id")
-    suspend fun eliminarGasto(id: Int)
+    suspend fun eliminarGasto(id: GastoEntity)
 
     @Transaction
     @Query("SELECT * FROM gastos ORDER BY id DESC")

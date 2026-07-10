@@ -519,35 +519,8 @@ class ProyectosViewModel(
             _mensaje.value = "Empleado asignado al proyecto"
         }
     }
-    fun actualizarEmpleadoAsignadoProyecto(
-        empleadoProyecto: ProyectoEmpleadoEntity,
-        presupuestoEstimado: Double,
-        diasTrabajados: Double,
-        horasTrabajadas: Double,
-        observaciones: String
-    ) {
-        viewModelScope.launch {
-            val costoCalculado = calcularCostoEmpleadoProyecto(
-                tipoPago = empleadoProyecto.tipoPago,
-                pagoAcordado = empleadoProyecto.pagoAcordado,
-                diasTrabajados = diasTrabajados,
-                horasTrabajadas = horasTrabajadas,
-                porcentaje = empleadoProyecto.porcentaje,
-                presupuestoEstimado = presupuestoEstimado
-            )
 
-            proyectoEmpleadoDao.actualizarDatosEmpleadoProyecto(
-                id = empleadoProyecto.id,
-                diasTrabajados = diasTrabajados,
-                horasTrabajadas = horasTrabajadas,
-                porcentaje = empleadoProyecto.porcentaje,
-                costoCalculado = costoCalculado,
-                observaciones = observaciones
-            )
 
-            _mensaje.value = "Empleado actualizado"
-        }
-    }
     private fun calcularCostoEmpleadoProyecto(
         tipoPago: String,
         pagoAcordado: Double,
@@ -605,7 +578,53 @@ class ProyectosViewModel(
             .toDoubleOrNull() ?: 0.0
     }
 
+    fun obtenerEmpleadoProyectoPorId(empleadoProyectoId: Int): Flow<ProyectoEmpleadoEntity?> {
+        return proyectoEmpleadoDao.observarEmpleadoProyectoPorId(empleadoProyectoId)
+    }
 
+    fun eliminarEmpleadoAsignadoProyecto(empleadoProyectoId: Int) {
+        viewModelScope.launch {
+            proyectoEmpleadoDao.eliminarEmpleadoProyectoPorId(empleadoProyectoId)
+            _mensaje.value = "Empleado eliminado del proyecto"
+        }
+    }
+
+    fun actualizarEmpleadoAsignadoProyecto(
+        empleadoProyecto: ProyectoEmpleadoEntity,
+        presupuestoEstimado: Double,
+        diasTrabajados: Double,
+        horasTrabajadas: Double,
+        observaciones: String
+    ) {
+        viewModelScope.launch {
+            val costoCalculado = calcularCostoEmpleadoProyecto(
+                tipoPago = empleadoProyecto.tipoPago,
+                pagoAcordado = empleadoProyecto.pagoAcordado,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = empleadoProyecto.porcentaje,
+                presupuestoEstimado = presupuestoEstimado
+            )
+
+            proyectoEmpleadoDao.actualizarDatosEmpleadoProyecto(
+                id = empleadoProyecto.id,
+                diasTrabajados = diasTrabajados,
+                horasTrabajadas = horasTrabajadas,
+                porcentaje = empleadoProyecto.porcentaje,
+                costoCalculado = costoCalculado,
+                observaciones = observaciones
+            )
+
+            _mensaje.value = "Empleado actualizado"
+        }
+    }
+
+    fun eliminarGastoProyecto(gasto: GastoEntity) {
+        viewModelScope.launch {
+            gastoDao.eliminarGasto(gasto)
+            _mensaje.value = "Gasto eliminado"
+        }
+    }
 
 }
 
