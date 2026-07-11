@@ -62,11 +62,11 @@ import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModel
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModelFactory
-import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModel
-import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import androidx.navigation.navArgument
+import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.HistorialMovimientosProductoScreen

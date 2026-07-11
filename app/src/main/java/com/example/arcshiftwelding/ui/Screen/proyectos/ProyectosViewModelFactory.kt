@@ -22,6 +22,7 @@ class ProyectosViewModelFactory(
                 proyectoEmpleadoDao = database.proyectoEmpleadoDao(),
                 proyectoMaterialDao = database.proyectoMaterialDao(),
                 proyectoCostoDao = database.proyectoCostoDao(),
+                proyectoAvanceDao = database.proyectoAvanceDao(),
                 proyectoRepository = ProyectoRepository(database)
             ) as T
         }

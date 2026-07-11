@@ -54,10 +54,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.formatoMoneda
 
 data class EmpleadoUI(
     val id: Int,
@@ -69,7 +69,8 @@ data class EmpleadoUI(
     val periodoPago: String,
     val estado: String,
     val color: Color,
-    val salario: Double
+    val salario: Double,
+    val fotoUri: String = ""
 )
 
 @Composable
@@ -500,20 +501,13 @@ fun ItemEmpleado(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE5E7EB)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color(0xFF9CA3AF),
-                    modifier = Modifier.size(34.dp)
-                )
-            }
+            ImagenPerfilEmpleado(
+                fotoUri = empleado.fotoUri,
+                iniciales = obtenerInicialesEmpleado(empleado.nombre),
+                modifier = Modifier.size(48.dp),
+                colorFondo = Color(0xFFE5E7EB),
+                colorContenido = Color(0xFF2563EB)
+            )
 
             Spacer(modifier = Modifier.width(10.dp))
 

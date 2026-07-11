@@ -4,6 +4,13 @@ import androidx.room.*
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import kotlinx.coroutines.flow.Flow
 
+data class ProyectoActualEmpleado(
+    val proyectoId: Int,
+    val nombreProyecto: String,
+    val estadoProyecto: String
+)
+
+
 @Dao
 interface ProyectoEmpleadoDao {
 
@@ -112,5 +119,19 @@ interface ProyectoEmpleadoDao {
     SELECT * FROM proyecto_empleados
 """)
     fun obtenerTodosEmpleadosProyecto(): Flow<List<ProyectoEmpleadoEntity>>
+
+
+    @Query("""
+        SELECT p.id AS proyectoId,
+               p.nombre AS nombreProyecto,
+               p.estado AS estadoProyecto
+        FROM proyectos p
+        INNER JOIN proyecto_empleados pe ON pe.proyectoId = p.id
+        WHERE pe.empleadoId = :empleadoId
+          AND p.estado IN ('Pendiente', 'En trabajo')
+        ORDER BY pe.id DESC
+        LIMIT 1
+    """)
+    fun observarProyectoActualEmpleado(empleadoId: Int): Flow<ProyectoActualEmpleado?>
 
 }

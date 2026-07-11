@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.empleados
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +65,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.toDetalleUi
 
 data class EmpleadoDetalleUI(
     val id: Int,
@@ -76,7 +80,8 @@ data class EmpleadoDetalleUI(
     val trabajoActual: String,
     val pagoTotalSemana: String,
     val estado: String,
-    val notas: String
+    val notas: String,
+    val fotoUri: String = ""
 )
 
 data class TrabajoAsignadoEmpleadoUI(
@@ -95,9 +100,16 @@ fun DetalleEmpleadoScreen(
 ) {
 
 
+    val context = LocalContext.current
     val empleadoEntity by viewModel
         .observarEmpleado(empleadoId)
         .collectAsState(initial = null)
+
+    val proyectoActual by remember(empleadoId) {
+        ArcshiftWeldingDatabase.getDatabase(context)
+            .proyectoEmpleadoDao()
+            .observarProyectoActualEmpleado(empleadoId)
+    }.collectAsState(initial = null)
 
     if (empleadoEntity == null) {
         Box(
@@ -111,7 +123,10 @@ fun DetalleEmpleadoScreen(
         return
     }
 
-    val empleado = empleadoEntity!!.toDetalleUi()
+    val empleadoBase = empleadoEntity!!.toDetalleUi()
+    val empleado = empleadoBase.copy(
+        trabajoActual = proyectoActual?.nombreProyecto ?: empleadoBase.trabajoActual
+    )
 
     val trabajosAsignados = emptyList<TrabajoAsignadoEmpleadoUI>()
 
@@ -184,8 +199,16 @@ fun DetalleEmpleadoScreen(
             /*    SeccionTrabajosAsignadosEmpleado(trabajos = trabajosAsignados)*/
 
             SeccionAccionesRapidasEmpleado(
-                onLlamarClick = { },
-                onMensajeClick = { },
+                onLlamarClick = {
+                    val telefono = empleadoEntity!!.telefono.trim()
+                    if (telefono.isNotBlank()) {
+                        val intent = Intent(
+                            Intent.ACTION_DIAL,
+                            Uri.fromParts("tel", telefono, null)
+                        )
+                        runCatching { context.startActivity(intent) }
+                    }
+                },
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarEmpleado(empleado.id))
                 },
@@ -216,17 +239,15 @@ fun CardPrincipalEmpleado(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE0ECFF)),
+                modifier = Modifier.size(64.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = obtenerInicialesEmpleado(empleado.nombre),
-                    color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                ImagenPerfilEmpleado(
+                    fotoUri = empleado.fotoUri,
+                    iniciales = obtenerInicialesEmpleado(empleado.nombre),
+                    modifier = Modifier.fillMaxSize(),
+                    colorFondo = Color(0xFFE0ECFF),
+                    colorContenido = Color(0xFF2563EB)
                 )
 
                 Box(
@@ -777,7 +798,6 @@ fun obtenerColorEstadoTrabajo(estado: String): Color {
 @Composable
 fun SeccionAccionesRapidasEmpleado(
     onLlamarClick: () -> Unit,
-    onMensajeClick: () -> Unit,
     onEditarClick: () -> Unit,
     onEliminarClick: () -> Unit
 ) {
@@ -809,14 +829,6 @@ fun SeccionAccionesRapidasEmpleado(
                     icono = Icons.Default.Phone,
                     color = Color(0xFF16A34A),
                     onClick = onLlamarClick,
-                    modifier = Modifier.weight(1f)
-                )
-
-                BotonAccionEmpleado(
-                    texto = "Mensaje",
-                    icono = Icons.Default.Message,
-                    color = Color(0xFF2563EB),
-                    onClick = onMensajeClick,
                     modifier = Modifier.weight(1f)
                 )
 

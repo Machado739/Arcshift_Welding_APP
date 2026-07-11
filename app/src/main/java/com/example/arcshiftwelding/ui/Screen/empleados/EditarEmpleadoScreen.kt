@@ -30,9 +30,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,9 +48,16 @@ fun EditarEmpleadoScreen(
     viewModel: EmpleadosViewModel
 
 ) {
+    val context = LocalContext.current
     val empleadoEntity by viewModel
         .observarEmpleado(empleadoId)
         .collectAsState(initial = null)
+
+    val proyectoActual by remember(empleadoId) {
+        ArcshiftWeldingDatabase.getDatabase(context)
+            .proyectoEmpleadoDao()
+            .observarProyectoActualEmpleado(empleadoId)
+    }.collectAsState(initial = null)
 
     var datosCargados by remember { mutableStateOf(false) }
 
@@ -66,6 +76,7 @@ fun EditarEmpleadoScreen(
     var trabajoActual by remember { mutableStateOf("") }
 
     var notas by remember { mutableStateOf("") }
+    var fotoUri by remember { mutableStateOf("") }
 
     var empleadoActivo by remember { mutableStateOf(true) }
     var asignarTrabajos by remember { mutableStateOf(true) }
@@ -89,9 +100,16 @@ fun EditarEmpleadoScreen(
             trabajoActual = empleado.trabajoActual
 
             notas = empleado.notas
+            fotoUri = empleado.fotoUri
             empleadoActivo = empleado.activo
 
             datosCargados = true
+        }
+    }
+
+    LaunchedEffect(proyectoActual?.proyectoId) {
+        proyectoActual?.let { proyecto ->
+            trabajoActual = proyecto.nombreProyecto
         }
     }
 
@@ -159,7 +177,9 @@ fun EditarEmpleadoScreen(
                 puesto = puesto,
                 onPuestoChange = { puesto = it },
                 estatus = estatus,
-                onEstatusChange = { estatus = it }
+                onEstatusChange = { estatus = it },
+                fotoUri = fotoUri,
+                onFotoUriChange = { fotoUri = it }
             )
 
             SeccionInformacionContactoEmpleado(
@@ -213,6 +233,7 @@ fun EditarEmpleadoScreen(
                         fechaIngreso = fechaIngreso,
                         trabajoActual = trabajoActual,
                         notas = notas,
+                        fotoUri = fotoUri,
                         activo = empleadoActivo && estatus == "Activo"
                     )
 
@@ -233,7 +254,9 @@ fun SeccionInformacionPersonalEditarEmpleado(
     puesto: String,
     onPuestoChange: (String) -> Unit,
     estatus: String,
-    onEstatusChange: (String) -> Unit
+    onEstatusChange: (String) -> Unit,
+    fotoUri: String,
+    onFotoUriChange: (String) -> Unit
 ) {
     CardFormularioEmpleado(
         titulo = "Información personal",
@@ -246,6 +269,9 @@ fun SeccionInformacionPersonalEditarEmpleado(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AgregarFotoEmpleado(
+                fotoUri = fotoUri,
+                nombreEmpleado = nombre,
+                onFotoUriChange = onFotoUriChange,
                 modifier = Modifier.width(95.dp)
             )
 

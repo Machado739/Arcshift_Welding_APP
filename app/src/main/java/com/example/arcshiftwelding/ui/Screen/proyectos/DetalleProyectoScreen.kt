@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.ui.Screen.proyectos
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +39,10 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.Work
@@ -50,6 +56,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -62,6 +69,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -71,11 +79,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.TextButton
 import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoAvanceEntity
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 import kotlin.collections.emptyList
 import androidx.compose.material3.Slider
@@ -86,11 +94,14 @@ fun DetalleProyectoScreen(
     viewModel: ProyectosViewModel,
     proyectoId: Int
 ) {
+    val context = LocalContext.current
     val proyectos by viewModel.proyectos.collectAsState()
     val proyecto = proyectos.find { it.id == proyectoId }
 
     var mostrarDialogoAvance by remember { mutableStateOf(false) }
     var avanceTemporal by remember { mutableStateOf(0) }
+    var comentarioAvance by remember { mutableStateOf("") }
+    var fotosAvance by remember { mutableStateOf(emptyList<ImagenProyectoSeleccionada>()) }
 
     var mostrarDialogoTerminar by remember { mutableStateOf(false) }
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
@@ -167,6 +178,14 @@ fun DetalleProyectoScreen(
     val gastosProyecto by viewModel
         .obtenerGastosProyecto(proyecto.id)
         .collectAsState(initial = emptyList())
+
+    val historialAvances by viewModel
+        .obtenerHistorialAvances(proyecto.id)
+        .collectAsState(initial = emptyList())
+
+    val imagenesProyecto = remember(proyecto.imagenesJson) {
+        deserializarImagenesProyecto(proyecto.imagenesJson)
+    }
 
     Scaffold(
         topBar = {
@@ -251,6 +270,16 @@ fun DetalleProyectoScreen(
             }
 
             CardSeccionDetalleProyecto(
+                titulo = "Imágenes del proyecto",
+                icono = Icons.Default.Image
+            ) {
+                GaleriaImagenesProyecto(
+                    imagenes = imagenesProyecto,
+                    onAbrir = { abrirImagenProyecto(context, it) }
+                )
+            }
+
+            CardSeccionDetalleProyecto(
                 titulo = "Avance del proyecto",
                 icono = Icons.Default.CalendarMonth
             ) {
@@ -293,6 +322,8 @@ fun DetalleProyectoScreen(
                     OutlinedButton(
                         onClick = {
                             avanceTemporal = proyecto.avance
+                            comentarioAvance = ""
+                            fotosAvance = emptyList()
                             mostrarDialogoAvance = true
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -311,6 +342,11 @@ fun DetalleProyectoScreen(
             }
 
 
+
+            SeccionHistorialAvancesProyecto(
+                avances = historialAvances,
+                onAbrirFoto = { abrirImagenProyecto(context, it) }
+            )
 
             SeccionResumenCostosProyecto(
                 resumen = resumenCostos
@@ -387,18 +423,18 @@ fun DetalleProyectoScreen(
             )
             if (mostrarDialogoAvance) {
                 AlertDialog(
-                    onDismissRequest = {
-                        mostrarDialogoAvance = false
-                    },
-                    title = {
-                        Text("Modificar avance")
-                    },
+                    onDismissRequest = { mostrarDialogoAvance = false },
+                    title = { Text("Registrar avance") },
                     text = {
                         Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 520.dp)
+                                .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
-                                text = "Selecciona el avance actual del proyecto.",
+                                text = "Guarda el porcentaje, una nota y fotografías como evidencia del avance.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF64748B)
                             )
@@ -412,9 +448,7 @@ fun DetalleProyectoScreen(
 
                             Slider(
                                 value = avanceTemporal.toFloat(),
-                                onValueChange = { valor ->
-                                    avanceTemporal = valor.toInt()
-                                },
+                                onValueChange = { avanceTemporal = it.toInt() },
                                 valueRange = 0f..100f,
                                 steps = 99
                             )
@@ -423,49 +457,53 @@ fun DetalleProyectoScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                OutlinedButton(
-                                    onClick = { avanceTemporal = 0 },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("0%")
-                                }
-
-                                OutlinedButton(
-                                    onClick = { avanceTemporal = 50 },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("50%")
-                                }
-
-                                OutlinedButton(
-                                    onClick = { avanceTemporal = 100 },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("100%")
+                                listOf(0, 50, 100).forEach { porcentaje ->
+                                    OutlinedButton(
+                                        onClick = { avanceTemporal = porcentaje },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("$porcentaje%")
+                                    }
                                 }
                             }
+
+                            OutlinedTextField(
+                                value = comentarioAvance,
+                                onValueChange = { comentarioAvance = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Comentario del avance") },
+                                placeholder = { Text("Ej. Se terminó la estructura principal") },
+                                minLines = 2,
+                                maxLines = 4
+                            )
+
+                            SelectorImagenesProyecto(
+                                imagenes = fotosAvance,
+                                onImagenesChange = { fotosAvance = it },
+                                tituloBoton = "Agregar fotos del avance",
+                                maximo = 8
+                            )
                         }
                     },
                     confirmButton = {
                         Button(
                             onClick = {
-                                viewModel.actualizarAvanceProyecto(
+                                viewModel.registrarAvanceProyecto(
                                     proyectoId = proyecto.id,
-                                    avance = avanceTemporal
+                                    avance = avanceTemporal,
+                                    comentario = comentarioAvance,
+                                    fotos = fotosAvance
                                 )
-
                                 mostrarDialogoAvance = false
+                                comentarioAvance = ""
+                                fotosAvance = emptyList()
                             }
                         ) {
                             Text("Guardar")
                         }
                     },
                     dismissButton = {
-                        OutlinedButton(
-                            onClick = {
-                                mostrarDialogoAvance = false
-                            }
-                        ) {
+                        OutlinedButton(onClick = { mostrarDialogoAvance = false }) {
                             Text("Cancelar")
                         }
                     }
@@ -619,153 +657,393 @@ fun FilaCostoProyecto(
 }
 
 @Composable
+fun EncabezadoSeccionContraibleProyecto(
+    titulo: String,
+    resumen: String,
+    icono: ImageVector,
+    expandido: Boolean,
+    onCambiarEstado: () -> Unit,
+    textoAccion: String? = null,
+    onAccion: (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable(onClick = onCambiarEstado)
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .background(
+                        color = Color(0xFFEFF6FF),
+                        shape = RoundedCornerShape(11.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = Color(0xFF2563EB),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = titulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = resumen,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF64748B),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        if (textoAccion != null && onAccion != null) {
+            TextButton(onClick = onAccion) {
+                Text(textoAccion)
+            }
+        }
+
+        IconButton(onClick = onCambiarEstado) {
+            Icon(
+                imageVector = if (expandido) {
+                    Icons.Default.KeyboardArrowUp
+                } else {
+                    Icons.Default.KeyboardArrowDown
+                },
+                contentDescription = if (expandido) {
+                    "Contraer sección"
+                } else {
+                    "Desplegar sección"
+                },
+                tint = Color(0xFF475569)
+            )
+        }
+    }
+}
+
+@Composable
+fun SeccionHistorialAvancesProyecto(
+    avances: List<ProyectoAvanceEntity>,
+    onAbrirFoto: (ImagenProyectoSeleccionada) -> Unit
+) {
+    var expandido by remember { mutableStateOf(false) }
+    var mostrarTodos by remember { mutableStateOf(false) }
+    val avancesVisibles = if (mostrarTodos) avances else avances.take(3)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            EncabezadoSeccionContraibleProyecto(
+                titulo = "Historial de avances",
+                resumen = when {
+                    avances.isEmpty() -> "Sin avances registrados"
+                    avances.size == 1 -> "1 actualización registrada"
+                    else -> "${avances.size} actualizaciones registradas"
+                },
+                icono = Icons.Default.History,
+                expandido = expandido,
+                onCambiarEstado = { expandido = !expandido }
+            )
+
+            if (expandido) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFE2E8F0))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (avances.isEmpty()) {
+                    Text(
+                        text = "Todavía no hay actualizaciones registradas.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+                } else {
+                    avancesVisibles.forEachIndexed { index, avance ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF8FAFC)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(7.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Avance ${avance.porcentaje}%",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF2563EB)
+                                    )
+
+                                    Text(
+                                        text = avance.fecha,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF64748B)
+                                    )
+                                }
+
+                                LinearProgressIndicator(
+                                    progress = {
+                                        avance.porcentaje.coerceIn(0, 100) / 100f
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(50)),
+                                    color = Color(0xFF2563EB),
+                                    trackColor = Color(0xFFE2E8F0)
+                                )
+
+                                if (avance.comentario.isNotBlank()) {
+                                    Text(
+                                        text = avance.comentario,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF334155)
+                                    )
+                                }
+
+                                val fotos = remember(avance.fotosJson) {
+                                    deserializarImagenesProyecto(avance.fotosJson)
+                                }
+
+                                if (fotos.isNotEmpty()) {
+                                    GaleriaImagenesProyecto(
+                                        imagenes = fotos,
+                                        onAbrir = onAbrirFoto
+                                    )
+                                }
+                            }
+                        }
+
+                        if (index < avancesVisibles.lastIndex) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    if (avances.size > 3) {
+                        TextButton(
+                            onClick = { mostrarTodos = !mostrarTodos },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (mostrarTodos) {
+                                    "Mostrar menos"
+                                } else {
+                                    "Ver historial completo (${avances.size})"
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun SeccionEmpleadosProyecto(
     empleados: List<ProyectoEmpleadoEntity>,
     onAgregarEmpleado: () -> Unit,
     onEditarEmpleado: (ProyectoEmpleadoEntity) -> Unit,
     onEliminarEmpleado: (ProyectoEmpleadoEntity) -> Unit
 ) {
+    var expandido by remember { mutableStateOf(false) }
+    var mostrarTodos by remember { mutableStateOf(false) }
+    val empleadosVisibles = if (mostrarTodos) empleados else empleados.take(3)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            EncabezadoSeccionContraibleProyecto(
+                titulo = "Empleados asignados",
+                resumen = when {
+                    empleados.isEmpty() -> "Sin empleados asignados"
+                    empleados.size == 1 -> "1 empleado asignado"
+                    else -> "${empleados.size} empleados asignados"
+                },
+                icono = Icons.Default.Groups,
+                expandido = expandido,
+                onCambiarEstado = { expandido = !expandido },
+                textoAccion = "Agregar",
+                onAccion = onAgregarEmpleado
+            )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Empleados asignados",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
-                )
+            if (expandido) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFE2E8F0))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(onClick = onAgregarEmpleado) {
-                    Text("Agregar")
-                }
-            }
+                if (empleados.isEmpty()) {
+                    Text(
+                        text = "No hay empleados asignados.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+                } else {
+                    empleadosVisibles.forEach { empleado ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF8FAFC)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = empleado.nombreEmpleado,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF0F172A)
+                                        )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (empleados.isEmpty()) {
-                Text(
-                    text = "No hay empleados asignados.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
-                )
-            } else {
-                empleados.forEach { empleado ->
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF8FAFC)
-                        ),
-                        border = BorderStroke(1.dp, Color(0xFFE2E8F0))
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = empleado.nombreEmpleado,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0F172A)
-                                    )
-
-                                    Text(
-                                        text = empleado.puesto.ifBlank { "Sin puesto" },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF64748B)
-                                    )
-                                }
-
-                                Row {
-                                    TextButton(
-                                        onClick = { onEditarEmpleado(empleado) }
-                                    ) {
-                                        Text("Editar")
-                                    }
-
-                                    IconButton(
-                                        onClick = { onEliminarEmpleado(empleado) }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Eliminar empleado",
-                                            tint = Color(0xFFDC2626)
+                                        Text(
+                                            text = empleado.puesto.ifBlank { "Sin puesto" },
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF64748B)
                                         )
                                     }
+
+                                    Row {
+                                        TextButton(
+                                            onClick = { onEditarEmpleado(empleado) }
+                                        ) {
+                                            Text("Editar")
+                                        }
+
+                                        IconButton(
+                                            onClick = { onEliminarEmpleado(empleado) }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Eliminar empleado",
+                                                tint = Color(0xFFDC2626)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    ChipDatoProyecto(
+                                        titulo = "Pago",
+                                        valor = empleado.tipoPago.ifBlank {
+                                            "No definido"
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    ChipDatoProyecto(
+                                        titulo = when (empleado.tipoPago) {
+                                            "Semana" -> "Semanas"
+                                            "Hora" -> "Horas"
+                                            "Porcentaje" -> "Porcentaje"
+                                            else -> "Días"
+                                        },
+                                        valor = when (empleado.tipoPago) {
+                                            "Hora" -> empleado.horasTrabajadas.toString()
+                                            "Porcentaje" -> "${empleado.porcentaje}%"
+                                            else -> empleado.diasTrabajados.toString()
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            color = Color(0xFFEFF6FF),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .padding(10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Costo calculado",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF1E40AF),
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Text(
+                                        text = formatoMonedaProyecto(
+                                            empleado.costoCalculado
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFF1E40AF),
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
+                        }
+                    }
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                ChipDatoProyecto(
-                                    titulo = "Pago",
-                                    valor = empleado.tipoPago.ifBlank { "No definido" },
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                ChipDatoProyecto(
-                                    titulo = when (empleado.tipoPago) {
-                                        "Semana" -> "Semanas"
-                                        "Hora" -> "Horas"
-                                        "Porcentaje" -> "Porcentaje"
-                                        else -> "Días"
-                                    },
-                                    valor = when (empleado.tipoPago) {
-                                        "Hora" -> empleado.horasTrabajadas.toString()
-                                        "Porcentaje" -> "${empleado.porcentaje}%"
-                                        else -> empleado.diasTrabajados.toString()
-                                    },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = Color(0xFFEFF6FF),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .padding(10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Costo calculado",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1E40AF),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-
-                                Text(
-                                    text = formatoMonedaProyecto(empleado.costoCalculado),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color(0xFF1E40AF),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                    if (empleados.size > 3) {
+                        TextButton(
+                            onClick = { mostrarTodos = !mostrarTodos },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (mostrarTodos) {
+                                    "Mostrar menos"
+                                } else {
+                                    "Ver todos (${empleados.size})"
+                                }
+                            )
                         }
                     }
                 }
@@ -808,105 +1086,125 @@ fun SeccionMaterialesProyecto(
     onRegistrarMaterial: () -> Unit,
     onEliminarMaterial: (ProyectoMaterialEntity) -> Unit
 ) {
+    var expandido by remember { mutableStateOf(false) }
+    var mostrarTodos by remember { mutableStateOf(false) }
+    val materialesVisibles = if (mostrarTodos) materiales else materiales.take(3)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            EncabezadoSeccionContraibleProyecto(
+                titulo = "Material usado",
+                resumen = when {
+                    materiales.isEmpty() -> "Sin materiales registrados"
+                    materiales.size == 1 -> "1 material registrado"
+                    else -> "${materiales.size} materiales registrados"
+                },
+                icono = Icons.Default.Inventory,
+                expandido = expandido,
+                onCambiarEstado = { expandido = !expandido },
+                textoAccion = "Registrar",
+                onAccion = onRegistrarMaterial
+            )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Material usado",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
-                )
+            if (expandido) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFE2E8F0))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(onClick = onRegistrarMaterial) {
-                    Text("Registrar")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (materiales.isEmpty()) {
-                Text(
-                    text = "No hay material registrado.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
-                )
-            } else {
-                materiales.forEach { material ->
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF9FAFB)
-                        ),
-                        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                if (materiales.isEmpty()) {
+                    Text(
+                        text = "No hay material registrado.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+                } else {
+                    materialesVisibles.forEach { material ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF9FAFB)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFFE5E7EB))
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .background(
-                                        color = Color(0xFFECFDF5),
-                                        shape = RoundedCornerShape(12.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Inventory,
-                                    contentDescription = null,
-                                    tint = Color(0xFF16A34A)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .background(
+                                            color = Color(0xFFECFDF5),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Inventory,
+                                        contentDescription = null,
+                                        tint = Color(0xFF16A34A)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = material.nombreProducto,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F172A)
+                                    )
+
+                                    Text(
+                                        text = "${material.cantidadUsada} ${material.unidad} x ${formatoMonedaProyecto(material.costoUnitario)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF64748B)
+                                    )
+
+                                    Text(
+                                        text = "Subtotal: ${formatoMonedaProyecto(material.subtotal)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF166534),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = { onEliminarMaterial(material) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Eliminar material",
+                                        tint = Color(0xFF991B1B)
+                                    )
+                                }
                             }
+                        }
+                    }
 
-                            Spacer(modifier = Modifier.width(10.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = material.nombreProducto,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F172A)
-                                )
-
-                                Text(
-                                    text = "${material.cantidadUsada} ${material.unidad} x ${formatoMonedaProyecto(material.costoUnitario)}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF64748B)
-                                )
-
-                                Text(
-                                    text = "Subtotal: ${formatoMonedaProyecto(material.subtotal)}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF166534),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            IconButton(
-                                onClick = { onEliminarMaterial(material) }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Eliminar material",
-                                    tint = Color(0xFF991B1B)
-                                )
-                            }
+                    if (materiales.size > 3) {
+                        TextButton(
+                            onClick = { mostrarTodos = !mostrarTodos },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (mostrarTodos) {
+                                    "Mostrar menos"
+                                } else {
+                                    "Ver todos (${materiales.size})"
+                                }
+                            )
                         }
                     }
                 }
@@ -914,6 +1212,7 @@ fun SeccionMaterialesProyecto(
         }
     }
 }
+
 @Composable
 fun HeaderDetalleProyecto(
     proyecto: ProyectoUI
@@ -1297,97 +1596,118 @@ fun SeccionGastosProyecto(
     onAgregarGasto: () -> Unit,
     onEliminarGasto: (GastoEntity) -> Unit
 ) {
+    var expandido by remember { mutableStateOf(false) }
+    var mostrarTodos by remember { mutableStateOf(false) }
+    val gastosVisibles = if (mostrarTodos) gastos else gastos.take(3)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            EncabezadoSeccionContraibleProyecto(
+                titulo = "Gastos del proyecto",
+                resumen = when {
+                    gastos.isEmpty() -> "Sin gastos relacionados"
+                    gastos.size == 1 -> "1 gasto relacionado"
+                    else -> "${gastos.size} gastos relacionados"
+                },
+                icono = Icons.Default.AttachMoney,
+                expandido = expandido,
+                onCambiarEstado = { expandido = !expandido },
+                textoAccion = "Agregar",
+                onAccion = onAgregarGasto
+            )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Gastos del proyecto",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
-                )
+            if (expandido) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFE2E8F0))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(onClick = onAgregarGasto) {
-                    Text("Agregar")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (gastos.isEmpty()) {
-                Text(
-                    text = "No hay gastos relacionados con este proyecto.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
-                )
-            } else {
-                gastos.forEach { gasto ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFFFFBEB)
-                        ),
-                        border = BorderStroke(1.dp, Color(0xFFFDE68A))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                if (gastos.isEmpty()) {
+                    Text(
+                        text = "No hay gastos relacionados con este proyecto.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+                } else {
+                    gastosVisibles.forEach { gasto ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFFFFBEB)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFFFDE68A))
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = gasto.concepto,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F172A)
-                                )
-
-                                Text(
-                                    text = "${gasto.categoria} | ${gasto.fecha}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF92400E)
-                                )
-
-                                if (!gasto.proveedor.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Proveedor: ${gasto.proveedor}",
+                                        text = gasto.concepto,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF0F172A)
+                                    )
+
+                                    Text(
+                                        text = "${gasto.categoria} | ${gasto.fecha}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF64748B)
+                                        color = Color(0xFF92400E)
+                                    )
+
+                                    if (!gasto.proveedor.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Proveedor: ${gasto.proveedor}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF64748B)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Text(
+                                        text = formatoMonedaProyecto(gasto.total),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF92400E)
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                Text(
-                                    text = formatoMonedaProyecto(gasto.total),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF92400E)
-                                )
+                                IconButton(
+                                    onClick = { onEliminarGasto(gasto) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Eliminar gasto",
+                                        tint = Color(0xFFDC2626)
+                                    )
+                                }
                             }
+                        }
+                    }
 
-                            IconButton(
-                                onClick = { onEliminarGasto(gasto) }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Eliminar gasto",
-                                    tint = Color(0xFFDC2626)
-                                )
-                            }
+                    if (gastos.size > 3) {
+                        TextButton(
+                            onClick = { mostrarTodos = !mostrarTodos },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (mostrarTodos) {
+                                    "Mostrar menos"
+                                } else {
+                                    "Ver todos (${gastos.size})"
+                                }
+                            )
                         }
                     }
                 }

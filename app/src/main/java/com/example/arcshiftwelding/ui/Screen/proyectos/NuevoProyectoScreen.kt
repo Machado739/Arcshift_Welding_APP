@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
@@ -94,6 +95,7 @@ fun NuevoProyectoScreen(
     var avance by remember { mutableStateOf(10f) }
     var presupuestoEstimado by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
+    var imagenesProyecto by remember { mutableStateOf(emptyList<ImagenProyectoSeleccionada>()) }
 
 
     var clienteId by remember { mutableStateOf<Int?>(null) }
@@ -340,6 +342,26 @@ fun NuevoProyectoScreen(
             }
 
             item {
+                CardSeccionProyecto(
+                    titulo = "Imágenes del proyecto",
+                    icono = Icons.Default.Image
+                ) {
+                    Text(
+                        text = "Selecciona fotografías de referencia, del área de trabajo o del resultado esperado.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    SelectorImagenesProyecto(
+                        imagenes = imagenesProyecto,
+                        onImagenesChange = { imagenesProyecto = it }
+                    )
+                }
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -366,7 +388,8 @@ fun NuevoProyectoScreen(
                                 estado = estado,
                                 avance = avance.toInt(),
                                 presupuestoEstimado = presupuestoEstimado.toDoubleOrNull() ?: 0.0,
-                                observaciones = observaciones
+                                observaciones = observaciones,
+                                imagenesJson = serializarImagenesProyecto(imagenesProyecto)
                             )
 
                             navController.popBackStack()

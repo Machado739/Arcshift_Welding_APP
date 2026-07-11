@@ -8,6 +8,7 @@ import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.GastoDao
 import com.example.arcshiftwelding.data.local.dao.ProductoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoCostoDao
+import com.example.arcshiftwelding.data.local.dao.ProyectoAvanceDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoEmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoMaterialDao
@@ -17,6 +18,7 @@ import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.GastoEntity
 import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoCostoEntity
+import com.example.arcshiftwelding.data.local.entity.ProyectoAvanceEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEmpleadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoMaterialEntity
@@ -49,6 +51,7 @@ data class ProyectoUI(
     val costoManoObra: Double,
     val costoTotal: Double,
     val observaciones: String,
+    val imagenesJson: String = "[]",
 
     // Estos son temporales hasta conectar las tablas intermedias
     val empleadosAsignados: Int = 0,
@@ -84,6 +87,7 @@ class ProyectosViewModel(
     private val proyectoEmpleadoDao: ProyectoEmpleadoDao,
     private val proyectoMaterialDao: ProyectoMaterialDao,
     private val proyectoCostoDao: ProyectoCostoDao,
+    private val proyectoAvanceDao: ProyectoAvanceDao,
     private val proyectoRepository: ProyectoRepository
 ) : ViewModel() {
 
@@ -122,6 +126,10 @@ class ProyectosViewModel(
 
     fun obtenerCostosProyecto(proyectoId: Int): Flow<List<ProyectoCostoEntity>> {
         return proyectoCostoDao.obtenerPorProyecto(proyectoId)
+    }
+
+    fun obtenerHistorialAvances(proyectoId: Int): Flow<List<ProyectoAvanceEntity>> {
+        return proyectoAvanceDao.observarPorProyecto(proyectoId)
     }
 
     fun obtenerResumenCostosProyecto(
@@ -309,6 +317,7 @@ class ProyectosViewModel(
                     costoTotal = costoTotalCalculado,
 
                     observaciones = proyecto.observaciones,
+                    imagenesJson = proyecto.imagenesJson,
                     empleadosAsignados = empleadosDelProyecto.size,
                     materialesUsados = materialesDelProyecto.size
                 )
@@ -346,7 +355,8 @@ class ProyectosViewModel(
         estado: String,
         avance: Int,
         presupuestoEstimado: Double,
-        observaciones: String
+        observaciones: String,
+        imagenesJson: String = "[]"
     ) {
         viewModelScope.launch {
             val proyecto = ProyectoEntity(
@@ -363,10 +373,22 @@ class ProyectosViewModel(
                 costoMaterial = 0.0,
                 costoManoObra = 0.0,
                 costoTotal = 0.0,
-                observaciones = observaciones.trim()
+                observaciones = observaciones.trim(),
+                imagenesJson = imagenesJson
             )
 
-            proyectoDao.insertarProyecto(proyecto)
+            val proyectoId = proyectoDao.insertarProyecto(proyecto).toInt()
+            if (avance > 0 && proyectoId > 0) {
+                proyectoAvanceDao.insertar(
+                    ProyectoAvanceEntity(
+                        proyectoId = proyectoId,
+                        porcentaje = avance.coerceIn(0, 100),
+                        fecha = obtenerFechaHoraActualProyecto(),
+                        comentario = "Avance inicial del proyecto",
+                        fotosJson = "[]"
+                    )
+                )
+            }
         }
     }
 
@@ -395,9 +417,11 @@ class ProyectosViewModel(
         costoMaterial: Double,
         costoManoObra: Double,
         costoTotal: Double,
-        observaciones: String
+        observaciones: String,
+        imagenesJson: String = "[]"
     ) {
         viewModelScope.launch {
+            val proyectoAnterior = proyectoDao.obtenerProyectoPorIdDirecto(id)
             val proyecto = ProyectoEntity(
                 id = id,
                 nombre = nombre.trim(),
@@ -413,10 +437,23 @@ class ProyectosViewModel(
                 costoMaterial = costoMaterial,
                 costoManoObra = costoManoObra,
                 costoTotal = costoTotal,
-                observaciones = observaciones.trim()
+                observaciones = observaciones.trim(),
+                imagenesJson = imagenesJson
             )
 
             proyectoDao.actualizarProyecto(proyecto)
+
+            if (proyectoAnterior != null && proyectoAnterior.avance != avance) {
+                proyectoAvanceDao.insertar(
+                    ProyectoAvanceEntity(
+                        proyectoId = id,
+                        porcentaje = avance.coerceIn(0, 100),
+                        fecha = obtenerFechaHoraActualProyecto(),
+                        comentario = "Avance actualizado desde la edición del proyecto",
+                        fotosJson = "[]"
+                    )
+                )
+            }
         }
     }
 
@@ -437,10 +474,20 @@ class ProyectosViewModel(
                 costoMaterial = proyecto.costoMaterial,
                 costoManoObra = proyecto.costoManoObra,
                 costoTotal = proyecto.costoTotal,
-                observaciones = proyecto.observaciones
+                observaciones = proyecto.observaciones,
+                imagenesJson = proyecto.imagenesJson
             )
 
             proyectoDao.actualizarProyecto(proyectoTerminado)
+            proyectoAvanceDao.insertar(
+                ProyectoAvanceEntity(
+                    proyectoId = proyecto.id,
+                    porcentaje = 100,
+                    fecha = obtenerFechaHoraActualProyecto(),
+                    comentario = "Proyecto marcado como terminado",
+                    fotosJson = "[]"
+                )
+            )
         }
     }
 
@@ -461,7 +508,8 @@ class ProyectosViewModel(
                 costoMaterial = proyecto.costoMaterial,
                 costoManoObra = proyecto.costoManoObra,
                 costoTotal = proyecto.costoTotal,
-                observaciones = proyecto.observaciones
+                observaciones = proyecto.observaciones,
+                imagenesJson = proyecto.imagenesJson
             )
 
             proyectoDao.eliminarProyecto(proyectoEliminar)
@@ -471,6 +519,13 @@ class ProyectosViewModel(
     fun obtenerFechaActualProyectoSistema(): String {
         return java.text.SimpleDateFormat(
             "dd/MM/yyyy",
+            java.util.Locale.getDefault()
+        ).format(java.util.Date())
+    }
+
+    private fun obtenerFechaHoraActualProyecto(): String {
+        return java.text.SimpleDateFormat(
+            "dd/MM/yyyy HH:mm",
             java.util.Locale.getDefault()
         ).format(java.util.Date())
     }
@@ -665,20 +720,45 @@ class ProyectosViewModel(
         proyectoId: Int,
         avance: Int
     ) {
+        registrarAvanceProyecto(
+            proyectoId = proyectoId,
+            avance = avance,
+            comentario = "",
+            fotos = emptyList()
+        )
+    }
+
+    fun registrarAvanceProyecto(
+        proyectoId: Int,
+        avance: Int,
+        comentario: String,
+        fotos: List<ImagenProyectoSeleccionada>
+    ) {
         viewModelScope.launch {
+            val avanceSeguro = avance.coerceIn(0, 100)
             val estado = when {
-                avance >= 100 -> "Terminado"
-                avance <= 0 -> "Pendiente"
+                avanceSeguro >= 100 -> "Terminado"
+                avanceSeguro <= 0 -> "Pendiente"
                 else -> "En trabajo"
             }
 
             proyectoDao.actualizarAvanceProyecto(
                 proyectoId = proyectoId,
-                avance = avance.coerceIn(0, 100),
+                avance = avanceSeguro,
                 estado = estado
             )
 
-            _mensaje.value = "Avance actualizado"
+            proyectoAvanceDao.insertar(
+                ProyectoAvanceEntity(
+                    proyectoId = proyectoId,
+                    porcentaje = avanceSeguro,
+                    fecha = obtenerFechaHoraActualProyecto(),
+                    comentario = comentario.trim(),
+                    fotosJson = serializarImagenesProyecto(fotos)
+                )
+            )
+
+            _mensaje.value = "Avance actualizado y registrado"
         }
     }
 }

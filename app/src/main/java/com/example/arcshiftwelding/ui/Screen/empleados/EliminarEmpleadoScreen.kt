@@ -38,6 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.toEliminarUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

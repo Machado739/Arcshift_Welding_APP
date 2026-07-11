@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -58,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -73,7 +76,7 @@ fun NuevoEmpleadoScreen(
     onGuardar: () -> Unit = {},
     onCancelar: () -> Unit = {},
     navController: NavController,
-    viewModel: EmpleadosViewModel
+    viewModel: com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 
 ) {
 
@@ -92,6 +95,7 @@ fun NuevoEmpleadoScreen(
     var trabajoActual by remember { mutableStateOf("") }
 
     var notas by remember { mutableStateOf("") }
+    var fotoUri by remember { mutableStateOf("") }
 
     var empleadoActivo by remember { mutableStateOf(true) }
     var asignarTrabajos by remember { mutableStateOf(true) }
@@ -150,7 +154,9 @@ fun NuevoEmpleadoScreen(
                 puesto = puesto,
                 onPuestoChange = { puesto = it },
                 estatus = estatus,
-                onEstatusChange = { estatus = it }
+                onEstatusChange = { estatus = it },
+                fotoUri = fotoUri,
+                onFotoUriChange = { fotoUri = it }
             )
 
             SeccionInformacionContactoEmpleado(
@@ -204,7 +210,8 @@ fun NuevoEmpleadoScreen(
                         direccion = direccion.trim(),
                         porcentajeContrato = construirContratoEmpleado(tipoContrato, valorContrato),
                         trabajoActual = trabajoActual.trim(),
-                        notas = notas.trim()
+                        notas = notas.trim(),
+                        fotoUri = fotoUri
                     )
 
                     viewModel.insertarEmpleado(empleado)
@@ -224,7 +231,9 @@ fun SeccionInformacionPersonalNuevoEmpleado(
     puesto: String,
     onPuestoChange: (String) -> Unit,
     estatus: String,
-    onEstatusChange: (String) -> Unit
+    onEstatusChange: (String) -> Unit,
+    fotoUri: String,
+    onFotoUriChange: (String) -> Unit
 ) {
     CardFormularioEmpleado(
         titulo = "Información personal",
@@ -237,6 +246,9 @@ fun SeccionInformacionPersonalNuevoEmpleado(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AgregarFotoEmpleado(
+                fotoUri = fotoUri,
+                nombreEmpleado = nombre,
+                onFotoUriChange = onFotoUriChange,
                 modifier = Modifier.width(95.dp)
             )
 
@@ -282,8 +294,20 @@ fun SeccionInformacionPersonalNuevoEmpleado(
 
 @Composable
 fun AgregarFotoEmpleado(
+    fotoUri: String,
+    nombreEmpleado: String,
+    onFotoUriChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            onFotoUriChange(conservarPermisoFotoEmpleado(context, uri))
+        }
+    }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -291,28 +315,42 @@ fun AgregarFotoEmpleado(
         Box(
             modifier = Modifier
                 .size(76.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFEAF2FF))
-                .clickable {
-                    // Aquí después puedes abrir cámara o galería
-                },
+                .clickable { launcher.launch(arrayOf("image/*")) },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.PhotoCamera,
-                contentDescription = "Agregar foto",
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(30.dp)
+            ImagenPerfilEmpleado(
+                fotoUri = fotoUri,
+                iniciales = obtenerInicialesEmpleado(nombreEmpleado),
+                modifier = Modifier.fillMaxSize()
             )
+
+            if (fotoUri.isNotBlank()) {
+                IconButton(
+                    onClick = { onFotoUriChange("") },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(26.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.92f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Quitar foto",
+                        tint = Color(0xFFDC2626),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Agregar foto",
+            text = if (fotoUri.isBlank()) "Seleccionar foto" else "Cambiar foto",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = Color.DarkGray,
+            modifier = Modifier.clickable { launcher.launch(arrayOf("image/*")) }
         )
     }
 }

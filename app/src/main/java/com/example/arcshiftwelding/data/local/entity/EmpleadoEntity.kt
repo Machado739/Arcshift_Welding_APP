@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -18,5 +19,7 @@ data class EmpleadoEntity(
     val direccion: String = "",
     val porcentajeContrato: String = "",
     val trabajoActual: String = "",
-    val notas: String = ""
+    val notas: String = "",
+    @ColumnInfo(defaultValue = "''")
+    val fotoUri: String = ""
 )

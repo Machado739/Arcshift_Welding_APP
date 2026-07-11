@@ -1,5 +1,6 @@
 package com.example.arcshiftwelding.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -42,5 +43,7 @@ data class ProyectoEntity(
     val costoMaterial: Double = 0.0,
     val costoManoObra: Double = 0.0,
     val costoTotal: Double = 0.0,
-    val observaciones: String = ""
+    val observaciones: String = "",
+    @ColumnInfo(defaultValue = "'[]'")
+    val imagenesJson: String = "[]"
 )

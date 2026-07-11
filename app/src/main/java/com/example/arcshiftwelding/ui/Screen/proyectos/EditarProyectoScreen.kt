@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
@@ -88,6 +89,7 @@ fun EditarProyectoScreen(
     var avance by remember { mutableStateOf(0f) }
     var presupuestoEstimado by remember { mutableStateOf("") }
     var observaciones by remember { mutableStateOf("") }
+    var imagenesProyecto by remember { mutableStateOf(emptyList<ImagenProyectoSeleccionada>()) }
 
     LaunchedEffect(proyectoActual, clientes, cotizaciones) {
         if (proyectoActual != null && !datosCargados) {
@@ -106,6 +108,7 @@ fun EditarProyectoScreen(
                 proyectoActual.presupuestoEstimado.toString()
             }
             observaciones = proyectoActual.observaciones
+            imagenesProyecto = deserializarImagenesProyecto(proyectoActual.imagenesJson)
             datosCargados = true
         }
     }
@@ -365,6 +368,26 @@ fun EditarProyectoScreen(
             }
 
             item {
+                CardSeccionProyecto(
+                    titulo = "Imágenes del proyecto",
+                    icono = Icons.Default.Image
+                ) {
+                    Text(
+                        text = "Puedes agregar, reemplazar o quitar fotografías del proyecto.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF64748B)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    SelectorImagenesProyecto(
+                        imagenes = imagenesProyecto,
+                        onImagenesChange = { imagenesProyecto = it }
+                    )
+                }
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -396,7 +419,8 @@ fun EditarProyectoScreen(
                                 costoMaterial = proyectoActual.costoMaterial,
                                 costoManoObra = proyectoActual.costoManoObra,
                                 costoTotal = proyectoActual.costoTotal,
-                                observaciones = observaciones
+                                observaciones = observaciones,
+                                imagenesJson = serializarImagenesProyecto(imagenesProyecto)
                             )
 
                             navController.popBackStack()
