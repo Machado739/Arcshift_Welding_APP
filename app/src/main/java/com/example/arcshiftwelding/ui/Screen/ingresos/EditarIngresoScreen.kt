@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.PagoProgramadoForm
+import com.example.arcshiftwelding.ui.viewmodel.aDouble
 import kotlin.collections.emptyList
 
 @OptIn(ExperimentalMaterial3Api::class)

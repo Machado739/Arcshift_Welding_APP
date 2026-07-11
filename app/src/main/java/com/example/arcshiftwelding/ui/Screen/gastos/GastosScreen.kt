@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.gastos
+package com.example.arcshiftwelding.ui.Screen.gastos
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
 import kotlin.collections.filter
 
 data class GastoUi(
@@ -41,7 +43,11 @@ data class GastoUi(
     val observaciones: String,
     val proyecto: String,
     val cotizacion: String,
-    val cliente: String
+    val cliente: String,
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = "",
+    val nombreComprobante: String = "",
+    val comprobantes: List<ComprobanteArchivoSeleccionado> = emptyList()
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

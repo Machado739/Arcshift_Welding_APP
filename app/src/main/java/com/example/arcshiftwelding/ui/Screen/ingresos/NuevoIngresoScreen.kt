@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -27,8 +28,19 @@ import java.util.TimeZone
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.example.arcshiftwelding.ui.viewmodel.IngresoFormState
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.PagoProgramadoForm
+import com.example.arcshiftwelding.ui.viewmodel.aDouble
+import com.example.arcshiftwelding.ui.viewmodel.formatoDinero
 import kotlin.collections.emptyList
 import kotlin.collections.toMutableList
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTE_GASTO_BYTES
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTES_POR_REGISTRO
+import com.example.arcshiftwelding.utils.abrirComprobante
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
+import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
 
 
 @Composable
@@ -1066,132 +1078,229 @@ fun SeccionIngresoComprobanteNuevo(
     form: IngresoFormState,
     onChange: (IngresoFormState) -> Unit
 ) {
-    val seleccionarArchivo = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            val tipo = when {
-                uri.toString().contains(".pdf", ignoreCase = true) -> "PDF"
-                else -> "Imagen"
+    val context = LocalContext.current
+    var errorComprobante by remember { mutableStateOf("") }
+
+    val seleccionarArchivos = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+
+        val actualizados = form.comprobantes.toMutableList()
+        var ultimoError = ""
+
+        uris.forEach { uri ->
+            if (actualizados.size >= MAX_COMPROBANTES_POR_REGISTRO) {
+                ultimoError = "Puedes adjuntar hasta $MAX_COMPROBANTES_POR_REGISTRO comprobantes."
+                return@forEach
             }
 
-            onChange(
-                form.copy(
-                    comprobanteUri = uri.toString(),
-                    tipoComprobante = tipo
-                )
-            )
+            val comprobante = prepararComprobanteDesdeDocumento(context, uri)
+
+            when {
+                comprobante.tamanoBytes > MAX_COMPROBANTE_GASTO_BYTES -> {
+                    ultimoError = "${comprobante.nombre} supera el límite de 10 MB."
+                }
+
+                actualizados.any { it.uri == comprobante.uri } -> {
+                    ultimoError = "${comprobante.nombre} ya está agregado."
+                }
+
+                else -> actualizados += comprobante
+            }
         }
+
+        val principal = actualizados.firstOrNull()
+        onChange(
+            form.copy(
+                comprobantes = actualizados,
+                comprobanteUri = principal?.uri.orEmpty(),
+                tipoComprobante = principal?.tipo.orEmpty()
+            )
+        )
+        errorComprobante = ultimoError
+    }
+
+    fun quitarComprobante(indice: Int) {
+        val actualizados = form.comprobantes
+            .filterIndexed { index, _ -> index != indice }
+        val principal = actualizados.firstOrNull()
+
+        onChange(
+            form.copy(
+                comprobantes = actualizados,
+                comprobanteUri = principal?.uri.orEmpty(),
+                tipoComprobante = principal?.tipo.orEmpty()
+            )
+        )
+        errorComprobante = ""
     }
 
     TarjetaNuevoIngreso(
-        titulo = "Comprobante",
+        titulo = "Comprobantes (${form.comprobantes.size})",
         icono = Icons.Default.AttachFile
     ) {
-        if (form.comprobanteUri.isBlank()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        seleccionarArchivo.launch("application/pdf")
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(58.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PictureAsPdf,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text("PDF")
-                }
-
-                OutlinedButton(
-                    onClick = {
-                        seleccionarArchivo.launch("image/*")
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(58.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text("Foto")
-                }
-            }
-        } else {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    seleccionarArchivos.launch(arrayOf("application/pdf"))
+                },
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF8FAFC)
-                )
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = if (form.tipoComprobante == "PDF") {
-                            Icons.Default.PictureAsPdf
-                        } else {
-                            Icons.Default.Image
-                        },
-                        contentDescription = null,
-                        tint = if (form.tipoComprobante == "PDF") {
-                            Color(0xFFDC2626)
-                        } else {
-                            Color(0xFF2563EB)
-                        }
+                Icon(
+                    imageVector = Icons.Default.PictureAsPdf,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text("PDF", maxLines = 1)
+            }
+
+            OutlinedButton(
+                onClick = {
+                    seleccionarArchivos.launch(arrayOf("image/*"))
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Image,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text("Imagen", maxLines = 1)
+            }
+
+            OutlinedButton(
+                onClick = {
+                    seleccionarArchivos.launch(arrayOf("*/*"))
+                },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.InsertDriveFile,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text("Archivo", maxLines = 1)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Máximo $MAX_COMPROBANTES_POR_REGISTRO archivos de 10 MB cada uno.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray
+        )
+
+        if (errorComprobante.isNotBlank()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = errorComprobante,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+
+        if (form.comprobantes.isEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "Sin comprobantes adjuntos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        } else {
+            Spacer(modifier = Modifier.height(10.dp))
+
+            form.comprobantes.forEachIndexed { indice, comprobante ->
+                val tipoReal = obtenerTipoRealComprobante(context, comprobante)
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF8FAFC)
                     )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = form.tipoComprobante.ifBlank { "Comprobante" },
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodySmall
+                        Icon(
+                            imageVector = when (tipoReal) {
+                                "PDF" -> Icons.Default.PictureAsPdf
+                                "Imagen" -> Icons.Default.Image
+                                else -> Icons.Default.InsertDriveFile
+                            },
+                            contentDescription = null,
+                            tint = when (tipoReal) {
+                                "PDF" -> Color(0xFFDC2626)
+                                "Imagen" -> Color(0xFF2563EB)
+                                else -> Color(0xFF475569)
+                            },
+                            modifier = Modifier.size(26.dp)
                         )
 
-                        Text(
-                            text = "Archivo seleccionado",
-                            color = Color.Gray,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1
-                        )
-                    }
+                        Spacer(modifier = Modifier.width(10.dp))
 
-                    TextButton(
-                        onClick = {
-                            onChange(
-                                form.copy(
-                                    comprobanteUri = "",
-                                    tipoComprobante = ""
-                                )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = comprobante.nombre.ifBlank {
+                                    "Comprobante ${indice + 1}"
+                                },
+                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2
+                            )
+                            Text(
+                                text = "$tipoReal · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1
                             )
                         }
-                    ) {
-                        Text("Quitar")
+
+                        IconButton(
+                            onClick = {
+                                if (!abrirComprobante(context, comprobante)) {
+                                    errorComprobante = "No fue posible abrir ${comprobante.nombre}."
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RemoveRedEye,
+                                contentDescription = "Ver comprobante",
+                                tint = Color(0xFF2563EB)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { quitarComprobante(indice) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Quitar comprobante",
+                                tint = Color(0xFFDC2626)
+                            )
+                        }
                     }
+                }
+
+                if (indice < form.comprobantes.lastIndex) {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -1212,6 +1321,7 @@ fun SeccionIngresoComprobanteNuevo(
         )
     }
 }
+
 @Composable
 fun SeccionIngresoRelacionadoNuevo(
     form: IngresoFormState,

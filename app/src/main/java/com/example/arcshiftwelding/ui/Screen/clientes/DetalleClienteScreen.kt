@@ -1,44 +1,41 @@
 package com.example.arcshiftwelding.ui.Screen.clientes
 
-import androidx.compose.runtime.Composable
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.graphics.vector.ImageVector
-import com.example.arcshiftwelding.navigation.AppRoutes
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.material3.IconButton
-
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.arcshiftwelding.navigation.BottomNavigationBar
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import kotlin.collections.emptyList
-import androidx.room.Transaction
-import com.example.arcshiftwelding.data.local.relation.ClienteConCotizaciones
-import kotlinx.coroutines.flow.Flow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.arcshiftwelding.navigation.AppRoutes
+import java.text.NumberFormat
+import java.util.Locale
 
 data class ClienteDetalleUI(
     val id: Int,
@@ -59,7 +56,8 @@ data class ClienteDetalleUI(
     val totalIngresos: Int,
     val totalProyectos: Int,
     val totalFacturado: Double,
-    val notas: String
+    val notas: String,
+    val fotoUri: String
 )
 
 data class CotizacionClienteUI(
@@ -77,7 +75,7 @@ fun DetalleClienteScreen(
     clienteId: Int,
     viewModel: ClientesViewModel
 ) {
-
+    val context = LocalContext.current
 
     val clienteFlow = remember(clienteId) {
         viewModel.obtenerClienteDetalle(clienteId)
@@ -203,7 +201,9 @@ fun DetalleClienteScreen(
             SeccionCotizacionesCliente(
                 cotizaciones = cotizacionesCliente,
                 onVerTodoClick = {
-                    navController.navigate(AppRoutes.COTIZACIONES)
+                    navController.navigate(
+                        AppRoutes.cotizacionesCliente(clienteActual.id)
+                    )
                 },
                 onCotizacionClick = { cotizacion ->
                     navController.navigate(AppRoutes.detalleCotizacion(cotizacion.id))
@@ -216,9 +216,16 @@ fun DetalleClienteScreen(
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCliente(clienteActual.id))
                 },
-                onLlamarClick = { },
+                onLlamarClick = {
+                    abrirMarcadorTelefono(
+                        context = context,
+                        telefono = clienteActual.telefono
+                    )
+                },
                 onNuevaCotizacionClick = {
-                    navController.navigate(AppRoutes.NUEVA_COTIZACION)
+                    navController.navigate(
+                        AppRoutes.nuevaCotizacion(clienteActual.id)
+                    )
                 },
                 onEliminarClick = {
                     navController.navigate(AppRoutes.eliminarCliente(clienteActual.id))
@@ -287,17 +294,14 @@ fun CardPrincipalCliente(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(colorEstado.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = obtenerIniciales(cliente.nombre),
-                    color = colorEstado,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                ImagenPerfilCliente(
+                    fotoUri = cliente.fotoUri,
+                    iniciales = obtenerIniciales(cliente.nombre),
+                    modifier = Modifier.size(64.dp),
+                    colorFondo = colorEstado.copy(alpha = 0.12f),
+                    colorContenido = colorEstado
                 )
 
                 Box(
@@ -381,54 +385,103 @@ fun BadgeEstadoCliente(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardsContactoCliente(
     cliente: ClienteDetalleUI
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CardContactoCliente(
-            titulo = "Teléfono",
-            valor = cliente.telefono,
-        /*    accion = "Llamar",*/
-            icono = Icons.Default.Phone,
-            color = Color(0xFF2563EB),
-            modifier = Modifier.weight(1f)
-        )
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
-        CardContactoCliente(
-            titulo = "Correo",
-            valor = cliente.correo,
-        /*    accion = "Enviar",*/
-            icono = Icons.Default.Email,
-            color = Color(0xFF7C3AED),
-            modifier = Modifier.weight(1f)
-        )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CardContactoCliente(
+                titulo = "Teléfono",
+                valor = cliente.telefono,
+                icono = Icons.Default.Phone,
+                color = Color(0xFF2563EB),
+                maxLines = 2,
+                onLongClick = {
+                    copiarInformacionCliente(
+                        context = context,
+                        clipboardManager = clipboardManager,
+                        titulo = "Teléfono",
+                        valor = cliente.telefono
+                    )
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            CardContactoCliente(
+                titulo = "Correo",
+                valor = cliente.correo,
+                icono = Icons.Default.Email,
+                color = Color(0xFF7C3AED),
+                maxLines = 2,
+                onLongClick = {
+                    copiarInformacionCliente(
+                        context = context,
+                        clipboardManager = clipboardManager,
+                        titulo = "Correo",
+                        valor = cliente.correo
+                    )
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         CardContactoCliente(
             titulo = "Dirección",
             valor = cliente.direccion,
-           /* accion = "Ver en mapa",*/
             icono = Icons.Default.LocationOn,
             color = Color(0xFF16A34A),
-            modifier = Modifier.weight(1f)
+            maxLines = 3,
+            onLongClick = {
+                copiarInformacionCliente(
+                    context = context,
+                    clipboardManager = clipboardManager,
+                    titulo = "Dirección",
+                    valor = cliente.direccion
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "Mantén presionada una tarjeta para copiar la información.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color(0xFF64748B),
+            modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardContactoCliente(
     titulo: String,
     valor: String,
-  /*  accion: String,*/
     icono: ImageVector,
     color: Color,
+    maxLines: Int,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val valorVisible = valor.ifBlank { "No registrado" }
+
     Card(
-        modifier = modifier.height(60.dp),
+        modifier = modifier
+            .heightIn(min = 76.dp)
+            .combinedClickable(
+                onClick = {},
+                onLongClick = onLongClick
+            ),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -437,8 +490,8 @@ fun CardContactoCliente(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
+                .fillMaxWidth()
+                .padding(10.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -450,32 +503,26 @@ fun CardContactoCliente(
                     modifier = Modifier.size(18.dp)
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(5.dp))
 
                 Text(
                     text = titulo,
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = valor,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.DarkGray,
-                maxLines = 2
+                text = valorVisible,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (valor.isBlank()) Color.Gray else Color(0xFF334155),
+                maxLines = maxLines,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-            /*
-            Text(
-                text = accion,
-                style = MaterialTheme.typography.labelSmall,
-                color = color,
-                fontWeight = FontWeight.Bold
-            )*/
         }
     }
 }
@@ -563,25 +610,11 @@ fun SeccionHistorialCliente(
         Column(
             modifier = Modifier.padding(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TituloSeccionCliente(
-                    titulo = "Historial / Actividad",
-                    icono = Icons.Default.History,
-                    color = Color(0xFF2563EB)
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = "Ver todo",
-                    color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            TituloSeccionCliente(
+                titulo = "Historial / Actividad",
+                icono = Icons.Default.History,
+                color = Color(0xFF2563EB)
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -589,41 +622,35 @@ fun SeccionHistorialCliente(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-
-
-
                 CardResumenActividad(
                     titulo = "Cotizaciones",
                     valor = cliente.totalCotizaciones.toString(),
+                    subtitulo = "Registradas",
                     icono = Icons.Default.Description,
                     color = Color(0xFF2563EB),
                     modifier = Modifier.weight(1f)
                 )
 
                 CardResumenActividad(
-                    titulo = "Ingresos",
-                    valor = cliente.totalIngresos.toString(),
-                    icono = Icons.Default.AttachMoney,
-                    color = Color(0xFF16A34A),
-                    modifier = Modifier.weight(1f)
-                )
-
-                CardResumenActividad(
                     titulo = "Proyectos",
                     valor = cliente.totalProyectos.toString(),
+                    subtitulo = "Relacionados",
                     icono = Icons.Default.Work,
                     color = Color(0xFF7C3AED),
                     modifier = Modifier.weight(1f)
                 )
-                /*
-                CardResumenActividad(
-                    titulo = "Total facturado",
-                    valor = "$ ${String.format("%,.2f", cliente.totalFacturado)}",
-                    icono = Icons.Default.InsertChart,
-                    color = Color(0xFF16A34A),
-                    modifier = Modifier.weight(1.2f)
-                )*/
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            CardResumenActividad(
+                titulo = "Total recibido en ingresos",
+                valor = cliente.totalFacturado.formatoMonedaCliente(),
+                subtitulo = "${cliente.totalIngresos} ingreso${if (cliente.totalIngresos == 1) "" else "s"} registrado${if (cliente.totalIngresos == 1) "" else "s"}",
+                icono = Icons.Default.AttachMoney,
+                color = Color(0xFF16A34A),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -632,47 +659,70 @@ fun SeccionHistorialCliente(
 fun CardResumenActividad(
     titulo: String,
     valor: String,
+    subtitulo: String? = null,
     icono: ImageVector,
     color: Color,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(78.dp),
+        modifier = modifier.heightIn(min = 84.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF8FAFC)
         )
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.Center
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.DarkGray
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(color.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = valor,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = titulo,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF64748B),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = valor,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                if (!subtitulo.isNullOrBlank()) {
+                    Text(
+                        text = subtitulo,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
@@ -942,5 +992,68 @@ fun TituloSeccionCliente(
             fontWeight = FontWeight.Bold
         )
     }
+}
+
+private fun abrirMarcadorTelefono(
+    context: Context,
+    telefono: String
+) {
+    val numero = telefono.trim()
+
+    if (numero.isBlank()) {
+        Toast.makeText(
+            context,
+            "El cliente no tiene un teléfono registrado.",
+            Toast.LENGTH_SHORT
+        ).show()
+        return
+    }
+
+    val intent = Intent(
+        Intent.ACTION_DIAL,
+        Uri.fromParts("tel", numero, null)
+    )
+
+    runCatching {
+        context.startActivity(intent)
+    }.onFailure {
+        Toast.makeText(
+            context,
+            "No se encontró una aplicación para realizar llamadas.",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}
+
+private fun copiarInformacionCliente(
+    context: Context,
+    clipboardManager: androidx.compose.ui.platform.ClipboardManager,
+    titulo: String,
+    valor: String
+) {
+    val contenido = valor.trim()
+
+    if (contenido.isBlank()) {
+        Toast.makeText(
+            context,
+            "$titulo no registrado.",
+            Toast.LENGTH_SHORT
+        ).show()
+        return
+    }
+
+    clipboardManager.setText(AnnotatedString(contenido))
+
+    Toast.makeText(
+        context,
+        "$titulo copiado.",
+        Toast.LENGTH_SHORT
+    ).show()
+}
+
+private fun Double.formatoMonedaCliente(): String {
+    return NumberFormat
+        .getCurrencyInstance(Locale("es", "MX"))
+        .format(this)
 }
 

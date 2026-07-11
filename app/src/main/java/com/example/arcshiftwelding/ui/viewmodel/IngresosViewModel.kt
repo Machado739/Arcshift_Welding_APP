@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.Screen.ingresos
+package com.example.arcshiftwelding.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +13,9 @@ import com.example.arcshiftwelding.data.local.entity.IngresoEntity
 import com.example.arcshiftwelding.data.local.entity.PagoProgramadoEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
 import com.example.arcshiftwelding.data.local.relation.IngresoConRelaciones
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.deserializarComprobantes
+import com.example.arcshiftwelding.utils.serializarComprobantes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,6 +77,7 @@ data class IngresoUI(
 
     val comprobanteUri: String,
     val tipoComprobante: String,
+    val comprobantes: List<ComprobanteArchivoSeleccionado>,
 
     val observaciones: String,
     val ordenTrabajo: String
@@ -119,6 +123,7 @@ data class IngresoFormState(
 
     val comprobanteUri: String = "",
     val tipoComprobante: String = "",
+    val comprobantes: List<ComprobanteArchivoSeleccionado> = emptyList(),
 
     val fecha: String = fechaActual(),
 
@@ -735,6 +740,11 @@ class IngresosViewModel(
 
             comprobanteUri = comprobanteUri,
             tipoComprobante = tipoComprobante,
+            comprobantes = deserializarComprobantes(
+                comprobantesJson = comprobantesJson,
+                comprobanteUriLegado = comprobanteUri,
+                tipoComprobanteLegado = tipoComprobante
+            ),
 
             fecha = fecha,
 
@@ -831,6 +841,11 @@ fun IngresoConRelaciones.toUi(): IngresoUI {
 
         comprobanteUri = ingresoActual.comprobanteUri,
         tipoComprobante = ingresoActual.tipoComprobante,
+        comprobantes = deserializarComprobantes(
+            comprobantesJson = ingresoActual.comprobantesJson,
+            comprobanteUriLegado = ingresoActual.comprobanteUri,
+            tipoComprobanteLegado = ingresoActual.tipoComprobante
+        ),
 
         observaciones = ingresoActual.observaciones,
         ordenTrabajo = ingresoActual.ordenTrabajo
@@ -851,6 +866,7 @@ fun IngresoUI.toForm(): IngresoFormState {
 
         comprobanteUri = comprobanteUri,
         tipoComprobante = tipoComprobante,
+        comprobantes = comprobantes,
 
         fecha = fecha,
 
@@ -914,6 +930,8 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         0.0
     }
 
+    val comprobantePrincipal = comprobantes.firstOrNull()
+
     return IngresoEntity(
         id = id,
         concepto = concepto.trim(),
@@ -924,8 +942,8 @@ fun IngresoFormState.toEntity(): IngresoEntity {
 
         trabajo = trabajo.trim(),
         folio = folio.trim(),
-        comprobanteUri = comprobanteUri.trim(),
-        tipoComprobante = tipoComprobante.trim(),
+        comprobanteUri = comprobantePrincipal?.uri.orEmpty(),
+        tipoComprobante = comprobantePrincipal?.tipo.orEmpty(),
         fecha = fecha.trim(),
 
         subtotal = montoRecibidoNumero,
@@ -943,7 +961,8 @@ fun IngresoFormState.toEntity(): IngresoEntity {
         observaciones = observaciones.trim(),
         ordenTrabajo = ordenTrabajo.trim(),
         proyecto = proyecto.trim(),
-        activo = true
+        activo = true,
+        comprobantesJson = serializarComprobantes(comprobantes)
     )
 }
 fun String.aDouble(): Double {

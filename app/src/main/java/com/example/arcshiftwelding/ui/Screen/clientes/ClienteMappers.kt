@@ -15,6 +15,7 @@ fun ClienteEntity.toUi(
         telefono = telefono.ifBlank { "Sin teléfono" },
         ubicacion = direccion.ifBlank { "Sin dirección" },
         correo = correo.ifBlank { "Sin correo" },
+        fotoUri = fotoUri,
         cotizaciones = cantidadCotizaciones,
         estado = estatus,
         tipo = "Cliente desde: ${fechaRegistro.formatearFechaCliente()}",
@@ -42,7 +43,8 @@ fun ClienteEntity.toDetalleUi(): ClienteDetalleUI {
         totalIngresos = 0,
         totalProyectos = 0,
         totalFacturado = 0.0,
-        notas = notas.ifBlank { "Sin notas registradas." }
+        notas = notas.ifBlank { "Sin notas registradas." },
+        fotoUri = fotoUri
     )
 }
 
@@ -64,7 +66,8 @@ fun ClienteEntity.toEditarUi(): ClienteEditarUI {
         recibeCotizaciones = recibeCotizaciones,
         contactoWhatsapp = contactoWhatsapp,
         contactoLlamadas = contactoLlamadas,
-        contactoCorreo = contactoCorreo
+        contactoCorreo = contactoCorreo,
+        fotoUri = fotoUri
     )
 }
 

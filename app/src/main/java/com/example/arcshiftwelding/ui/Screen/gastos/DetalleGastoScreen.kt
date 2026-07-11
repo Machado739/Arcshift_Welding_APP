@@ -1,6 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.gastos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,16 +13,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.inventario.BotonAccionRapida
-import com.example.arcshiftwelding.ui.gastos.GastoUi
-import com.example.arcshiftwelding.ui.gastos.GastosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
+import com.example.arcshiftwelding.utils.abrirComprobanteGasto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +131,7 @@ fun DetalleGastoScreen(
                     )
                 }
 
-                SeccionDetalleEvidencia()
+                SeccionDetalleEvidencia(gastoActual)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -444,89 +449,112 @@ fun SeccionDetalleProveedor(
 }
 
 @Composable
-fun SeccionDetalleEvidencia() {
+fun SeccionDetalleEvidencia(gasto: GastoUi) {
+    val context = LocalContext.current
+    var errorApertura by remember { mutableStateOf(false) }
+
     TarjetaDetalleGasto(
-        titulo = "Evidencia / Comprobantes",
+        titulo = "Evidencia / Comprobantes (${gasto.comprobantes.size})",
         icono = Icons.Default.AttachFile
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ArchivoComprobanteCard(
-                nombre = "TICKET_250520.jpg",
-                peso = "186 KB",
-                icono = Icons.Default.Image,
-                modifier = Modifier.weight(1f)
-            )
+        if (gasto.comprobantes.isEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.InsertDriveFile,
+                    contentDescription = null,
+                    tint = Color.Gray
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "No se adjuntó ningún comprobante.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+        } else {
+            gasto.comprobantes.forEachIndexed { indice, comprobante ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            errorApertura = !abrirComprobanteGasto(
+                                context = context,
+                                comprobanteUri = comprobante.uri,
+                                tipoComprobante = comprobante.tipo,
+                                nombreComprobante = comprobante.nombre
+                            )
+                        },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF8FAFC)
+                    ),
+                    elevation = CardDefaults.cardElevation(1.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = when (comprobante.tipo) {
+                                "PDF" -> Icons.Default.PictureAsPdf
+                                "Imagen" -> Icons.Default.Image
+                                else -> Icons.Default.InsertDriveFile
+                            },
+                            contentDescription = null,
+                            modifier = Modifier.size(34.dp),
+                            tint = when (comprobante.tipo) {
+                                "PDF" -> Color(0xFFDC2626)
+                                "Imagen" -> Color(0xFF2563EB)
+                                else -> Color(0xFF475569)
+                            }
+                        )
 
-            ArchivoComprobanteCard(
-                nombre = "FACTURA_1005.pdf",
-                peso = "522 KB",
-                icono = Icons.Default.PictureAsPdf,
-                modifier = Modifier.weight(1f)
-            )
+                        Spacer(modifier = Modifier.width(12.dp))
 
-            ArchivoComprobanteCard(
-                nombre = "NOTA_COMPRA.pdf",
-                peso = "245 KB",
-                icono = Icons.Default.Description,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = comprobante.nombre.ifBlank {
+                                    "Comprobante ${indice + 1}"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2
+                            )
+                            Text(
+                                text = comprobante.tipo.ifBlank { "Archivo" },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray
+                            )
+                        }
 
-@Composable
-fun ArchivoComprobanteCard(
-    nombre: String,
-    peso: String,
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(95.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
-        ),
-        elevation = CardDefaults.cardElevation(1.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
-                tint = Color.Gray
-            )
+                        Icon(
+                            imageVector = Icons.Default.RemoveRedEye,
+                            contentDescription = "Abrir comprobante",
+                            tint = Color.DarkGray
+                        )
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(6.dp))
+                if (indice < gasto.comprobantes.lastIndex) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
 
-            Text(
-                text = nombre,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
-            )
-
-            Text(
-                text = peso,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
-            )
-
-            Icon(
-                imageVector = Icons.Default.RemoveRedEye,
-                contentDescription = "Ver archivo",
-                modifier = Modifier.size(14.dp),
-                tint = Color.DarkGray
-            )
+            if (errorApertura) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "No fue posible abrir uno de los comprobantes en este dispositivo.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

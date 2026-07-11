@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.clientes
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,6 +32,17 @@ fun NuevoClienteScreen(
     navController: NavController,
     viewModel: ClientesViewModel
 ) {
+    val context = LocalContext.current
+    var fotoUri by remember { mutableStateOf("") }
+
+    val seleccionarFotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            fotoUri = conservarPermisoFotoCliente(context, uri)
+        }
+    }
+
     var nombre by remember { mutableStateOf("") }
     var empresa by remember { mutableStateOf("") }
     var tipoCliente by remember { mutableStateOf("") }
@@ -105,7 +119,14 @@ fun NuevoClienteScreen(
                 tipoCliente = tipoCliente,
                 onTipoClienteChange = { tipoCliente = it },
                 estatus = estatus,
-                onEstatusChange = { estatus = it }
+                onEstatusChange = { estatus = it },
+                fotoUri = fotoUri,
+                onSeleccionarFotoClick = {
+                    seleccionarFotoLauncher.launch(arrayOf("image/*"))
+                },
+                onEliminarFotoClick = {
+                    fotoUri = ""
+                }
             )
 
             SeccionInformacionContactoCliente(
@@ -127,19 +148,19 @@ fun NuevoClienteScreen(
                 notas = notas,
                 onNotasChange = { notas = it }
             )
-/*
-            SeccionConfiguracionNuevoCliente(
-                clienteActivo = clienteActivo,
-                onClienteActivoChange = { clienteActivo = it },
-                recibeCotizaciones = recibeCotizaciones,
-                onRecibeCotizacionesChange = { recibeCotizaciones = it },
-                contactoWhatsapp = contactoWhatsapp,
-                onContactoWhatsappChange = { contactoWhatsapp = it },
-                contactoLlamadas = contactoLlamadas,
-                onContactoLlamadasChange = { contactoLlamadas = it },
-                contactoCorreo = contactoCorreo,
-                onContactoCorreoChange = { contactoCorreo = it }
-            )*/
+            /*
+                        SeccionConfiguracionNuevoCliente(
+                            clienteActivo = clienteActivo,
+                            onClienteActivoChange = { clienteActivo = it },
+                            recibeCotizaciones = recibeCotizaciones,
+                            onRecibeCotizacionesChange = { recibeCotizaciones = it },
+                            contactoWhatsapp = contactoWhatsapp,
+                            onContactoWhatsappChange = { contactoWhatsapp = it },
+                            contactoLlamadas = contactoLlamadas,
+                            onContactoLlamadasChange = { contactoLlamadas = it },
+                            contactoCorreo = contactoCorreo,
+                            onContactoCorreoChange = { contactoCorreo = it }
+                        )*/
 
             BotonesFormularioCliente(
                 onCancelarClick = {
@@ -158,6 +179,7 @@ fun NuevoClienteScreen(
                         personaContacto = personaContacto,
                         cargo = cargo,
                         notas = notas,
+                        fotoUri = fotoUri,
                         clienteActivo = clienteActivo,
                         recibeCotizaciones = recibeCotizaciones,
                         contactoWhatsapp = contactoWhatsapp,
@@ -182,7 +204,10 @@ fun SeccionInformacionPersonalCliente(
     tipoCliente: String,
     onTipoClienteChange: (String) -> Unit,
     estatus: String,
-    onEstatusChange: (String) -> Unit
+    onEstatusChange: (String) -> Unit,
+    fotoUri: String = "",
+    onSeleccionarFotoClick: () -> Unit = {},
+    onEliminarFotoClick: () -> Unit = {}
 ) {
     CardFormularioCliente(
         titulo = "Información personal",
@@ -195,7 +220,11 @@ fun SeccionInformacionPersonalCliente(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AgregarFotoCliente(
-                modifier = Modifier.width(95.dp)
+                fotoUri = fotoUri,
+                nombreCliente = nombre,
+                onSeleccionarClick = onSeleccionarFotoClick,
+                onEliminarClick = onEliminarFotoClick,
+                modifier = Modifier.width(105.dp)
             )
 
             Column(
@@ -249,6 +278,10 @@ fun SeccionInformacionPersonalCliente(
 
 @Composable
 fun AgregarFotoCliente(
+    fotoUri: String,
+    nombreCliente: String,
+    onSeleccionarClick: () -> Unit,
+    onEliminarClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -256,31 +289,52 @@ fun AgregarFotoCliente(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier
-                .size(76.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFEAF2FF))
-                .clickable {
-                    // Aquí después puedes abrir galería o cámara
-                },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.PhotoCamera,
-                contentDescription = "Agregar foto",
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(30.dp)
+            ImagenPerfilCliente(
+                fotoUri = fotoUri,
+                iniciales = obtenerIniciales(nombreCliente),
+                modifier = Modifier
+                    .size(82.dp)
+                    .clickable(onClick = onSeleccionarClick)
             )
+
+            if (fotoUri.isNotBlank()) {
+                SmallFloatingActionButton(
+                    onClick = onEliminarClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(28.dp),
+                    containerColor = Color(0xFFDC2626),
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Quitar foto",
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
-        Text(
-            text = "Agregar foto",
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
-        )
+        TextButton(
+            onClick = onSeleccionarClick,
+            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.PhotoLibrary,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = if (fotoUri.isBlank()) "Seleccionar foto" else "Cambiar foto",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 

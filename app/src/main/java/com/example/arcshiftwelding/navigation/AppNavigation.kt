@@ -46,16 +46,14 @@ import com.example.arcshiftwelding.ui.Screen.inventario.EliminarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.InventarioScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.ReponerStockScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.SeleccionarProductoReponerScreen
-import com.example.arcshiftwelding.ui.gastos.EditarGastoScreen
-import com.example.arcshiftwelding.ui.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.DetalleGastoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.DetalleIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.EditarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.EliminarIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.NuevoIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesScreen
-import com.example.arcshiftwelding.ui.gastos.GastosViewModel
-import com.example.arcshiftwelding.ui.gastos.GastosViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModelFactory
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -66,11 +64,11 @@ import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModel
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
-import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModel
-import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
 import androidx.navigation.navArgument
+import com.example.arcshiftwelding.ui.Screen.gastos.EditarGastoScreen
+import com.example.arcshiftwelding.ui.Screen.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.HistorialMovimientosProductoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.AgregarCostoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.AsignarEmpleadoProyectoScreen
@@ -82,6 +80,8 @@ import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.EditarProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.RegistrarMaterialProyectoScreen
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModelFactory
 
 @Composable
 fun AppNavigation() {
@@ -406,10 +406,40 @@ fun AppNavigation() {
                 )
             }
 
-            composable(AppRoutes.NUEVA_COTIZACION) {
+            composable(
+                route = AppRoutes.COTIZACIONES_CLIENTE,
+                arguments = listOf(
+                    navArgument("clienteId") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val clienteId = backStackEntry.arguments?.getInt("clienteId") ?: 0
+
+                CotizacionesScreen(
+                    navController = navController,
+                    viewModel = cotizacionesViewModel,
+                    clienteIdInicial = clienteId
+                )
+            }
+
+            composable(
+                route = AppRoutes.NUEVA_COTIZACION_CON_CLIENTE,
+                arguments = listOf(
+                    navArgument("clienteId") {
+                        type = NavType.IntType
+                        defaultValue = -1
+                    }
+                )
+            ) { backStackEntry ->
+                val clienteInicialId = backStackEntry.arguments
+                    ?.getInt("clienteId")
+                    ?.takeIf { it > 0 }
+
                 NuevaCotizacionScreen(
                     navController = navController,
-                    viewModel = cotizacionesViewModel
+                    viewModel = cotizacionesViewModel,
+                    clienteInicialId = clienteInicialId
                 )
             }
 

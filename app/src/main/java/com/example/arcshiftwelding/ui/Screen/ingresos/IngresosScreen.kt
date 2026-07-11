@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.viewmodel.IngresoUI
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.PagoPorCobrarUI
+import com.example.arcshiftwelding.ui.viewmodel.formatoDinero
 
 
 @Composable

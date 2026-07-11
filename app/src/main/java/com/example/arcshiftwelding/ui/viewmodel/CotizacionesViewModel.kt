@@ -209,7 +209,8 @@ private fun CotizacionConCliente.toUi(): CotizacionUI {
         total = cotizacion.total.formatoMoneda(),
         estado = cotizacion.estado,
         fecha = cotizacion.fecha,
-        vence = cotizacion.fecha
+        vence = cotizacion.fecha,
+        clienteId = cotizacion.clienteId
     )
 }
 

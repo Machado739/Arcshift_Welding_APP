@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import androidx.compose.runtime.collectAsState
-import com.example.arcshiftwelding.ui.gastos.GastosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)

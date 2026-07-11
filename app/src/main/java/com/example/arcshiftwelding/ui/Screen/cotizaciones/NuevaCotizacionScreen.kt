@@ -95,13 +95,16 @@ fun fondoConceptoCotizacion(tipo: String): Color {
 @Composable
 fun NuevaCotizacionScreen(
     navController: NavController,
-    viewModel: CotizacionesViewModel
+    viewModel: CotizacionesViewModel,
+    clienteInicialId: Int? = null
 ) {
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
 
 
 
-    var clienteSeleccionadoId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var clienteSeleccionadoId by rememberSaveable(clienteInicialId) {
+        mutableStateOf(clienteInicialId)
+    }
     var errorCliente by rememberSaveable { mutableStateOf(false) }
     var proyecto by rememberSaveable { mutableStateOf("") }
     var fecha by rememberSaveable { mutableStateOf("19/05/2026") }

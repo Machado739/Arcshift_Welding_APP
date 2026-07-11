@@ -15,13 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -35,20 +36,46 @@ data class CotizacionUI(
     val total: String,
     val estado: String,
     val fecha: String,
-    val vence: String
+    val vence: String,
+    val clienteId: Int = 0
 )
 
 @Composable
 fun CotizacionesScreen(
     navController: NavController,
-    viewModel: CotizacionesViewModel
+    viewModel: CotizacionesViewModel,
+    clienteIdInicial: Int? = null
 ) {
-    var categoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var categoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
+    var textoBusqueda by rememberSaveable { mutableStateOf("") }
 
     val cotizaciones by viewModel.cotizaciones.collectAsState()
 
-    val cotizacionesFiltradas = cotizaciones.filter { cotizacion ->
-        categoriaSeleccionada == "Todos" || cotizacion.estado == categoriaSeleccionada
+    val cotizacionesDelCliente = if (clienteIdInicial == null) {
+        cotizaciones
+    } else {
+        cotizaciones.filter { it.clienteId == clienteIdInicial }
+    }
+
+    val nombreClienteFiltro = cotizacionesDelCliente
+        .firstOrNull()
+        ?.cliente
+        ?: "Cliente seleccionado"
+
+    val busquedaNormalizada = textoBusqueda.trim()
+
+    val cotizacionesFiltradas = cotizacionesDelCliente.filter { cotizacion ->
+        val coincideEstado =
+            categoriaSeleccionada == "Todos" ||
+                    cotizacion.estado == categoriaSeleccionada
+
+        val coincideBusqueda =
+            busquedaNormalizada.isBlank() ||
+                    cotizacion.folio.contains(busquedaNormalizada, ignoreCase = true) ||
+                    cotizacion.cliente.contains(busquedaNormalizada, ignoreCase = true) ||
+                    cotizacion.trabajo.contains(busquedaNormalizada, ignoreCase = true)
+
+        coincideEstado && coincideBusqueda
     }
 
     Column(
@@ -62,17 +89,31 @@ fun CotizacionesScreen(
                 bottom = 8.dp
             )
     ) {
-        HeaderCotizaciones(navController = navController)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        ResumenCotizaciones(
-            cotizaciones = cotizaciones
+        HeaderCotizaciones(
+            navController = navController,
+            mostrarRegresar = clienteIdInicial != null
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        BarraBusquedaCotizaciones()
+        ResumenCotizaciones(
+            cotizaciones = cotizacionesDelCliente
+        )
+
+        if (clienteIdInicial != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            FiltroClienteCotizaciones(
+                nombreCliente = nombreClienteFiltro
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        BarraBusquedaCotizaciones(
+            valor = textoBusqueda,
+            onValorChange = { textoBusqueda = it }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -102,6 +143,11 @@ fun CotizacionesScreen(
 
         ListadoCotizaciones(
             cotizaciones = cotizacionesFiltradas,
+            mensajeVacio = if (clienteIdInicial != null) {
+                "Este cliente no tiene cotizaciones que coincidan con los filtros."
+            } else {
+                "No hay cotizaciones que coincidan con los filtros."
+            },
             onClickCotizacion = { cotizacion ->
                 navController.navigate(AppRoutes.detalleCotizacion(cotizacion.id))
             }
@@ -111,7 +157,8 @@ fun CotizacionesScreen(
 
 @Composable
 fun HeaderCotizaciones(
-    navController: NavController
+    navController: NavController,
+    mostrarRegresar: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -120,8 +167,17 @@ fun HeaderCotizaciones(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Menu, contentDescription = "Menú")
+        IconButton(
+            onClick = {
+                if (mostrarRegresar) {
+                    navController.popBackStack()
+                }
+            }
+        ) {
+            Icon(
+                imageVector = if (mostrarRegresar) Icons.Default.ArrowBack else Icons.Default.Menu,
+                contentDescription = if (mostrarRegresar) "Regresar" else "Menú"
+            )
         }
 
         Text(
@@ -149,6 +205,54 @@ fun HeaderCotizaciones(
                 imageVector = Icons.Default.ExitToApp,
                 contentDescription = "Salir"
             )
+        }
+    }
+}
+
+@Composable
+fun FiltroClienteCotizaciones(
+    nombreCliente: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFEFF6FF)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = Color(0xFF2563EB),
+                modifier = Modifier.size(20.dp)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Filtrado por cliente",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF64748B)
+                )
+
+                Text(
+                    text = nombreCliente,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1D4ED8),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -273,53 +377,38 @@ fun CardResumenCotizacion(
 }
 
 @Composable
-fun BarraBusquedaCotizaciones() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp),
-            placeholder = {
-                Text(
-                    text = "Buscar cotización...",
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(8.dp)
-        )
-/*
-        OutlinedButton(
-            onClick = { },
-            modifier = Modifier.height(48.dp),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp)
-        ) {
+fun BarraBusquedaCotizaciones(
+    valor: String,
+    onValorChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = valor,
+        onValueChange = onValorChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp),
+        placeholder = {
+            Text(text = "Buscar por folio, cliente o trabajo...")
+        },
+        leadingIcon = {
             Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                imageVector = Icons.Default.Search,
+                contentDescription = null
             )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-                text = "Filtros",
-                fontSize = 12.sp
-            )
-        }*/
-    }
+        },
+        trailingIcon = {
+            if (valor.isNotBlank()) {
+                IconButton(onClick = { onValorChange("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Limpiar búsqueda"
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(8.dp)
+    )
 }
 
 @Composable
@@ -384,26 +473,56 @@ fun CategoriaChipCotizacion(
 @Composable
 fun ListadoCotizaciones(
     cotizaciones: List<CotizacionUI>,
+    mensajeVacio: String,
     onClickCotizacion: (CotizacionUI) -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxSize()
-            .padding(
-                start = 0.dp,
-                top = 0.dp,
-                end = 0.dp,
-                bottom = 8.dp
-            )
+            .padding(bottom = 8.dp)
     ) {
-        items(cotizaciones) { cotizacion ->
-            ItemCotizacion(
-                cotizacion = cotizacion,
-                onClick = {
-                    onClickCotizacion(cotizacion)
+        if (cotizaciones.isEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Color(0xFF94A3B8),
+                            modifier = Modifier.size(34.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = mensajeVacio,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF64748B)
+                        )
+                    }
                 }
-            )
+            }
+        } else {
+            items(cotizaciones) { cotizacion ->
+                ItemCotizacion(
+                    cotizacion = cotizacion,
+                    onClick = {
+                        onClickCotizacion(cotizacion)
+                    }
+                )
+            }
         }
     }
 }

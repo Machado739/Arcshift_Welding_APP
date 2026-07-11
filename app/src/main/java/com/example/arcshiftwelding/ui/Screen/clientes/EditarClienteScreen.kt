@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.clientes
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -38,7 +41,8 @@ data class ClienteEditarUI(
     val recibeCotizaciones: Boolean,
     val contactoWhatsapp: Boolean,
     val contactoLlamadas: Boolean,
-    val contactoCorreo: Boolean
+    val contactoCorreo: Boolean,
+    val fotoUri: String
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +51,17 @@ fun EditarClienteScreen(
     clienteId: Int,
     viewModel: ClientesViewModel
 ) {
+    val context = LocalContext.current
+    var fotoUri by remember { mutableStateOf("") }
+
+    val seleccionarFotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            fotoUri = conservarPermisoFotoCliente(context, uri)
+        }
+    }
+
     val clienteFlow = remember(clienteId) {
         viewModel.obtenerClienteEditar(clienteId)
     }
@@ -102,6 +117,7 @@ fun EditarClienteScreen(
         personaContacto = cliente.personaContacto
         cargo = cliente.cargo
         notas = cliente.notas
+        fotoUri = cliente.fotoUri
 
         clienteActivo = cliente.clienteActivo
         recibeCotizaciones = cliente.recibeCotizaciones
@@ -176,7 +192,14 @@ fun EditarClienteScreen(
                     tipoCliente = tipoCliente,
                     onTipoClienteChange = { tipoCliente = it },
                     estatus = estatus,
-                    onEstatusChange = { estatus = it }
+                    onEstatusChange = { estatus = it },
+                    fotoUri = fotoUri,
+                    onSeleccionarFotoClick = {
+                        seleccionarFotoLauncher.launch(arrayOf("image/*"))
+                    },
+                    onEliminarFotoClick = {
+                        fotoUri = ""
+                    }
                 )
             }
 
@@ -238,6 +261,7 @@ fun EditarClienteScreen(
                             personaContacto = personaContacto,
                             cargo = cargo,
                             notas = notas,
+                            fotoUri = fotoUri,
                             clienteActivo = clienteActivo,
                             recibeCotizaciones = recibeCotizaciones,
                             contactoWhatsapp = contactoWhatsapp,

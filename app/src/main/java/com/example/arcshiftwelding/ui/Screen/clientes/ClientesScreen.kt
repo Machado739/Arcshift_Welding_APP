@@ -34,6 +34,7 @@ data class ClienteUI(
     val telefono: String,
     val ubicacion: String,
     val correo: String,
+    val fotoUri: String,
     val cotizaciones: Int,
     val estado: String,
     val tipo: String,
@@ -71,66 +72,66 @@ fun ClientesScreen(
     }
 
     Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
-                .padding(
-                    start = 8.dp,
-                    top = 0.dp,
-                    end = 8.dp,
-                    bottom = 8.dp
-                )
-        ) {
-            HeaderClientes(navController = navController)
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ResumenClientes(clientes = clientes)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            BuscadorClientes(
-                textoBusqueda = textoBusqueda,
-                onTextoBusquedaChange = {
-                    textoBusqueda = it
-                }
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+            .padding(
+                start = 8.dp,
+                top = 0.dp,
+                end = 8.dp,
+                bottom = 8.dp
             )
+    ) {
+        HeaderClientes(navController = navController)
+
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ResumenClientes(clientes = clientes)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        BuscadorClientes(
+            textoBusqueda = textoBusqueda,
+            onTextoBusquedaChange = {
+                textoBusqueda = it
+            }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-                onClick = {
-                    navController.navigate(AppRoutes.NUEVO_CLIENTE)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1D4ED8)
-                )
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Nuevo Cliente")
-            }
-
-
-            FiltrosCategoriaClientes(
-                seleccionada = categoriaSeleccionada,
-                onSeleccionar = {
-                    categoriaSeleccionada = it
-                }
+            onClick = {
+                navController.navigate(AppRoutes.NUEVO_CLIENTE)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1D4ED8)
             )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ListaClientes(
-                clientes = clientesFiltrados,
-                onClickCliente = { cliente: ClienteUI ->
-                    navController.navigate(AppRoutes.detalleCliente(cliente.id))
-                }
-            )
-            }
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Nuevo Cliente")
         }
+
+
+        FiltrosCategoriaClientes(
+            seleccionada = categoriaSeleccionada,
+            onSeleccionar = {
+                categoriaSeleccionada = it
+            }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        ListaClientes(
+            clientes = clientesFiltrados,
+            onClickCliente = { cliente: ClienteUI ->
+                navController.navigate(AppRoutes.detalleCliente(cliente.id))
+            }
+        )
+    }
+}
 
 
 
@@ -313,30 +314,30 @@ fun BuscadorClientes(
                 )
             },
             modifier = Modifier.weight(1f)
-            .height(48.dp),
+                .height(48.dp),
             shape = RoundedCornerShape(8.dp),
             singleLine = true
         )
-/*
-        OutlinedButton(
-            onClick = { },
-            modifier = Modifier.height(48.dp),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
+        /*
+                OutlinedButton(
+                    onClick = { },
+                    modifier = Modifier.height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
 
-            Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
-            Text(
-                text = "Filtros",
-                fontSize = 12.sp
-            )
-        }*/
+                    Text(
+                        text = "Filtros",
+                        fontSize = 12.sp
+                    )
+                }*/
     }
 }
 
@@ -448,20 +449,14 @@ fun ItemCliente(
                 .padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Box(
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(cliente.color.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = cliente.color,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            ImagenPerfilCliente(
+                fotoUri = cliente.fotoUri,
+                iniciales = obtenerIniciales(cliente.nombre),
+                modifier = Modifier.size(46.dp),
+                shape = RoundedCornerShape(12.dp),
+                colorFondo = cliente.color.copy(alpha = 0.12f),
+                colorContenido = cliente.color
+            )
 
             Spacer(modifier = Modifier.width(10.dp))
 

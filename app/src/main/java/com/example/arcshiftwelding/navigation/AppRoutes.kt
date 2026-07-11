@@ -23,7 +23,7 @@ object AppRoutes {
     fun reportarSalida(productoId: Int) = "reportar_salida/$productoId"
     fun eliminarProducto(productoId: Int) = "eliminar_producto/$productoId"
 
-///                     GASTOS
+    ///                     GASTOS
 ///                     GASTOS
 ///                     GASTOS
     const val GASTOS = "gastos"
@@ -42,7 +42,7 @@ object AppRoutes {
         return "eliminar_gasto/$gastoId"
     }
 
-///                     INGRESOS
+    ///                     INGRESOS
 ///                     INGRESOS
 ///                     INGRESOS
     const val INGRESOS = "ingresos"
@@ -64,7 +64,7 @@ object AppRoutes {
 
 
 
-///                 CLIENTES
+    ///                 CLIENTES
 ///                 CLIENTES
 ///                 CLIENTES
     const val CLIENTES = "clientes"
@@ -88,10 +88,21 @@ object AppRoutes {
 ///                 COTIZACIONES
 
     const val COTIZACIONES = "cotizaciones"
+    const val COTIZACIONES_CLIENTE = "cotizaciones_cliente/{clienteId}"
     const val NUEVA_COTIZACION = "nueva_cotizacion"
+    const val NUEVA_COTIZACION_CON_CLIENTE =
+        "nueva_cotizacion?clienteId={clienteId}"
     const val DETALLE_COTIZACION = "detalle_cotizacion/{cotizacionId}"
     const val EDITAR_COTIZACION = "editar_cotizacion/{cotizacionId}"
     const val ELIMINAR_COTIZACION = "eliminar_cotizacion/{cotizacionId}"
+
+    fun cotizacionesCliente(clienteId: Int): String {
+        return "cotizaciones_cliente/$clienteId"
+    }
+
+    fun nuevaCotizacion(clienteId: Int): String {
+        return "nueva_cotizacion?clienteId=$clienteId"
+    }
 
     fun detalleCotizacion(cotizacionId: Int): String {
         return "detalle_cotizacion/$cotizacionId"
@@ -107,7 +118,7 @@ object AppRoutes {
 
 
 
-///                     EMPLEADOS
+    ///                     EMPLEADOS
 ///                     EMPLEADOS
 ///                     EMPLEADOS
     const val EMPLEADOS = "empleados"
@@ -129,7 +140,7 @@ object AppRoutes {
         return "eliminar_empleado/$id"
     }
 
-///                     REPORTES
+    ///                     REPORTES
 ///                     REPORTES
 ///                     REPORTES
     const val REPORTES = "reportes"
@@ -213,7 +224,7 @@ object AppRoutes {
     ): String {
         return "nuevo_gasto_proyecto/$proyectoId/$proyectoNombre"
     }
-///                     MAS
+    ///                     MAS
 ///                     MAS
 ///                     MAS
     const val MAS = "mas"

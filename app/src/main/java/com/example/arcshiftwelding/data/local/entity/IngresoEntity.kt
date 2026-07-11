@@ -62,5 +62,6 @@ data class IngresoEntity(
     val ordenTrabajo: String,
 
     val proyecto: String = "",
-    val activo: Boolean = true
+    val activo: Boolean = true,
+    val comprobantesJson: String = "[]"
 )

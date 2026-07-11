@@ -1,5 +1,8 @@
-package com.example.arcshiftwelding.ui.gastos
+package com.example.arcshiftwelding.ui.Screen.gastos
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -24,6 +28,19 @@ import java.util.Locale
 import java.util.TimeZone
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
+import com.example.arcshiftwelding.utils.CapturaFotoGasto
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTE_GASTO_BYTES
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTES_POR_REGISTRO
+import com.example.arcshiftwelding.utils.abrirComprobanteGasto
+import com.example.arcshiftwelding.utils.eliminarComprobanteInternoGasto
+import com.example.arcshiftwelding.utils.finalizarCapturaFotoGasto
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.prepararCapturaFotoGasto
+import com.example.arcshiftwelding.utils.prepararComprobanteGastoDesdeDocumento
+import com.example.arcshiftwelding.utils.deserializarComprobantes
+import com.example.arcshiftwelding.utils.serializarComprobantes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +111,78 @@ fun EditarGastoScreen(
     var clienteSeleccionadoId by remember { mutableStateOf<Int?>(null) }
     var cotizacionSeleccionadaId by remember { mutableStateOf<Int?>(null) }
 
+    val context = LocalContext.current
+    var comprobantesOriginales by remember {
+        mutableStateOf<List<ComprobanteArchivoSeleccionado>>(emptyList())
+    }
+    var comprobantes by remember {
+        mutableStateOf<List<ComprobanteArchivoSeleccionado>>(emptyList())
+    }
+    var errorComprobante by remember { mutableStateOf<String?>(null) }
+    var capturaFotoPendiente by remember { mutableStateOf<CapturaFotoGasto?>(null) }
+
+    fun descartarCambiosComprobante() {
+        comprobantes
+            .filter { actual -> comprobantesOriginales.none { it.uri == actual.uri } }
+            .forEach { eliminarComprobanteInternoGasto(it.uri) }
+    }
+
+    fun quitarComprobante(indice: Int) {
+        val comprobante = comprobantes.getOrNull(indice) ?: return
+        if (comprobantesOriginales.none { it.uri == comprobante.uri }) {
+            eliminarComprobanteInternoGasto(comprobante.uri)
+        }
+        comprobantes = comprobantes.filterIndexed { index, _ -> index != indice }
+        errorComprobante = null
+    }
+
+    fun agregarComprobante(comprobante: ComprobanteArchivoSeleccionado?) {
+        if (comprobante == null) {
+            errorComprobante = "No fue posible procesar el archivo seleccionado."
+            return
+        }
+
+        if (comprobante.tamanoBytes > MAX_COMPROBANTE_GASTO_BYTES) {
+            eliminarComprobanteInternoGasto(comprobante.uri)
+            errorComprobante = "El archivo ${comprobante.nombre} supera el límite de 10 MB."
+            return
+        }
+
+        if (comprobantes.size >= MAX_COMPROBANTES_POR_REGISTRO) {
+            eliminarComprobanteInternoGasto(comprobante.uri)
+            errorComprobante = "Puedes adjuntar hasta $MAX_COMPROBANTES_POR_REGISTRO comprobantes."
+            return
+        }
+
+        if (comprobantes.any { it.uri == comprobante.uri }) {
+            errorComprobante = "Ese archivo ya fue agregado."
+            return
+        }
+
+        comprobantes = comprobantes + comprobante
+        errorComprobante = null
+    }
+
+    val tomarFotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { fotoTomada ->
+        val captura = capturaFotoPendiente
+        if (fotoTomada && captura != null) {
+            agregarComprobante(finalizarCapturaFotoGasto(captura))
+        } else if (captura != null) {
+            eliminarComprobanteInternoGasto(captura.rutaArchivo)
+        }
+        capturaFotoPendiente = null
+    }
+
+    val seleccionarDocumentoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            agregarComprobante(prepararComprobanteGastoDesdeDocumento(context, uri))
+        }
+    }
+
 
     val subtotalValor = subtotal.replace(",", ".").toDoubleOrNull() ?: 0.0
     val ivaValor = ivaPorcentaje.replace(",", ".").toDoubleOrNull() ?: 0.0
@@ -127,6 +216,16 @@ fun EditarGastoScreen(
             proyecto = gasto.proyecto ?: ""
             clienteSeleccionadoId = gasto.clienteId
             cotizacionSeleccionadaId = gasto.cotizacionId
+
+            val comprobantesCargados = deserializarComprobantes(
+                comprobantesJson = gasto.comprobantesJson,
+                comprobanteUriLegado = gasto.comprobanteUri,
+                tipoComprobanteLegado = gasto.tipoComprobante,
+                nombreComprobanteLegado = gasto.nombreComprobante
+            )
+            comprobantesOriginales = comprobantesCargados
+            comprobantes = comprobantesCargados
+            errorComprobante = null
         }
     }
 
@@ -146,6 +245,7 @@ fun EditarGastoScreen(
             ) {
                 IconButton(
                     onClick = {
+                        descartarCambiosComprobante()
                         navController.popBackStack()
                     }
                 ) {
@@ -334,51 +434,139 @@ fun EditarGastoScreen(
             }
 */
             TarjetaDetalleGasto(
-                titulo = "Factura / Comprobante",
+                titulo = "Evidencia / Comprobantes (${comprobantes.size})",
                 icono = Icons.Default.AttachFile
             ) {
-                Text(
-                    text = "Archivos actuales",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ArchivoEditableFactura(
-                    nombre = "FACTURA_1005.pdf",
-                    peso = "522 KB"
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                ArchivoEditableFactura(
-                    nombre = "TICKET_250520.jpg",
-                    peso = "186 KB"
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { },
+                        onClick = { seleccionarDocumentoLauncher.launch(arrayOf("application/pdf")) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.UploadFile, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Cambiar PDF")
+                        Text("Agregar PDF")
                     }
 
                     OutlinedButton(
-                        onClick = { },
+                        onClick = {
+                            val captura = prepararCapturaFotoGasto(context)
+                            if (captura != null) {
+                                capturaFotoPendiente = captura
+                                tomarFotoLauncher.launch(captura.uriCamara)
+                            } else {
+                                errorComprobante = "No fue posible iniciar la cámara."
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Nueva foto")
+                        Text("Tomar foto")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { seleccionarDocumentoLauncher.launch(arrayOf("*/*")) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.AttachFile, contentDescription = null)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Agregar archivos · Máx. 10 MB cada uno")
+                }
+
+                Text(
+                    text = "Puedes conservar hasta $MAX_COMPROBANTES_POR_REGISTRO comprobantes.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+
+                errorComprobante?.let { mensaje ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = mensaje,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                if (comprobantes.isEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Sin comprobantes adjuntos.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+
+                comprobantes.forEachIndexed { indice, comprobante ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        elevation = CardDefaults.cardElevation(1.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = when (comprobante.tipo) {
+                                    "PDF" -> Icons.Default.PictureAsPdf
+                                    "Imagen" -> Icons.Default.Image
+                                    else -> Icons.Default.InsertDriveFile
+                                },
+                                contentDescription = null,
+                                tint = if (comprobante.tipo == "PDF") Color(0xFFDC2626) else Color(0xFF2563EB),
+                                modifier = Modifier.size(32.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = comprobante.nombre,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 2
+                                )
+                                Text(
+                                    text = "${comprobante.tipo} · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    if (!abrirComprobanteGasto(
+                                            context,
+                                            comprobante.uri,
+                                            comprobante.tipo,
+                                            comprobante.nombre
+                                        )
+                                    ) {
+                                        errorComprobante = "No fue posible abrir el comprobante."
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Default.RemoveRedEye, contentDescription = "Ver archivo")
+                            }
+
+                            IconButton(onClick = { quitarComprobante(indice) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar archivo",
+                                    tint = Color(0xFFDC2626)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -479,6 +667,7 @@ fun EditarGastoScreen(
             ) {
                 OutlinedButton(
                     onClick = {
+                        descartarCambiosComprobante()
                         navController.popBackStack()
                     },
                     modifier = Modifier.weight(1f),
@@ -509,11 +698,20 @@ fun EditarGastoScreen(
                                 rfcProveedor = rfcProveedor.ifBlank { null },
                                 observaciones = observaciones.ifBlank { null },
                                 proyecto = proyecto.takeIf { it.isNotBlank() && it != "Sin proyecto" },
+                                proyectoId = gastoActual?.proyectoId,
+                                proyectoNombre = gastoActual?.proyectoNombre,
+                                comprobanteUri = comprobantes.firstOrNull()?.uri.orEmpty(),
+                                tipoComprobante = comprobantes.firstOrNull()?.tipo.orEmpty(),
+                                nombreComprobante = comprobantes.firstOrNull()?.nombre.orEmpty(),
+                                comprobantesJson = serializarComprobantes(comprobantes),
                                 clienteId = clienteSeleccionadoId,
                                 cotizacionId = cotizacionSeleccionadaId
                             )
 
                             viewModel.actualizarGasto(gastoEditado) {
+                                comprobantesOriginales
+                                    .filter { original -> comprobantes.none { it.uri == original.uri } }
+                                    .forEach { eliminarComprobanteInternoGasto(it.uri) }
                                 navController.popBackStack()
                             }
                         }
@@ -892,68 +1090,6 @@ fun CampoSelectorEditar(
                         onValueChange(opcion)
                         expandido = false
                     }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ArchivoEditableFactura(
-    nombre: String,
-    peso: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
-        ),
-        elevation = CardDefaults.cardElevation(1.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.PictureAsPdf,
-                contentDescription = null,
-                tint = Color(0xFFDC2626),
-                modifier = Modifier.size(32.dp)
-            )
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = nombre,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Text(
-                    text = peso,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Default.RemoveRedEye,
-                    contentDescription = "Ver archivo"
-                )
-            }
-
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar archivo",
-                    tint = Color(0xFFDC2626)
                 )
             }
         }

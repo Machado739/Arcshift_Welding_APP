@@ -432,9 +432,9 @@ fun SeccionEstadoCotizacion(
         titulo = "Estado de la cotización",
         icono = Icons.Default.Flag
     ) {
-        Row(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = "Estado actual",

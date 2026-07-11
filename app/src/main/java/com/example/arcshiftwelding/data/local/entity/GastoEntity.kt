@@ -58,6 +58,11 @@ data class GastoEntity(
     val proyecto: String? = null,
 
     val clienteId: Int?,
-    val cotizacionId: Int?
+    val cotizacionId: Int?,
+
+    val comprobanteUri: String = "",
+    val tipoComprobante: String = "",
+    val nombreComprobante: String = "",
+    val comprobantesJson: String = "[]"
 
 )

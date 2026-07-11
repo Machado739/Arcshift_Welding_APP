@@ -17,6 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.arcshiftwelding.utils.abrirComprobante
+import com.example.arcshiftwelding.utils.abrirComprobanteGasto
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
+import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import android.content.Context
@@ -26,6 +31,14 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.arcshiftwelding.ui.viewmodel.IngresoUI
+import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.PagoProgramadoDetalleUI
+import com.example.arcshiftwelding.ui.viewmodel.ResumenCobroIngresoUI
+import com.example.arcshiftwelding.ui.viewmodel.aDouble
+import com.example.arcshiftwelding.ui.viewmodel.fechaActual
+import com.example.arcshiftwelding.ui.viewmodel.formatoDinero
+import com.example.arcshiftwelding.ui.viewmodel.sinDecimalesSiAplica
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -601,79 +614,99 @@ fun SeccionDetalleComprobanteIngreso(
     ingreso: IngresoUI
 ) {
     val context = LocalContext.current
+    var errorApertura by remember { mutableStateOf("") }
 
     TarjetaDetalleIngreso(
-        titulo = "Comprobante",
+        titulo = "Comprobantes (${ingreso.comprobantes.size})",
         icono = Icons.Default.AttachFile
     ) {
-        if (ingreso.comprobanteUri.isBlank()) {
+        if (ingreso.comprobantes.isEmpty()) {
             Text(
-                text = "Sin comprobante registrado.",
+                text = "Sin comprobantes registrados.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
         } else {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        abrirComprobanteIngreso(
-                            context = context,
-                            uriString = ingreso.comprobanteUri,
-                            tipoComprobante = ingreso.tipoComprobante
-                        )
-                    },
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF8FAFC)
-                )
-            ) {
-                Row(
+            ingreso.comprobantes.forEachIndexed { indice, comprobante ->
+                val tipoReal = obtenerTipoRealComprobante(context, comprobante)
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = if (ingreso.tipoComprobante == "PDF") {
-                            Icons.Default.PictureAsPdf
-                        } else {
-                            Icons.Default.Image
+                        .clickable {
+                            if (!abrirComprobante(context, comprobante)) {
+                                errorApertura = "No fue posible abrir ${comprobante.nombre}."
+                            } else {
+                                errorApertura = ""
+                            }
                         },
-                        contentDescription = null,
-                        tint = if (ingreso.tipoComprobante == "PDF") {
-                            Color(0xFFDC2626)
-                        } else {
-                            Color(0xFF2563EB)
-                        },
-                        modifier = Modifier.size(28.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF8FAFC)
                     )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = ingreso.tipoComprobante.ifBlank { "Comprobante" },
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
+                        Icon(
+                            imageVector = when (tipoReal) {
+                                "PDF" -> Icons.Default.PictureAsPdf
+                                "Imagen" -> Icons.Default.Image
+                                else -> Icons.Default.InsertDriveFile
+                            },
+                            contentDescription = null,
+                            tint = when (tipoReal) {
+                                "PDF" -> Color(0xFFDC2626)
+                                "Imagen" -> Color(0xFF2563EB)
+                                else -> Color(0xFF475569)
+                            },
+                            modifier = Modifier.size(28.dp)
                         )
 
-                        Text(
-                            text = "Toca para ver el archivo",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = comprobante.nombre.ifBlank {
+                                    "Comprobante ${indice + 1}"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2
+                            )
+
+                            Text(
+                                text = "$tipoReal · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                maxLines = 1
+                            )
+                        }
+
+                        Icon(
+                            imageVector = Icons.Default.RemoveRedEye,
+                            contentDescription = "Ver comprobante",
+                            tint = Color(0xFF2563EB),
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-
-                    Icon(
-                        imageVector = Icons.Default.RemoveRedEye,
-                        contentDescription = "Ver comprobante",
-                        tint = Color(0xFF2563EB),
-                        modifier = Modifier.size(20.dp)
-                    )
                 }
+
+                if (indice < ingreso.comprobantes.lastIndex) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+            if (errorApertura.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = errorApertura,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -904,18 +937,15 @@ fun DialogMarcarPagoProgramado(
         mutableStateOf("")
     }
 
+    val context = LocalContext.current
+
     val seleccionarArchivo = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            comprobanteUri = uri.toString()
-            tipoComprobante = if (
-                uri.toString().contains(".pdf", ignoreCase = true)
-            ) {
-                "PDF"
-            } else {
-                "Imagen"
-            }
+            val comprobante = prepararComprobanteDesdeDocumento(context, uri)
+            comprobanteUri = comprobante.uri
+            tipoComprobante = comprobante.tipo
         }
     }
 
@@ -978,7 +1008,7 @@ fun DialogMarcarPagoProgramado(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            seleccionarArchivo.launch("application/pdf")
+                            seleccionarArchivo.launch(arrayOf("application/pdf"))
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -987,11 +1017,11 @@ fun DialogMarcarPagoProgramado(
 
                     OutlinedButton(
                         onClick = {
-                            seleccionarArchivo.launch("image/*")
+                            seleccionarArchivo.launch(arrayOf("image/*"))
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Foto")
+                        Text("Imagen")
                     }
                 }
 
@@ -1348,26 +1378,13 @@ fun abrirComprobanteIngreso(
     uriString: String,
     tipoComprobante: String
 ) {
-    if (uriString.isBlank()) return
+    val abierto = abrirComprobanteGasto(
+        context = context,
+        comprobanteUri = uriString,
+        tipoComprobante = tipoComprobante
+    )
 
-    try {
-        val uri = Uri.parse(uriString)
-
-        val mimeType = when (tipoComprobante) {
-            "PDF" -> "application/pdf"
-            "Imagen" -> "image/*"
-            else -> "*/*"
-        }
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mimeType)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        context.startActivity(
-            Intent.createChooser(intent, "Abrir comprobante")
-        )
-    } catch (e: Exception) {
+    if (!abierto && uriString.isNotBlank()) {
         Toast.makeText(
             context,
             "No se pudo abrir el comprobante",

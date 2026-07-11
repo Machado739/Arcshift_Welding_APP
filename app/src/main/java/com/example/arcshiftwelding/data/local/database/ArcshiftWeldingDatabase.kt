@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.DetalleCotizacionDao
@@ -55,7 +57,7 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         ProyectoCostoEntity::class
 
                ],
-    version = 25,
+    version = 28,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -79,6 +81,40 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ArcshiftWeldingDatabase? = null
 
+        private val MIGRATION_25_26 = object : Migration(25, 26) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE gastos ADD COLUMN comprobanteUri TEXT NOT NULL DEFAULT ''"
+                )
+                database.execSQL(
+                    "ALTER TABLE gastos ADD COLUMN tipoComprobante TEXT NOT NULL DEFAULT ''"
+                )
+                database.execSQL(
+                    "ALTER TABLE gastos ADD COLUMN nombreComprobante TEXT NOT NULL DEFAULT ''"
+                )
+            }
+        }
+
+        private val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE clientes ADD COLUMN fotoUri TEXT NOT NULL DEFAULT ''"
+                )
+            }
+        }
+
+
+        private val MIGRATION_27_28 = object : Migration(27, 28) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE gastos ADD COLUMN comprobantesJson TEXT NOT NULL DEFAULT '[]'"
+                )
+                database.execSQL(
+                    "ALTER TABLE ingresos ADD COLUMN comprobantesJson TEXT NOT NULL DEFAULT '[]'"
+                )
+            }
+        }
+
         fun getDatabase(context: Context): ArcshiftWeldingDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -86,6 +122,7 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
                     ArcshiftWeldingDatabase::class.java,
                     "arcshift_welding_database"
                 )
+                    .addMigrations(MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28)
                     .fallbackToDestructiveMigration()
                     .build()
 

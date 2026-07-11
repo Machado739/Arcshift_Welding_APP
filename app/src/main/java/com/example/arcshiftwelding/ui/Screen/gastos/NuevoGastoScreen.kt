@@ -1,5 +1,8 @@
 package com.example.arcshiftwelding.ui.Screen.gastos
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,10 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.arcshiftwelding.ui.gastos.GastosViewModel
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -28,6 +31,18 @@ import java.util.Locale
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.ProyectoEntity
+import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
+import com.example.arcshiftwelding.utils.CapturaFotoGasto
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTE_GASTO_BYTES
+import com.example.arcshiftwelding.utils.MAX_COMPROBANTES_POR_REGISTRO
+import com.example.arcshiftwelding.utils.abrirComprobanteGasto
+import com.example.arcshiftwelding.utils.eliminarComprobanteInternoGasto
+import com.example.arcshiftwelding.utils.finalizarCapturaFotoGasto
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.prepararCapturaFotoGasto
+import com.example.arcshiftwelding.utils.prepararComprobanteGastoDesdeDocumento
+import com.example.arcshiftwelding.utils.serializarComprobantes
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevoGastoScreen(
@@ -69,6 +84,73 @@ fun NuevoGastoScreen(
     var telefonoProveedor by remember { mutableStateOf("") }
     var correoProveedor by remember { mutableStateOf("") }
     var rfcProveedor by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    var comprobantes by remember {
+        mutableStateOf<List<ComprobanteArchivoSeleccionado>>(emptyList())
+    }
+    var errorComprobante by remember { mutableStateOf<String?>(null) }
+    var capturaFotoPendiente by remember { mutableStateOf<CapturaFotoGasto?>(null) }
+
+    fun limpiarComprobantesTemporales() {
+        comprobantes.forEach { eliminarComprobanteInternoGasto(it.uri) }
+        comprobantes = emptyList()
+        errorComprobante = null
+    }
+
+    fun quitarComprobante(indice: Int) {
+        val comprobante = comprobantes.getOrNull(indice) ?: return
+        eliminarComprobanteInternoGasto(comprobante.uri)
+        comprobantes = comprobantes.filterIndexed { index, _ -> index != indice }
+        errorComprobante = null
+    }
+
+    fun agregarComprobante(comprobante: ComprobanteArchivoSeleccionado?) {
+        if (comprobante == null) {
+            errorComprobante = "No fue posible procesar el archivo seleccionado."
+            return
+        }
+
+        if (comprobante.tamanoBytes > MAX_COMPROBANTE_GASTO_BYTES) {
+            eliminarComprobanteInternoGasto(comprobante.uri)
+            errorComprobante = "El archivo ${comprobante.nombre} supera el límite de 10 MB."
+            return
+        }
+
+        if (comprobantes.size >= MAX_COMPROBANTES_POR_REGISTRO) {
+            eliminarComprobanteInternoGasto(comprobante.uri)
+            errorComprobante = "Puedes adjuntar hasta $MAX_COMPROBANTES_POR_REGISTRO comprobantes."
+            return
+        }
+
+        if (comprobantes.any { it.uri == comprobante.uri }) {
+            errorComprobante = "Ese archivo ya fue agregado."
+            return
+        }
+
+        comprobantes = comprobantes + comprobante
+        errorComprobante = null
+    }
+
+    val tomarFotoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { fotoTomada ->
+        val captura = capturaFotoPendiente
+        if (fotoTomada && captura != null) {
+            agregarComprobante(finalizarCapturaFotoGasto(captura))
+        } else if (captura != null) {
+            eliminarComprobanteInternoGasto(captura.rutaArchivo)
+        }
+        capturaFotoPendiente = null
+    }
+
+    val seleccionarDocumentoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris: List<Uri> ->
+        uris.forEach { uri ->
+            agregarComprobante(prepararComprobanteGastoDesdeDocumento(context, uri))
+        }
+    }
 
 
     val subtotalValor = subtotal.replace(",", ".").toDoubleOrNull() ?: 0.0
@@ -127,6 +209,7 @@ fun NuevoGastoScreen(
             ) {
                 IconButton(
                     onClick = {
+                        limpiarComprobantesTemporales()
                         navController.popBackStack()
                     }
                 ) {
@@ -303,7 +386,7 @@ fun NuevoGastoScreen(
             }
 
             TarjetaSeccion(
-                titulo = "Evidencia / Comprobantes",
+                titulo = "Evidencia / Comprobantes (${comprobantes.size})",
                 icono = Icons.Default.AttachFile
             ) {
                 Row(
@@ -313,21 +396,114 @@ fun NuevoGastoScreen(
                     BotonAdjunto(
                         texto = "Tomar foto",
                         icono = Icons.Default.CameraAlt,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            val captura = prepararCapturaFotoGasto(context)
+                            if (captura != null) {
+                                capturaFotoPendiente = captura
+                                tomarFotoLauncher.launch(captura.uriCamara)
+                            } else {
+                                errorComprobante = "No fue posible iniciar la cámara."
+                            }
+                        }
                     )
 
                     BotonAdjunto(
                         texto = "Subir PDF",
                         icono = Icons.Default.Description,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            seleccionarDocumentoLauncher.launch(arrayOf("application/pdf"))
+                        }
                     )
 
                     BotonAdjunto(
                         texto = "Adjuntar archivo",
                         subtitulo = "Máx. 10 MB",
                         icono = Icons.Default.AttachFile,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = { seleccionarDocumentoLauncher.launch(arrayOf("*/*")) }
                     )
+                }
+
+                Text(
+                    text = "Puedes agregar hasta $MAX_COMPROBANTES_POR_REGISTRO archivos.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                errorComprobante?.let { mensaje ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = mensaje,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                comprobantes.forEachIndexed { indice, comprobante ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = when (comprobante.tipo) {
+                                    "PDF" -> Icons.Default.PictureAsPdf
+                                    "Imagen" -> Icons.Default.Image
+                                    else -> Icons.Default.InsertDriveFile
+                                },
+                                contentDescription = null,
+                                tint = if (comprobante.tipo == "PDF") Color(0xFFDC2626) else Color(0xFF2563EB)
+                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = comprobante.nombre,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 2
+                                )
+                                Text(
+                                    text = "${comprobante.tipo} · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Gray
+                                )
+                            }
+
+                            TextButton(
+                                onClick = {
+                                    if (!abrirComprobanteGasto(
+                                            context,
+                                            comprobante.uri,
+                                            comprobante.tipo,
+                                            comprobante.nombre
+                                        )
+                                    ) {
+                                        errorComprobante = "No hay una aplicación disponible para abrir el comprobante."
+                                    }
+                                }
+                            ) {
+                                Text("Ver")
+                            }
+
+                            IconButton(onClick = { quitarComprobante(indice) }) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Quitar comprobante",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -450,6 +626,7 @@ fun NuevoGastoScreen(
             ) {
                 OutlinedButton(
                     onClick = {
+                        limpiarComprobantesTemporales()
                         navController.popBackStack()
                     },
                     modifier = Modifier.weight(1f)
@@ -481,10 +658,13 @@ fun NuevoGastoScreen(
                                 observaciones = observaciones.ifBlank { null },
                                 proyecto = (proyectoNombreRelacionado ?: proyecto).takeIf { it.isNotBlank() },
                                 clienteId = clienteSeleccionadoId,
-                                cotizacionId = cotizacionSeleccionadaId
+                                cotizacionId = cotizacionSeleccionadaId,
+                                comprobanteUri = comprobantes.firstOrNull()?.uri.orEmpty(),
+                                tipoComprobante = comprobantes.firstOrNull()?.tipo.orEmpty(),
+                                nombreComprobante = comprobantes.firstOrNull()?.nombre.orEmpty(),
+                                comprobantesJson = serializarComprobantes(comprobantes),
+                                onFinish = { navController.popBackStack() }
                             )
-
-                            navController.popBackStack()
                         } else {
                             mostrarError = true
                         }
@@ -769,10 +949,11 @@ fun BotonAdjunto(
     texto: String,
     icono: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
-    subtitulo: String = ""
+    subtitulo: String = "",
+    onClick: () -> Unit
 ) {
     OutlinedButton(
-        onClick = { },
+        onClick = onClick,
         modifier = modifier.height(82.dp),
         shape = RoundedCornerShape(10.dp),
         contentPadding = PaddingValues(8.dp)

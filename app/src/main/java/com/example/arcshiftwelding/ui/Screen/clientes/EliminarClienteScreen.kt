@@ -2,33 +2,43 @@ package com.example.arcshiftwelding.ui.Screen.clientes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EliminarClienteScreen(
     navController: NavController,
     clienteId: Int,
     viewModel: ClientesViewModel
 ) {
-    val clienteFlow = remember(clienteId) {
+    val clienteDetalle by remember(clienteId) {
         viewModel.obtenerClienteDetalle(clienteId)
-    }
+    }.collectAsState()
 
-    val cliente by clienteFlow.collectAsState()
+    val clienteEditar by remember(clienteId) {
+        viewModel.obtenerClienteEditar(clienteId)
+    }.collectAsState()
 
-    if (cliente == null) {
+    val clienteConCotizaciones by remember(clienteId) {
+        viewModel.obtenerClienteConCotizaciones(clienteId)
+    }.collectAsState(initial = null)
+
+    if (clienteDetalle == null || clienteEditar == null) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -39,28 +49,22 @@ fun EliminarClienteScreen(
         }
         return
     }
-    var confirmarEliminacion by remember { mutableStateOf(false) }
 
-    val clienteActual = cliente!!
+    val detalle = clienteDetalle!!
+    val cliente = clienteEditar!!
+    val cantidadCotizaciones = clienteConCotizaciones?.cotizaciones?.size
+    var confirmarEliminacion by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(
-                        start = 17.dp,
-                        top = 8.dp,
-                        end = 14.dp,
-                        bottom = 8.dp
-                    ),
+                    .padding(start = 17.dp, top = 8.dp, end = 14.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {
-                        navController.popBackStack()
-                    }
-                ) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Regresar"
@@ -73,280 +77,283 @@ fun EliminarClienteScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-
-
             }
-
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = Color(0xFFF8FAFC)
     ) { paddingValues ->
-
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 12.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFE4E1)
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE4E1))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = Color(0xFFB91C1C),
-                        modifier = Modifier.size(32.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column {
-                        Text(
-                            text = "Advertencia",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB91C1C)
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = Color(0xFFB91C1C),
+                            modifier = Modifier.size(32.dp)
                         )
-
-                        Text(
-                            text = "Este cliente será eliminado del registro. Revisa la información antes de continuar.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF7F1D1D)
-                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Advertencia",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFB91C1C)
+                            )
+                            Text(
+                                text = "Revisa los datos y las relaciones del cliente antes de continuar.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF7F1D1D)
+                            )
+                        }
                     }
                 }
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = Color(0xFF111827)
-                        )
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Text(
-                            text = "Cliente seleccionado",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF111827)
-                        )
-                    }
-
-                    Divider(modifier = Modifier.padding(vertical = 14.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Card(
-                            modifier = Modifier.size(76.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFE5E7EB)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = Color(0xFF111827)
                             )
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Color.Gray,
-                                    modifier = Modifier.size(42.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
+                            Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = clienteActual.nombre,
-                                style = MaterialTheme.typography.titleMedium,
+                                text = "Cliente seleccionado",
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF111827)
                             )
+                        }
 
-                            Text(
-                                text = "Teléfono: ${clienteActual.telefono}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ImagenPerfilCliente(
+                                fotoUri = cliente.fotoUri,
+                                iniciales = obtenerIniciales(cliente.nombre),
+                                modifier = Modifier.size(78.dp),
+                                colorFondo = Color(0xFFEAF2FF),
+                                colorContenido = Color(0xFF2563EB)
                             )
 
-                            Text(
-                                text = "Correo: ${clienteActual.correo}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
-                            )
+                            Spacer(modifier = Modifier.width(14.dp))
 
-                            Text(
-                                text = "Registrado: ${clienteActual.fechaRegistro}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = cliente.nombre,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF111827),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = cliente.empresa.ifBlank { "Sin empresa" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(5.dp))
+                                EstadoClienteBadge(cliente.estatus)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            InfoClienteEliminarCard(
+                                titulo = "Cotizaciones",
+                                valor = cantidadCotizaciones?.toString() ?: "...",
+                                modifier = Modifier.weight(1f)
+                            )
+                            InfoClienteEliminarCard(
+                                titulo = "Tipo",
+                                valor = cliente.tipoCliente.ifBlank { "Sin tipo" },
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Badge,
+                                contentDescription = null,
+                                tint = Color(0xFF2563EB)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Información completa",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                        }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        InfoClienteEliminarCard(
-                            titulo = "Cotizaciones",
-                            valor = clienteActual.totalCotizaciones.toString(),
-                            modifier = Modifier.weight(1f)
-                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
 
-                        InfoClienteEliminarCard(
-                            titulo = "Estado",
-                            valor = clienteActual.estado,
-                            modifier = Modifier.weight(1f)
-                        )
+                        DatoEliminarCliente("Teléfono", cliente.telefono)
+                        DatoEliminarCliente("Correo", cliente.correo)
+                        DatoEliminarCliente("Dirección", cliente.direccion)
+                        DatoEliminarCliente("RFC", cliente.rfc)
+                        DatoEliminarCliente("Persona de contacto", cliente.personaContacto)
+                        DatoEliminarCliente("Cargo", cliente.cargo)
+                        DatoEliminarCliente("Fecha de registro", detalle.fechaRegistro)
+                        DatoEliminarCliente("Última actualización", detalle.ultimaActualizacion)
+
+                        if (cliente.notas.isNotBlank()) {
+                            DatoEliminarCliente("Notas", cliente.notas, maxLines = 5)
+                        }
                     }
                 }
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = Color(0xFF1F2937)
-                        )
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFF1F2937)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Impacto de eliminación",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                        }
 
-                        Spacer(modifier = Modifier.width(10.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
 
-                        Text(
-                            text = "Impacto de eliminación",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF111827)
-                        )
-                    }
-
-                    Divider(modifier = Modifier.padding(vertical = 14.dp))
-
-                    ImpactoEliminarCliente(
-                        texto = "El cliente dejará de aparecer en el registro de clientes.",
-                        color = Color.Gray
-                    )
-
-                    ImpactoEliminarCliente(
-                        texto = "Sus datos de contacto serán removidos del sistema.",
-                        color = Color(0xFFB91C1C)
-                    )
-
-                    ImpactoEliminarCliente(
-                        texto = "Esta acción no se puede deshacer. Se recomienda hacer copia de seguridad.",
-                        color = Color(0xFFB91C1C)
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = confirmarEliminacion,
-                        onCheckedChange = { confirmarEliminacion = it }
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Column {
-                        Text(
-                            text = "Confirmar eliminación",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF111827)
-                        )
-
-                        Text(
-                            text = "Entiendo que este cliente será eliminado del registro.",
-                            style = MaterialTheme.typography.bodySmall,
+                        ImpactoEliminarCliente(
+                            texto = "El cliente dejará de aparecer en el listado activo.",
                             color = Color.Gray
                         )
+                        ImpactoEliminarCliente(
+                            texto = "Sus cotizaciones existentes conservarán su historial y relación.",
+                            color = Color(0xFF92400E)
+                        )
+                        ImpactoEliminarCliente(
+                            texto = "Esta acción no se puede deshacer desde la aplicación.",
+                            color = Color(0xFFB91C1C)
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(54.dp),
-                    shape = RoundedCornerShape(28.dp)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    Text("Cancelar")
-                }
-
-                Button(
-                    onClick = {
-                        viewModel.eliminarCliente(clienteId) {
-                            navController.popBackStack(AppRoutes.CLIENTES, false)
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = confirmarEliminacion,
+                            onCheckedChange = { confirmarEliminacion = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "Confirmar eliminación",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF111827)
+                            )
+                            Text(
+                                text = "Confirmo que revisé los datos y las ${cantidadCotizaciones ?: 0} cotizaciones relacionadas.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
                         }
-                    },
-                    enabled = confirmarEliminacion,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(54.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB91C1C),
-                        disabledContainerColor = Color(0xFFE5E7EB),
-                        disabledContentColor = Color.Gray
-                    )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null
-                    )
+                    OutlinedButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(54.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Cancelar")
+                    }
 
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Text("Eliminar")
+                    Button(
+                        onClick = {
+                            viewModel.eliminarCliente(clienteId) {
+                                navController.popBackStack(AppRoutes.CLIENTES, false)
+                            }
+                        },
+                        enabled = confirmarEliminacion,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(54.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFB91C1C),
+                            disabledContainerColor = Color(0xFFE5E7EB),
+                            disabledContentColor = Color.Gray
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Eliminar")
+                    }
                 }
             }
         }
@@ -360,14 +367,14 @@ fun InfoClienteEliminarCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(74.dp),
+        modifier = modifier.heightIn(min = 78.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF3F4F6)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -376,13 +383,42 @@ fun InfoClienteEliminarCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.Gray
             )
-
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = valor,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = Color(0xFF111827),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+@Composable
+private fun DatoEliminarCliente(
+    titulo: String,
+    valor: String,
+    maxLines: Int = 3
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp)
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray
+        )
+        Text(
+            text = valor.ifBlank { "No registrado" },
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF111827),
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -402,16 +438,15 @@ fun ImpactoEliminarCliente(
             contentDescription = null,
             tint = color,
             modifier = Modifier
-                .size(9.dp)
-                .padding(top = 5.dp)
+                .padding(top = 4.dp)
+                .size(8.dp)
         )
-
         Spacer(modifier = Modifier.width(10.dp))
-
         Text(
             text = texto,
             style = MaterialTheme.typography.bodySmall,
-            color = color
+            color = color,
+            modifier = Modifier.weight(1f)
         )
     }
 }

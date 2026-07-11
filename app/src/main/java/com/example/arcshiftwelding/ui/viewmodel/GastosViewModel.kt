@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.gastos
+package com.example.arcshiftwelding.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +17,8 @@ import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.relation.GastoConRelaciones
+import com.example.arcshiftwelding.ui.Screen.gastos.GastoUi
+import com.example.arcshiftwelding.utils.deserializarComprobantes
 
 
 class GastosViewModel(
@@ -81,6 +83,10 @@ class GastosViewModel(
         proyectoNombre: String?,
         proyectoId: Int?,
         cotizacionId: Int?,
+        comprobanteUri: String = "",
+        tipoComprobante: String = "",
+        nombreComprobante: String = "",
+        comprobantesJson: String = "[]",
         onFinish: () -> Unit = {}
     ) {
         viewModelScope.launch {
@@ -104,6 +110,10 @@ class GastosViewModel(
                 cotizacionId = cotizacionId,
                 proyectoId = proyectoId,
                 proyectoNombre = proyectoNombre,
+                comprobanteUri = comprobanteUri,
+                tipoComprobante = tipoComprobante,
+                nombreComprobante = nombreComprobante,
+                comprobantesJson = comprobantesJson
             )
 
             gastoDao.insertarGasto(nuevoGasto)
@@ -174,6 +184,15 @@ fun GastoConRelaciones.toUi(): GastoUi {
         observaciones = gasto.observaciones ?: "",
         proyecto = gasto.proyecto ?: "",
         cotizacion = cotizacion?.folio ?: "Sin cotización",
-        cliente = cliente?.nombre ?: "Sin cliente"
+        cliente = cliente?.nombre ?: "Sin cliente",
+        comprobanteUri = gasto.comprobanteUri,
+        tipoComprobante = gasto.tipoComprobante,
+        nombreComprobante = gasto.nombreComprobante,
+        comprobantes = deserializarComprobantes(
+            comprobantesJson = gasto.comprobantesJson,
+            comprobanteUriLegado = gasto.comprobanteUri,
+            tipoComprobanteLegado = gasto.tipoComprobante,
+            nombreComprobanteLegado = gasto.nombreComprobante
+        )
     )
 }
