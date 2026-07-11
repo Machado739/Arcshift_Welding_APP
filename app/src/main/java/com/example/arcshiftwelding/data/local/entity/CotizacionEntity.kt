@@ -44,5 +44,9 @@ data class CotizacionEntity(
     val fecha: String,
     val vigencia: String = "",
     val observaciones: String = "",
-    val estado: String
+    val estado: String,
+
+    val fechaAprobacion: String = "",
+    val fechaActualizacion: String = "",
+    val archivosAdjuntosJson: String = "[]"
 )

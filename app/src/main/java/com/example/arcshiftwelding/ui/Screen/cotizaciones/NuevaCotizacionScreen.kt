@@ -26,6 +26,19 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.saveable.rememberSaveable
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.MAX_ARCHIVO_ADJUNTO_BYTES
+import com.example.arcshiftwelding.utils.MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO
+import com.example.arcshiftwelding.utils.abrirComprobante
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
+import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
+import com.example.arcshiftwelding.utils.serializarComprobantes
 
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
@@ -99,8 +112,66 @@ fun NuevaCotizacionScreen(
     clienteInicialId: Int? = null
 ) {
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
+    val context = LocalContext.current
 
+    var archivosAdjuntos by remember {
+        mutableStateOf<List<ComprobanteArchivoSeleccionado>>(emptyList())
+    }
 
+    fun agregarArchivosSeleccionados(uris: List<Uri>) {
+        val nuevos = uris.mapNotNull { uri ->
+            runCatching {
+                prepararComprobanteDesdeDocumento(context, uri)
+            }.getOrNull()
+        }
+
+        val demasiadoGrandes = nuevos.count {
+            it.tamanoBytes > MAX_ARCHIVO_ADJUNTO_BYTES
+        }
+
+        val admitidos = nuevos.filter {
+            it.tamanoBytes <= MAX_ARCHIVO_ADJUNTO_BYTES
+        }
+
+        val combinados = (archivosAdjuntos + admitidos)
+            .distinctBy { it.uri }
+            .take(MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO)
+
+        archivosAdjuntos = combinados
+
+        when {
+            demasiadoGrandes > 0 -> Toast.makeText(
+                context,
+                "Se omitieron $demasiadoGrandes archivos mayores a 10 MB.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            archivosAdjuntos.size >= MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO &&
+                    nuevos.isNotEmpty() -> Toast.makeText(
+                context,
+                "Se permiten hasta $MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO archivos.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val selectorImagenes = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarArchivosSeleccionados(uris)
+    }
+
+    val selectorPdf = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarArchivosSeleccionados(uris)
+    }
+
+    val selectorArchivos = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarArchivosSeleccionados(uris)
+    }
 
     var clienteSeleccionadoId by rememberSaveable(clienteInicialId) {
         mutableStateOf(clienteInicialId)
@@ -228,7 +299,32 @@ fun NuevaCotizacionScreen(
             }
 
             item {
-                SeccionArchivosNuevaCotizacion()
+                SeccionArchivosNuevaCotizacion(
+                    archivos = archivosAdjuntos,
+                    onAgregarImagenes = {
+                        selectorImagenes.launch(arrayOf("image/*"))
+                    },
+                    onAgregarPdf = {
+                        selectorPdf.launch(arrayOf("application/pdf"))
+                    },
+                    onAgregarArchivos = {
+                        selectorArchivos.launch(arrayOf("*/*"))
+                    },
+                    onAbrirArchivo = { archivo ->
+                        if (!abrirComprobante(context, archivo)) {
+                            Toast.makeText(
+                                context,
+                                "No se encontró una aplicación para abrir el archivo.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    onEliminarArchivo = { archivo ->
+                        archivosAdjuntos = archivosAdjuntos.filterNot {
+                            it.uri == archivo.uri
+                        }
+                    }
+                )
             }
 
             item {
@@ -290,6 +386,7 @@ fun NuevaCotizacionScreen(
                             vigencia = vigencia,
                             observaciones = observaciones.trim(),
                             estado = "Pendiente",
+                            archivosAdjuntosJson = serializarComprobantes(archivosAdjuntos),
                             detalles = detallesCotizacion,
                             onFinish = {
                                 navController.popBackStack()
@@ -1080,31 +1177,119 @@ fun SeccionResumenNuevaCotizacion(
 }
 
 @Composable
-fun SeccionArchivosNuevaCotizacion() {
+fun SeccionArchivosNuevaCotizacion(
+    archivos: List<ComprobanteArchivoSeleccionado>,
+    onAgregarImagenes: () -> Unit,
+    onAgregarArchivos: () -> Unit,
+    onAgregarPdf: () -> Unit,
+    onAbrirArchivo: (ComprobanteArchivoSeleccionado) -> Unit,
+    onEliminarArchivo: (ComprobanteArchivoSeleccionado) -> Unit
+) {
+    val context = LocalContext.current
+
     CardSeccionFormularioCotizacion(
-        titulo = "Archivos adjuntos",
+        titulo = "Archivos adjuntos (${archivos.size})",
         icono = Icons.Default.AttachFile
     ) {
+        if (archivos.isNotEmpty()) {
+            archivos.forEachIndexed { index, archivo ->
+                val tipoReal = obtenerTipoRealComprobante(context, archivo)
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAbrirArchivo(archivo) },
+                    color = Color(0xFFF8FAFC),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color(0xFFE2E8F0)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = when (tipoReal) {
+                                "PDF" -> Icons.Default.PictureAsPdf
+                                "Imagen" -> Icons.Default.Image
+                                else -> Icons.Default.InsertDriveFile
+                            },
+                            contentDescription = tipoReal,
+                            tint = when (tipoReal) {
+                                "PDF" -> Color(0xFFDC2626)
+                                "Imagen" -> Color(0xFF2563EB)
+                                else -> Color(0xFF64748B)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = archivo.nombre,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 2
+                            )
+                            Text(
+                                text = "$tipoReal · ${formatearTamanoComprobante(archivo.tamanoBytes)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFF64748B)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { onEliminarArchivo(archivo) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Quitar archivo",
+                                tint = Color(0xFFDC2626)
+                            )
+                        }
+                    }
+                }
+
+                if (index < archivos.lastIndex) {
+                    Spacer(modifier = Modifier.height(7.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+        } else {
+            Text(
+                text = "No se han agregado archivos.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF64748B)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             BotonArchivoNuevaCotizacion(
-                texto = "Agregar imagen",
+                texto = "Imágenes",
                 icono = Icons.Default.Image,
+                onClick = onAgregarImagenes,
                 modifier = Modifier.weight(1f)
             )
 
             BotonArchivoNuevaCotizacion(
-                texto = "Adjuntar archivo",
+                texto = "Archivo",
                 icono = Icons.Default.AttachFile,
                 subtitulo = "Máx. 10 MB",
+                onClick = onAgregarArchivos,
                 modifier = Modifier.weight(1f)
             )
 
             BotonArchivoNuevaCotizacion(
-                texto = "Subir PDF",
-                icono = Icons.Default.Description,
+                texto = "PDF",
+                icono = Icons.Default.PictureAsPdf,
+                onClick = onAgregarPdf,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -1115,12 +1300,13 @@ fun SeccionArchivosNuevaCotizacion() {
 fun BotonArchivoNuevaCotizacion(
     texto: String,
     icono: ImageVector,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     subtitulo: String? = null
 ) {
     OutlinedButton(
-        onClick = { },
-        modifier = modifier.height(48.dp),
+        onClick = onClick,
+        modifier = modifier.height(52.dp),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(4.dp)
     ) {

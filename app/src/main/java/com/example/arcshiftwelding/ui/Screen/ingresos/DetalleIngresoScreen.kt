@@ -167,8 +167,8 @@ fun DetalleIngresoScreen(
                 onEditar = {
                     navController.navigate(AppRoutes.editarIngreso(ingresoActual.id))
                 },
-                onEnviarFactura = {},
-                onDescargarPDF = {},
+               /* onEnviarFactura = {},
+                onDescargarPDF = {},*/
                 onEliminar = {
                     navController.navigate(AppRoutes.eliminarIngreso(ingresoActual.id))
                 }
@@ -1086,8 +1086,8 @@ fun SeccionDetalleRelacionadoIngreso(
 @Composable
 fun SeccionAccionesRapidasIngreso(
     onEditar: () -> Unit,
-    onEnviarFactura: () -> Unit,
-    onDescargarPDF: () -> Unit,
+  /*  onEnviarFactura: () -> Unit,
+    onDescargarPDF: () -> Unit,*/
     onEliminar: () -> Unit
 ) {
     TarjetaDetalleIngreso(
@@ -1104,11 +1104,11 @@ fun SeccionAccionesRapidasIngreso(
                 onClick = onEditar,
                 modifier = Modifier.weight(1f)
             )
-
+/*
             BotonAccionRapida(
                 texto = "Enviar",
                 icono = Icons.Default.Send,
-                onClick = onEnviarFactura,
+          /*      onClick = onEnviarFactura,*/
                 modifier = Modifier.weight(1f),
                 iconTint = Color(0xFF2563EB)
             )
@@ -1116,11 +1116,11 @@ fun SeccionAccionesRapidasIngreso(
             BotonAccionRapida(
                 texto = "PDF",
                 icono = Icons.Default.AddCircleOutline,
-                onClick = onDescargarPDF,
+          /*      onClick = onDescargarPDF,*/
                 modifier = Modifier.weight(1f),
                 iconTint = Color(0xFF1B7F3A)
             )
-
+*/
             BotonAccionRapida(
                 texto = "Eliminar",
                 icono = Icons.Default.RemoveCircleOutline,

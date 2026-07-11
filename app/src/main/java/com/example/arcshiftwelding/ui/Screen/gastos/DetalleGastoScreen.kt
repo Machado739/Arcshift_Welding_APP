@@ -116,37 +116,44 @@ fun DetalleGastoScreen(
                     gasto = gastoActual
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    SeccionDetalleInformacionFinanciera(
-                        gasto = gastoActual,
-                        modifier = Modifier.weight(1f)
-                    )
+                    if (maxWidth < 350.dp) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SeccionDetalleInformacionFinanciera(
+                                gasto = gastoActual
+                            )
 
-                    SeccionDetalleProveedor(
-                        gasto = gastoActual,
-                        modifier = Modifier.weight(1f)
-                    )
+                            SeccionDetalleRelacionado(
+                                gasto = gastoActual
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            SeccionDetalleInformacionFinanciera(
+                                gasto = gastoActual,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            SeccionDetalleRelacionado(
+                                gasto = gastoActual,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                 }
 
                 SeccionDetalleEvidencia(gastoActual)
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    SeccionDetalleObservaciones(
-                        gasto = gastoActual,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    SeccionDetalleRelacionado(
-                        gasto = gastoActual,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                SeccionDetalleObservaciones(
+                    gasto = gastoActual
+                )
 
                 SeccionAccionesRapidasGasto(
                     onEditar = {
@@ -227,13 +234,13 @@ fun TarjetaPrincipalGasto(
                         icono = Icons.Default.DateRange,
                         texto = gasto.fecha
                     )
-/*
-                    DatoIconoPequeno(
-                        icono = Icons.Default.Payment,
-                        texto = gasto.metodoPago
-                    )
+                    /*
+                                        DatoIconoPequeno(
+                                            icono = Icons.Default.Payment,
+                                            texto = gasto.metodoPago
+                                        )
 
- */
+                     */
                 }
             }
 
@@ -311,44 +318,46 @@ fun SeccionDetalleInformacionGeneral(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
+            ItemDatoDetalle(
+                titulo = "Concepto",
+                valor = gasto.concepto.ifBlank { "Sin concepto" },
                 modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoDetalle(
-                    titulo = "Concepto",
-                    valor = gasto.concepto
-                )
+            )
 
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ItemDatoDetalle(
-                    titulo = "Categoría",
-                    valor = gasto.categoria
-                )
-            }
-
-            Column(
+            ItemDatoDetalle(
+                titulo = "Método de pago",
+                valor = gasto.metodoPago.ifBlank { "No especificado" },
                 modifier = Modifier.weight(1f)
-            ) {
-                ItemDatoDetalle(
-                    titulo = "Método de pago",
-                    valor = gasto.metodoPago
-                )
+            )
+        }
+        Spacer(modifier = Modifier.height(10.dp))
 
-                Spacer(modifier = Modifier.height(10.dp))
-/*
-                ItemDatoDetalle(
-                    titulo = "Forma de pago",
-                    valor = gasto.formaPago.ifBlank { "No especificada" }
-                )
+        Divider(color = Color(0xFFE2E8F0))
 
- */
-            }
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ItemDatoDetalle(
+                titulo = "Categoría",
+                valor = gasto.categoria.ifBlank { "Sin categoría" },
+                modifier = Modifier.weight(1f)
+            )
+
+
+            ItemDatoDetalle(
+                titulo = "Proveedor",
+                valor = gasto.proveedor.ifBlank { "Sin proveedor registrado" },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
+
 @Composable
 fun SeccionDetalleInformacionFinanciera(
     gasto: GastoUi,
@@ -380,6 +389,8 @@ fun SeccionDetalleInformacionFinanciera(
             valor = "$ ${String.format("%.2f", gasto.total)}",
             destacar = true
         )
+
+
     }
 }
 
@@ -423,28 +434,28 @@ fun SeccionDetalleProveedor(
             titulo = "Nombre",
             valor = gasto.proveedor
         )
-/*
-        Spacer(modifier = Modifier.height(8.dp))
+        /*
+                Spacer(modifier = Modifier.height(8.dp))
 
-        ItemDatoDetalle(
-            titulo = "Teléfono",
-            valor = gasto.telefonoProveedor.ifBlank { "No registrado" }
-        )
+                ItemDatoDetalle(
+                    titulo = "Teléfono",
+                    valor = gasto.telefonoProveedor.ifBlank { "No registrado" }
+                )
 
-        Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-        ItemDatoDetalle(
-            titulo = "Correo",
-            valor = gasto.correoProveedor.ifBlank { "No registrado" }
-        )
+                ItemDatoDetalle(
+                    titulo = "Correo",
+                    valor = gasto.correoProveedor.ifBlank { "No registrado" }
+                )
 
-        Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-        ItemDatoDetalle(
-            titulo = "RFC",
-            valor = gasto.rfcProveedor.ifBlank { "No registrado" }
-        )
-        */
+                ItemDatoDetalle(
+                    titulo = "RFC",
+                    valor = gasto.rfcProveedor.ifBlank { "No registrado" }
+                )
+                */
     }
 }
 
@@ -569,10 +580,14 @@ fun SeccionDetalleObservaciones(
         icono = Icons.Default.Edit,
         modifier = modifier
     ) {
+        val observaciones = gasto.observaciones.trim()
+
         Text(
-            text = gasto.observaciones.ifBlank { "Sin observaciones registradas." },
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray
+            text = observaciones.ifBlank { "Sin observaciones registradas." },
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (observaciones.isBlank()) Color.Gray else Color(0xFF334155),
+            modifier = Modifier.fillMaxWidth(),
+            softWrap = true
         )
     }
 }
@@ -587,7 +602,7 @@ fun SeccionDetalleRelacionado(
         icono = Icons.Default.Link,
         modifier = modifier
     ) {
-       ItemDatoConLink(
+        ItemDatoConLink(
             titulo = "Proyecto:",
             valor = gasto.proyecto.ifBlank { "Sin proyecto" }
         )
@@ -613,20 +628,29 @@ fun ItemDatoConLink(
     titulo: String,
     valor: String
 ) {
-    Row {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Text(
-            text = titulo,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Bold
+            text = titulo.removeSuffix(":"),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.DarkGray
         )
 
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF2563EB),
-            fontWeight = FontWeight.SemiBold
+            color = if (valor.startsWith("Sin ")) {
+                Color.Gray
+            } else {
+                Color(0xFF2563EB)
+            },
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.fillMaxWidth(),
+            softWrap = true
         )
     }
 }
@@ -718,9 +742,12 @@ fun TarjetaDetalleGasto(
 @Composable
 fun ItemDatoDetalle(
     titulo: String,
-    valor: String
+    valor: String,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(
+        modifier = modifier
+    ) {
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
@@ -728,12 +755,14 @@ fun ItemDatoDetalle(
             fontWeight = FontWeight.SemiBold
         )
 
-        if (valor.isNotEmpty()) {
-            Text(
-                text = valor,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Black
-            )
-        }
+        Spacer(modifier = Modifier.height(3.dp))
+
+        Text(
+            text = valor.ifBlank { "No registrado" },
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Black,
+            modifier = Modifier.fillMaxWidth(),
+            softWrap = true
+        )
     }
 }

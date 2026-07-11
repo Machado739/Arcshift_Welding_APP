@@ -11,8 +11,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-const val MAX_COMPROBANTE_GASTO_BYTES: Long = 10L * 1024L * 1024L
-const val MAX_COMPROBANTES_POR_REGISTRO: Int = 10
+const val MAX_ARCHIVO_ADJUNTO_BYTES: Long = 10L * 1024L * 1024L
+const val MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO: Int = 10
+
+// Alias conservados para no romper los módulos de Gastos e Ingresos.
+const val MAX_COMPROBANTE_GASTO_BYTES: Long = MAX_ARCHIVO_ADJUNTO_BYTES
+const val MAX_COMPROBANTES_POR_REGISTRO: Int = MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO
 
 data class ComprobanteArchivoSeleccionado(
     val uri: String,

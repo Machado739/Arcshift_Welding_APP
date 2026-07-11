@@ -1,6 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.cotizaciones
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -18,7 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -30,7 +31,13 @@ import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.data.local.relation.CotizacionCompleta
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
-import com.example.arcshiftwelding.utils.calcularResumenCotizacion
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.abrirComprobante
+import com.example.arcshiftwelding.utils.deserializarComprobantes
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.generarYCompartirPdfCotizacion
+import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
+import android.widget.Toast
 data class CotizacionDetalleUI(
     val id: Int,
     val folio: String,
@@ -45,6 +52,8 @@ data class CotizacionDetalleUI(
     val fecha: String,
     val vigencia: String,
     val estado: String,
+    val fechaAprobacion: String,
+    val fechaActualizacion: String,
     val subtotal: String,
     val iva: String,
     val total: String,
@@ -78,9 +87,15 @@ fun DetalleCotizacionScreen(
         return
     }
 
+    val context = LocalContext.current
     val cotizacionActual = cotizacionCompleta!!
     val cotizacionUi = cotizacionActual.toDetalleUi()
     val detalles = cotizacionActual.detalles
+    val archivosAdjuntos = remember(cotizacionActual.cotizacion.archivosAdjuntosJson) {
+        deserializarComprobantes(
+            cotizacionActual.cotizacion.archivosAdjuntosJson
+        )
+    }
 
     var mostrarDialogoCrearProyecto by remember { mutableStateOf(false) }
 
@@ -154,9 +169,14 @@ fun DetalleCotizacionScreen(
 
             SeccionConceptosCotizados(detalles = detalles)
 
+            SeccionArchivosCotizacion(
+                archivos = archivosAdjuntos
+            )
+
             SeccionObservacionesCotizacion(cotizacion = cotizacionUi)
 
             SeccionAccionesRapidasCotizacion(
+                estado = cotizacionUi.estado,
                 onEditarClick = {
                     navController.navigate(AppRoutes.editarCotizacion(cotizacionId))
                 },
@@ -168,7 +188,21 @@ fun DetalleCotizacionScreen(
                 onRechazarClick = {
                     viewModel.rechazarCotizacion(cotizacionId)
                 },
-                onGenerarPdfClick = { },
+                onGenerarPdfClick = {
+                    val resultado = generarYCompartirPdfCotizacion(
+                        context = context,
+                        cotizacionCompleta = cotizacionActual
+                    )
+
+                    if (resultado.isFailure) {
+                        Toast.makeText(
+                            context,
+                            resultado.exceptionOrNull()?.message
+                                ?: "No fue posible generar el PDF.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                },
             )
 
         }
@@ -234,6 +268,10 @@ private fun CotizacionCompleta.toDetalleUi(): CotizacionDetalleUI {
         fecha = cotizacionActual.fecha,
         vigencia = cotizacionActual.vigencia.ifBlank { "Sin vigencia" },
         estado = cotizacionActual.estado,
+        fechaAprobacion = cotizacionActual.fechaAprobacion,
+        fechaActualizacion = cotizacionActual.fechaActualizacion.ifBlank {
+            cotizacionActual.fecha
+        },
 
         subtotal = cotizacionActual.subtotal.formatoMoneda(),
         descuento = cotizacionActual.descuento.formatoMoneda(),
@@ -305,10 +343,10 @@ fun CardPrincipalDetalleCotizacion(
                     Text(
                         text = cotizacion.estado,
                         fontSize = 8.sp,
-                        color = Color(0xFFF59E0B),
+                        color = colorEstadoCotizacion(cotizacion.estado),
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFFFF7E6),
+                                color = fondoEstadoCotizacion(cotizacion.estado),
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -432,42 +470,77 @@ fun SeccionEstadoCotizacion(
         titulo = "Estado de la cotización",
         icono = Icons.Default.Flag
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Estado actual",
-                fontSize = 10.sp,
-                color = Color.Gray,
-                modifier = Modifier.weight(1f)
-            )
+        Text(
+            text = "Estado actual",
+            fontSize = 10.sp,
+            color = Color.Gray
+        )
 
-            Text(
-                text = cotizacion.estado,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFF59E0B),
-                modifier = Modifier
-                    .background(
-                        color = Color(0xFFFFF7E6),
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .padding(horizontal = 8.dp, vertical = 3.dp)
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = cotizacion.estado,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            color = colorEstadoCotizacion(cotizacion.estado),
+            modifier = Modifier
+                .background(
+                    color = fondoEstadoCotizacion(cotizacion.estado),
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        TextoDetalleCotizacion(
+            titulo = "Situación",
+            valor = mensajeEstadoCotizacion(cotizacion.estado)
+        )
+
+        if (
+            cotizacion.estado.equals("Aprobada", ignoreCase = true) &&
+            cotizacion.fechaAprobacion.isNotBlank()
+        ) {
+            TextoDetalleCotizacion(
+                titulo = "Fecha de aprobación",
+                valor = cotizacion.fechaAprobacion
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextoDetalleCotizacion(
-            titulo = "En espera de respuesta",
-            valor = "del cliente."
-        )
-
         TextoDetalleCotizacion(
             titulo = "Última actualización",
-            valor = "19/05/2026 10:30 a.m."
+            valor = cotizacion.fechaActualizacion
         )
+    }
+}
+
+private fun colorEstadoCotizacion(estado: String): Color {
+    return when {
+        estado.equals("Aprobada", ignoreCase = true) -> Color(0xFF15803D)
+        estado.equals("Rechazada", ignoreCase = true) -> Color(0xFFDC2626)
+        else -> Color(0xFFD97706)
+    }
+}
+
+private fun fondoEstadoCotizacion(estado: String): Color {
+    return when {
+        estado.equals("Aprobada", ignoreCase = true) -> Color(0xFFDCFCE7)
+        estado.equals("Rechazada", ignoreCase = true) -> Color(0xFFFEE2E2)
+        else -> Color(0xFFFEF3C7)
+    }
+}
+
+private fun mensajeEstadoCotizacion(estado: String): String {
+    return when {
+        estado.equals("Aprobada", ignoreCase = true) ->
+            "Aprobada por el cliente."
+
+        estado.equals("Rechazada", ignoreCase = true) ->
+            "Rechazada por el cliente."
+
+        else ->
+            "En espera de respuesta del cliente."
     }
 }
 
@@ -579,39 +652,70 @@ fun ConceptoCotizacionItem(
 }
 
 @Composable
-fun SeccionArchivosCotizacion() {
+fun SeccionArchivosCotizacion(
+    archivos: List<ComprobanteArchivoSeleccionado>
+) {
+    val context = LocalContext.current
+
     CardSeccionCotizacion(
-        titulo = "Archivos adjuntos",
+        titulo = "Archivos adjuntos (${archivos.size})",
         icono = Icons.Default.AttachFile
     ) {
-        ArchivoCotizacionItem(
-            nombre = "plano_estructura.pdf",
-            detalle = "245 KB",
-            icono = Icons.Default.PictureAsPdf,
-            color = Color(0xFFDC2626),
-            fondo = Color(0xFFFEE2E2)
-        )
+        if (archivos.isEmpty()) {
+            Text(
+                text = "No se adjuntaron archivos a esta cotización.",
+                fontSize = 10.sp,
+                color = Color.Gray
+            )
+        } else {
+            archivos.forEachIndexed { index, archivo ->
+                ArchivoCotizacionItem(
+                    archivo = archivo,
+                    onAbrirClick = {
+                        if (!abrirComprobante(context, archivo)) {
+                            Toast.makeText(
+                                context,
+                                "No se encontró una aplicación para abrir el archivo.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                )
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        ArchivoCotizacionItem(
-            nombre = "referencia.jpg",
-            detalle = "1.2 MB",
-            icono = Icons.Default.Image,
-            color = Color(0xFF2563EB),
-            fondo = Color(0xFFEFF6FF)
-        )
+                if (index < archivos.lastIndex) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+            }
+        }
     }
 }
 
 @Composable
 fun ArchivoCotizacionItem(
-    nombre: String,
-    detalle: String,
-    icono: ImageVector,
-    color: Color,
-    fondo: Color
+    archivo: ComprobanteArchivoSeleccionado,
+    onAbrirClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val tipoReal = obtenerTipoRealComprobante(context, archivo)
+
+    val icono = when (tipoReal) {
+        "PDF" -> Icons.Default.PictureAsPdf
+        "Imagen" -> Icons.Default.Image
+        else -> Icons.Default.InsertDriveFile
+    }
+
+    val color = when (tipoReal) {
+        "PDF" -> Color(0xFFDC2626)
+        "Imagen" -> Color(0xFF2563EB)
+        else -> Color(0xFF64748B)
+    }
+
+    val fondo = when (tipoReal) {
+        "PDF" -> Color(0xFFFEE2E2)
+        "Imagen" -> Color(0xFFEFF6FF)
+        else -> Color(0xFFF1F5F9)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -619,6 +723,7 @@ fun ArchivoCotizacionItem(
                 color = Color(0xFFF8FAFC),
                 shape = RoundedCornerShape(8.dp)
             )
+            .clickable(onClick = onAbrirClick)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -630,7 +735,7 @@ fun ArchivoCotizacionItem(
         ) {
             Icon(
                 imageVector = icono,
-                contentDescription = null,
+                contentDescription = tipoReal,
                 tint = color,
                 modifier = Modifier.size(20.dp)
             )
@@ -642,15 +747,15 @@ fun ArchivoCotizacionItem(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = nombre,
+                text = archivo.nombre,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
-                maxLines = 1
+                maxLines = 2
             )
 
             Text(
-                text = detalle,
+                text = "$tipoReal · ${formatearTamanoComprobante(archivo.tamanoBytes)}",
                 fontSize = 8.sp,
                 color = Color.Gray
             )
@@ -742,6 +847,7 @@ fun HistorialCotizacionItem(
 
 @Composable
 fun SeccionAccionesRapidasCotizacion(
+    estado: String,
     onEditarClick: () -> Unit,
     onAprobarClick: () -> Unit,
     onRechazarClick: () -> Unit,
@@ -779,28 +885,30 @@ fun SeccionAccionesRapidasCotizacion(
                 )
 
                 BotonAccionCotizacion(
-                    texto = "PDF",
+                    texto = "Generar PDF",
                     icono = Icons.Default.PictureAsPdf,
                     color = Color(0xFFDC2626),
                     onClick = onGenerarPdfClick,
                     modifier = Modifier.weight(1f)
                 )
 
-                BotonAccionCotizacion(
-                    texto = "Aprobar",
-                    icono = Icons.Default.CheckCircle,
-                    color = Color(0xFF16A34A),
-                    onClick = onAprobarClick,
-                    modifier = Modifier.weight(1f)
-                )
+                if (estado.equals("Pendiente", ignoreCase = true)) {
+                    BotonAccionCotizacion(
+                        texto = "Aprobar",
+                        icono = Icons.Default.CheckCircle,
+                        color = Color(0xFF16A34A),
+                        onClick = onAprobarClick,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                BotonAccionCotizacion(
-                    texto = "Rechazar",
-                    icono = Icons.Default.Cancel,
-                    color = Color(0xFFDC2626),
-                    onClick = onRechazarClick,
-                    modifier = Modifier.weight(1f)
-                )
+                    BotonAccionCotizacion(
+                        texto = "Rechazar",
+                        icono = Icons.Default.Cancel,
+                        color = Color(0xFFDC2626),
+                        onClick = onRechazarClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
             }
         }

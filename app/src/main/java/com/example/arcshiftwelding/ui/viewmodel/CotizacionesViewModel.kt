@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 
@@ -84,6 +86,7 @@ class CotizacionesViewModel(
         vigencia: String = "",
         observaciones: String = "",
         estado: String = "Pendiente",
+        archivosAdjuntosJson: String = "[]",
         detalles: List<DetalleCotizacionEntity> = emptyList(),
         onFinish: () -> Unit = {}
     ) {
@@ -113,7 +116,9 @@ class CotizacionesViewModel(
 
                     vigencia = vigencia,
                     observaciones = observaciones,
-                    estado = estado
+                    estado = estado,
+                    fechaActualizacion = fechaHoraActualCotizacion(),
+                    archivosAdjuntosJson = archivosAdjuntosJson
                 )
             ).toInt()
 
@@ -184,19 +189,37 @@ class CotizacionesViewModel(
         onFinish: () -> Unit = {}
     ) {
         viewModelScope.launch {
-            cotizacionDao.actualizarEstado(id, "Aprobada")
+            val fechaHora = fechaHoraActualCotizacion()
+            cotizacionDao.actualizarEstado(
+                id = id,
+                estado = "Aprobada",
+                fechaActualizacion = fechaHora,
+                fechaAprobacion = fechaHora
+            )
             onFinish()
         }
     }
 
     fun rechazarCotizacion(id: Int) {
         viewModelScope.launch {
-            cotizacionDao.actualizarEstado(id, "Rechazada")
+            cotizacionDao.actualizarEstado(
+                id = id,
+                estado = "Rechazada",
+                fechaActualizacion = fechaHoraActualCotizacion(),
+                fechaAprobacion = ""
+            )
         }
     }
 
     fun obtenerCotizacionCompleta(cotizacionId: Int): Flow<CotizacionCompleta?> {
         return cotizacionDao.obtenerCotizacionCompleta(cotizacionId)
+    }
+
+    private fun fechaHoraActualCotizacion(): String {
+        return SimpleDateFormat(
+            "dd/MM/yyyy HH:mm",
+            Locale("es", "MX")
+        ).format(Date())
     }
 }
 

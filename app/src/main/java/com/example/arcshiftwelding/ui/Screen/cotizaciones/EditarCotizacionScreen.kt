@@ -21,6 +21,7 @@ import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import android.content.Context
+import android.widget.Toast
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,6 +32,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
+import com.example.arcshiftwelding.utils.MAX_ARCHIVO_ADJUNTO_BYTES
+import com.example.arcshiftwelding.utils.MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO
+import com.example.arcshiftwelding.utils.abrirComprobante
+import com.example.arcshiftwelding.utils.deserializarComprobantes
+import com.example.arcshiftwelding.utils.formatearTamanoComprobante
+import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
+import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
+import com.example.arcshiftwelding.utils.serializarComprobantes
 
 
 @Composable
@@ -105,6 +115,22 @@ fun EditarCotizacionScreen(
                     cantidad = detalle.cantidad.formatoNumeroCotizacion(),
                     unidad = detalle.unidad,
                     precioUnitario = detalle.precioUnitario.formatoNumeroCotizacion()
+                )
+            }
+
+            archivosAdjuntos = deserializarComprobantes(
+                cotizacionActual.archivosAdjuntosJson
+            ).map { archivo ->
+                ArchivoEditarCotizacionForm(
+                    uri = archivo.uri,
+                    nombre = archivo.nombre,
+                    detalle = formatearTamanoComprobante(archivo.tamanoBytes),
+                    tipoMime = when (archivo.tipo) {
+                        "PDF" -> "application/pdf"
+                        "Imagen" -> "image/*"
+                        else -> "application/octet-stream"
+                    },
+                    tamanoBytes = archivo.tamanoBytes
                 )
             }
 
@@ -282,7 +308,23 @@ fun EditarCotizacionScreen(
                                 fecha = fecha,
                                 vigencia = vigencia,
                                 observaciones = observaciones.trim(),
-                                estado = cotizacionEntity?.estado ?: "Pendiente"
+                                estado = cotizacionEntity?.estado ?: "Pendiente",
+                                fechaAprobacion = cotizacionEntity?.fechaAprobacion.orEmpty(),
+                                fechaActualizacion = cotizacionEntity?.fechaActualizacion.orEmpty(),
+                                archivosAdjuntosJson = serializarComprobantes(
+                                    archivosAdjuntos.map { archivo ->
+                                        ComprobanteArchivoSeleccionado(
+                                            uri = archivo.uri,
+                                            tipo = when {
+                                                archivo.tipoMime.contains("pdf", ignoreCase = true) -> "PDF"
+                                                archivo.tipoMime.startsWith("image", ignoreCase = true) -> "Imagen"
+                                                else -> "Archivo"
+                                            },
+                                            nombre = archivo.nombre,
+                                            tamanoBytes = archivo.tamanoBytes
+                                        )
+                                    }
+                                )
                             ),
                             detalles = detallesActualizados,
                             onFinish = {
@@ -912,38 +954,89 @@ fun SeccionArchivosEditarCotizacion(
 ) {
     val context = LocalContext.current
 
-    val launcherImagen = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            onArchivosChange(
-                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
+    fun agregarUris(uris: List<Uri>) {
+        val nuevos = uris.mapNotNull { uri ->
+            runCatching {
+                prepararComprobanteDesdeDocumento(context, uri)
+            }.getOrNull()
+        }
+
+        val demasiadoGrandes = nuevos.count {
+            it.tamanoBytes > MAX_ARCHIVO_ADJUNTO_BYTES
+        }
+
+        val actuales = archivos.map {
+            ComprobanteArchivoSeleccionado(
+                uri = it.uri,
+                tipo = when {
+                    it.tipoMime.contains("pdf", ignoreCase = true) -> "PDF"
+                    it.tipoMime.startsWith("image", ignoreCase = true) -> "Imagen"
+                    else -> "Archivo"
+                },
+                nombre = it.nombre,
+                tamanoBytes = it.tamanoBytes
             )
         }
+
+        val resultado = (actuales + nuevos.filter {
+            it.tamanoBytes <= MAX_ARCHIVO_ADJUNTO_BYTES
+        })
+            .distinctBy { it.uri }
+            .take(MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO)
+
+        onArchivosChange(
+            resultado.map { archivo ->
+                ArchivoEditarCotizacionForm(
+                    uri = archivo.uri,
+                    nombre = archivo.nombre,
+                    detalle = formatearTamanoComprobante(archivo.tamanoBytes),
+                    tipoMime = when (archivo.tipo) {
+                        "PDF" -> "application/pdf"
+                        "Imagen" -> "image/*"
+                        else -> "application/octet-stream"
+                    },
+                    tamanoBytes = archivo.tamanoBytes
+                )
+            }
+        )
+
+        if (demasiadoGrandes > 0) {
+            Toast.makeText(
+                context,
+                "Se omitieron $demasiadoGrandes archivos mayores a 10 MB.",
+                Toast.LENGTH_LONG
+            ).show()
+        } else if (resultado.size >= MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO &&
+            nuevos.isNotEmpty()
+        ) {
+            Toast.makeText(
+                context,
+                "Se permiten hasta $MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO archivos.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val launcherImagen = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarUris(uris)
     }
 
     val launcherPdf = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            onArchivosChange(
-                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
-            )
-        }
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarUris(uris)
     }
 
     val launcherArchivo = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) {
-            onArchivosChange(
-                archivos + crearArchivoEditarCotizacionDesdeUri(context, uri)
-            )
-        }
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        agregarUris(uris)
     }
 
     CardSeccionEditarCotizacion(
-        titulo = "Archivos adjuntos",
+        titulo = "Archivos adjuntos (${archivos.size})",
         icono = Icons.Default.AttachFile
     ) {
         if (archivos.isEmpty()) {
@@ -958,6 +1051,26 @@ fun SeccionArchivosEditarCotizacion(
             archivos.forEachIndexed { index, archivo ->
                 ArchivoEditarCotizacionItem(
                     archivo = archivo,
+                    onAbrirClick = {
+                        val comprobante = ComprobanteArchivoSeleccionado(
+                            uri = archivo.uri,
+                            tipo = when {
+                                archivo.tipoMime.contains("pdf", ignoreCase = true) -> "PDF"
+                                archivo.tipoMime.startsWith("image", ignoreCase = true) -> "Imagen"
+                                else -> "Archivo"
+                            },
+                            nombre = archivo.nombre,
+                            tamanoBytes = archivo.tamanoBytes
+                        )
+
+                        if (!abrirComprobante(context, comprobante)) {
+                            Toast.makeText(
+                                context,
+                                "No se encontró una aplicación para abrir el archivo.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
                     onEliminarClick = {
                         onArchivosChange(
                             archivos.toMutableList().also {
@@ -967,8 +1080,12 @@ fun SeccionArchivosEditarCotizacion(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                if (index < archivos.lastIndex) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         Row(
@@ -976,29 +1093,29 @@ fun SeccionArchivosEditarCotizacion(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             BotonArchivoEditarCotizacion(
-                texto = "Agregar imagen",
+                texto = "Imágenes",
                 icono = Icons.Default.Image,
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    launcherImagen.launch("image/*")
+                    launcherImagen.launch(arrayOf("image/*"))
                 }
             )
 
             BotonArchivoEditarCotizacion(
-                texto = "Adjuntar archivo",
+                texto = "Archivo",
                 icono = Icons.Default.AttachFile,
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    launcherArchivo.launch("*/*")
+                    launcherArchivo.launch(arrayOf("*/*"))
                 }
             )
 
             BotonArchivoEditarCotizacion(
-                texto = "Subir PDF",
-                icono = Icons.Default.Description,
+                texto = "PDF",
+                icono = Icons.Default.PictureAsPdf,
                 modifier = Modifier.weight(1f),
                 onClick = {
-                    launcherPdf.launch("application/pdf")
+                    launcherPdf.launch(arrayOf("application/pdf"))
                 }
             )
         }
@@ -1008,26 +1125,39 @@ fun SeccionArchivosEditarCotizacion(
 @Composable
 fun ArchivoEditarCotizacionItem(
     archivo: ArchivoEditarCotizacionForm,
+    onAbrirClick: () -> Unit,
     onEliminarClick: () -> Unit
 ) {
-    val esPdf = archivo.tipoMime.contains("pdf", ignoreCase = true)
-    val esImagen = archivo.tipoMime.startsWith("image", ignoreCase = true)
+    val context = LocalContext.current
+    val comprobante = remember(archivo) {
+        ComprobanteArchivoSeleccionado(
+            uri = archivo.uri,
+            tipo = when {
+                archivo.tipoMime.contains("pdf", ignoreCase = true) -> "PDF"
+                archivo.tipoMime.startsWith("image", ignoreCase = true) -> "Imagen"
+                else -> "Archivo"
+            },
+            nombre = archivo.nombre,
+            tamanoBytes = archivo.tamanoBytes
+        )
+    }
+    val tipoReal = obtenerTipoRealComprobante(context, comprobante)
 
-    val icono = when {
-        esPdf -> Icons.Default.PictureAsPdf
-        esImagen -> Icons.Default.Image
+    val icono = when (tipoReal) {
+        "PDF" -> Icons.Default.PictureAsPdf
+        "Imagen" -> Icons.Default.Image
         else -> Icons.Default.AttachFile
     }
 
-    val color = when {
-        esPdf -> Color(0xFFDC2626)
-        esImagen -> Color(0xFF2563EB)
+    val color = when (tipoReal) {
+        "PDF" -> Color(0xFFDC2626)
+        "Imagen" -> Color(0xFF2563EB)
         else -> Color(0xFF334155)
     }
 
-    val fondo = when {
-        esPdf -> Color(0xFFFEE2E2)
-        esImagen -> Color(0xFFEFF6FF)
+    val fondo = when (tipoReal) {
+        "PDF" -> Color(0xFFFEE2E2)
+        "Imagen" -> Color(0xFFEFF6FF)
         else -> Color(0xFFF1F5F9)
     }
 
@@ -1038,6 +1168,7 @@ fun ArchivoEditarCotizacionItem(
                 color = Color(0xFFF8FAFC),
                 shape = RoundedCornerShape(8.dp)
             )
+            .clickable(onClick = onAbrirClick)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1049,7 +1180,7 @@ fun ArchivoEditarCotizacionItem(
         ) {
             Icon(
                 imageVector = icono,
-                contentDescription = null,
+                contentDescription = tipoReal,
                 tint = color,
                 modifier = Modifier.size(20.dp)
             )
@@ -1065,11 +1196,11 @@ fun ArchivoEditarCotizacionItem(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
-                maxLines = 1
+                maxLines = 2
             )
 
             Text(
-                text = archivo.detalle,
+                text = "$tipoReal · ${archivo.detalle}",
                 fontSize = 8.sp,
                 color = Color.Gray
             )
@@ -1077,7 +1208,7 @@ fun ArchivoEditarCotizacionItem(
 
         IconButton(
             onClick = onEliminarClick,
-            modifier = Modifier.size(26.dp)
+            modifier = Modifier.size(30.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.DeleteOutline,
@@ -1121,6 +1252,7 @@ fun BotonArchivoEditarCotizacion(
         }
     }
 }
+
 @Composable
 fun SeccionObservacionesEditarCotizacion(
     observaciones: String,
@@ -1361,7 +1493,8 @@ data class ArchivoEditarCotizacionForm(
     val uri: String,
     val nombre: String,
     val detalle: String,
-    val tipoMime: String
+    val tipoMime: String,
+    val tamanoBytes: Long = 0L
 )
 
 fun Double.formatoMonedaEditarCotizacion(): String {

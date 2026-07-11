@@ -20,8 +20,21 @@ interface CotizacionDao {
     @Query("DELETE FROM cotizaciones WHERE id = :id")
     suspend fun eliminarCotizacionPorId(id: Int)
 
-    @Query("UPDATE cotizaciones SET estado = :estado WHERE id = :id")
-    suspend fun actualizarEstado(id: Int, estado: String)
+    @Query(
+        """
+        UPDATE cotizaciones
+        SET estado = :estado,
+            fechaActualizacion = :fechaActualizacion,
+            fechaAprobacion = :fechaAprobacion
+        WHERE id = :id
+        """
+    )
+    suspend fun actualizarEstado(
+        id: Int,
+        estado: String,
+        fechaActualizacion: String,
+        fechaAprobacion: String
+    )
 
     @Query("UPDATE cotizaciones SET folio = :folio WHERE id = :id")
     suspend fun actualizarFolioCotizacion(id: Int, folio: String)

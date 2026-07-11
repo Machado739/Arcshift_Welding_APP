@@ -56,8 +56,8 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         PagoProgramadoEntity::class,
         ProyectoCostoEntity::class
 
-               ],
-    version = 28,
+    ],
+    version = 29,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -115,6 +115,20 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_28_29 = object : Migration(28, 29) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE cotizaciones ADD COLUMN fechaAprobacion TEXT NOT NULL DEFAULT ''"
+                )
+                database.execSQL(
+                    "ALTER TABLE cotizaciones ADD COLUMN fechaActualizacion TEXT NOT NULL DEFAULT ''"
+                )
+                database.execSQL(
+                    "ALTER TABLE cotizaciones ADD COLUMN archivosAdjuntosJson TEXT NOT NULL DEFAULT '[]'"
+                )
+            }
+        }
+
         fun getDatabase(context: Context): ArcshiftWeldingDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -122,7 +136,7 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
                     ArcshiftWeldingDatabase::class.java,
                     "arcshift_welding_database"
                 )
-                    .addMigrations(MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28)
+                    .addMigrations(MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29)
                     .fallbackToDestructiveMigration()
                     .build()
 
