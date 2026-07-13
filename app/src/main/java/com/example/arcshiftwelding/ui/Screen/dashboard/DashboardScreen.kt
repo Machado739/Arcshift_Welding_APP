@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.Screen
+package com.example.arcshiftwelding.ui.Screen.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.notifications.NotificacionesViewModel
+import com.example.arcshiftwelding.notifications.NotificacionApp
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaConPanelNotificaciones
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlin.collections.take
 import com.example.arcshiftwelding.navigation.navigateBottomBar
 import androidx.compose.foundation.layout.heightIn
@@ -47,8 +52,12 @@ data class ClienteDashboard(
 )
 @Composable
 fun DashboardScreen(
-    navController: NavController
+    navController: NavController,
+    notificacionesViewModel: NotificacionesViewModel,
+    solicitudAbrirNotificaciones: Int = 0
 ) {
+    val notificaciones by notificacionesViewModel.notificaciones.collectAsStateWithLifecycle()
+
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF8FAFC)
@@ -66,7 +75,13 @@ fun DashboardScreen(
                 )
                 .background(Color(0xFFF8FAFC))
         ) {
-            HeaderDashboard(navController = navController)
+            HeaderDashboard(
+                navController = navController,
+                notificaciones = notificaciones,
+                solicitudAbrirNotificaciones = solicitudAbrirNotificaciones,
+                onMarcarComoLeida = notificacionesViewModel::marcarComoLeida,
+                onMarcarTodasComoLeidas = notificacionesViewModel::marcarTodasComoLeidas
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -151,7 +166,11 @@ fun DashboardScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeaderDashboard(
-    navController: NavController
+    navController: NavController,
+    notificaciones: List<NotificacionApp>,
+    solicitudAbrirNotificaciones: Int,
+    onMarcarComoLeida: (String) -> Unit,
+    onMarcarTodasComoLeidas: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -172,9 +191,17 @@ fun HeaderDashboard(
         )
 
 
-            IconButton(onClick = { }) {
-                Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
-            }
+        CampanaConPanelNotificaciones(
+            notificaciones = notificaciones,
+            solicitudApertura = solicitudAbrirNotificaciones,
+            onNotificacionClick = { notificacion ->
+                onMarcarComoLeida(notificacion.id)
+                navController.navigate(notificacion.rutaDestino) {
+                    launchSingleTop = true
+                }
+            },
+            onMarcarTodasComoLeidas = onMarcarTodasComoLeidas
+        )
 
         IconButton(
             onClick = {

@@ -178,12 +178,15 @@ fun HeaderIngresos(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(8.dp),
+            .padding(
+                start = 20.dp,
+                top = 8.dp,
+                end = 8.dp,
+                bottom = 8.dp
+            ),
         verticalAlignment = Alignment.CenterVertically
     ){
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Menu, contentDescription = "Menú")
-        }
+
 
         Text(
             text = "Ingreso",

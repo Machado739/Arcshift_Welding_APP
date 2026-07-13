@@ -8,16 +8,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.arcshiftwelding.ui.Screen.DashboardScreen
+import com.example.arcshiftwelding.ui.Screen.dashboard.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
@@ -54,19 +59,18 @@ import com.example.arcshiftwelding.ui.Screen.ingresos.NuevoIngresoScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesScreen
 import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.GastosViewModelFactory
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.notifications.NotificacionesViewModel
+import com.example.arcshiftwelding.notifications.NotificacionesViewModelFactory
+import com.example.arcshiftwelding.notifications.NotificacionesScheduler
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModel
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModelFactory
 import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
-import androidx.navigation.navArgument
-import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.gastos.EditarGastoScreen
 import com.example.arcshiftwelding.ui.Screen.gastos.GastosScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.HistorialMovimientosProductoScreen
@@ -74,8 +78,6 @@ import com.example.arcshiftwelding.ui.Screen.proyectos.AgregarCostoProyectoScree
 import com.example.arcshiftwelding.ui.Screen.proyectos.AsignarEmpleadoProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.DetalleProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.EditarEmpleadoProyectoScreen
-import com.example.arcshiftwelding.ui.Screen.proyectos.NuevoProyectoScreen
-import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModel
 import com.example.arcshiftwelding.ui.Screen.proyectos.ProyectosViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.proyectos.EditarProyectoScreen
@@ -84,7 +86,9 @@ import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModelFactory
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    solicitudAbrirNotificaciones: Int = 0
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val database = remember {
@@ -135,8 +139,45 @@ fun AppNavigation() {
         factory = ProyectosViewModelFactory(database)
     )
 
+    val notificacionesViewModel: NotificacionesViewModel = viewModel(
+        factory = NotificacionesViewModelFactory(
+            context = context.applicationContext,
+            pagoProgramadoDao = database.pagoProgramadoDao(),
+            cotizacionDao = database.cotizacionDao(),
+            productoDao = database.productoDao()
+        )
+    )
+
+    val notificacionesActivas by notificacionesViewModel
+        .notificaciones
+        .collectAsStateWithLifecycle()
+
+    LaunchedEffect(notificacionesActivas) {
+        NotificacionesScheduler.ejecutarRevisionInmediata(
+            context.applicationContext
+        )
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var ultimaSolicitudNotificacionAtendida by rememberSaveable {
+        mutableIntStateOf(0)
+    }
+
+    LaunchedEffect(solicitudAbrirNotificaciones, currentRoute) {
+        val puedeAbrir = solicitudAbrirNotificaciones > ultimaSolicitudNotificacionAtendida &&
+            currentRoute != null &&
+            currentRoute != AppRoutes.LOGIN
+
+        if (puedeAbrir) {
+            ultimaSolicitudNotificacionAtendida = solicitudAbrirNotificaciones
+            if (currentRoute != AppRoutes.DASHBOARD) {
+                navController.navigate(AppRoutes.DASHBOARD) {
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
 
     val mostrarBottomBar = currentRoute in listOf(
         AppRoutes.DASHBOARD,
@@ -147,7 +188,8 @@ fun AppNavigation() {
         AppRoutes.COTIZACIONES,
         AppRoutes.EMPLEADOS,
         AppRoutes.REPORTES,
-        AppRoutes.PROYECTOS
+        AppRoutes.PROYECTOS,
+        AppRoutes.MODULOS
     )
 
     Scaffold(
@@ -180,7 +222,11 @@ fun AppNavigation() {
             }
 
             composable(AppRoutes.DASHBOARD) {
-                DashboardScreen(navController = navController)
+                DashboardScreen(
+                    navController = navController,
+                    notificacionesViewModel = notificacionesViewModel,
+                    solicitudAbrirNotificaciones = solicitudAbrirNotificaciones
+                )
             }
 
 
@@ -873,12 +919,12 @@ fun AppNavigation() {
                     productoId = productoId
                 )
             }
-///                     MAS
-///                     MAS
-///                     MAS
+///                     MÓDULOS
+///                     MÓDULOS
+///                     MÓDULOS
 
-            composable(AppRoutes.MAS) {
-                MasScreen(navController)
+            composable(AppRoutes.MODULOS) {
+                ModulosScreen(navController = navController)
             }
         }
     }

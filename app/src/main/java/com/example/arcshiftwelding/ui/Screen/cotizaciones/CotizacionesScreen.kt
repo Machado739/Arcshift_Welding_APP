@@ -174,10 +174,16 @@ fun HeaderCotizaciones(
                 }
             }
         ) {
-            Icon(
-                imageVector = if (mostrarRegresar) Icons.Default.ArrowBack else Icons.Default.Menu,
-                contentDescription = if (mostrarRegresar) "Regresar" else "Menú"
-            )
+            if (mostrarRegresar) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Regresar"
+                )
+            } else {
+                // Reservar espacio para el icono sin mostrar el menú
+                // Usamos un Box con el tamaño del icono para mantener el espaciado
+                Box(modifier = Modifier.size(12.dp))
+            }
         }
 
         Text(

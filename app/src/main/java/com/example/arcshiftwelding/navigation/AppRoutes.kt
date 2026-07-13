@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.navigation
 object AppRoutes {
     const val LOGIN = "login"
     const val DASHBOARD = "dashboard"
+    const val NOTIFICACIONES = "notificaciones"
 
 ///                     INVENTARIO
 ///                     INVENTARIO
@@ -224,8 +225,12 @@ object AppRoutes {
     ): String {
         return "nuevo_gasto_proyecto/$proyectoId/$proyectoNombre"
     }
-    ///                     MAS
-///                     MAS
-///                     MAS
-    const val MAS = "mas"
+    ///                     MÓDULOS
+///                     MÓDULOS
+///                     MÓDULOS
+    const val MODULOS = "modulos"
+
+    /** Compatibilidad temporal con navegaciones anteriores. */
+    @Deprecated("Usa MODULOS")
+    const val MAS = MODULOS
 }

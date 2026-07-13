@@ -139,6 +139,15 @@ interface PagoProgramadoDao {
         tipoComprobante: String
     )
 
+    @Transaction
+    @Query("""
+        SELECT * FROM pagos_programados
+        WHERE estado = 'Pendiente'
+        AND activo = 1
+        ORDER BY fechaProgramada ASC
+    """)
+    fun observarPagosPendientesParaNotificaciones(): Flow<List<PagoProgramadoConRelaciones>>
+
     @Query("""
     SELECT * FROM pagos_programados
     WHERE activo = 1

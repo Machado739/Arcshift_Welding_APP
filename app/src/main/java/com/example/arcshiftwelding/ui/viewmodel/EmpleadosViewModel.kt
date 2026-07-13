@@ -1,4 +1,4 @@
-package com.example.arcshiftwelding.ui.Screen.empleados
+package com.example.arcshiftwelding.ui.viewmodel
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -6,9 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
-import com.example.arcshiftwelding.ui.viewmodel.formatoMoneda
-import com.example.arcshiftwelding.ui.viewmodel.formatoPorcentajeContrato
-import com.example.arcshiftwelding.ui.viewmodel.toUi
+import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoUI
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +14,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlin.collections.emptyList
+import kotlin.jvm.java
 
 class EmpleadosViewModel(
     private val empleadoDao: EmpleadoDao
@@ -63,21 +63,23 @@ class EmpleadosViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(_root_ide_package_.com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(EmpleadosViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return _root_ide_package_.com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel(
-                empleadoDao
+            return EmpleadosViewModel(
+                empleadoDao = empleadoDao
             ) as T
         }
 
-        throw IllegalArgumentException("ViewModel desconocido")
+        throw IllegalArgumentException(
+            "EmpleadosViewModelFactory no puede crear: ${modelClass.name}"
+        )
     }
 }
 
-fun EmpleadoEntity.toUi(): EmpleadoUI {
+fun EmpleadoEntity.toUi(): com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoUI {
     val porcentaje = porcentajeContrato.formatoPorcentajeContrato()
 
-    return EmpleadoUI(
+    return _root_ide_package_.com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoUI(
         id = id,
         nombre = nombre,
         puesto = puesto,
@@ -87,12 +89,13 @@ fun EmpleadoEntity.toUi(): EmpleadoUI {
         periodoPago = "Pago total",
         estado = if (activo) "Activo" else "Inactivo",
         color = if (activo) Color(0xFF2563EB) else Color(0xFF64748B),
-        salario = salario
+        salario = salario,
+        fotoUri = fotoUri
     )
 }
 
-fun EmpleadoEntity.toDetalleUi(): EmpleadoDetalleUI {
-    return EmpleadoDetalleUI(
+fun EmpleadoEntity.toDetalleUi(): com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoDetalleUI {
+    return _root_ide_package_.com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoDetalleUI(
         id = id,
         nombre = nombre,
         puesto = puesto,
@@ -104,12 +107,13 @@ fun EmpleadoEntity.toDetalleUi(): EmpleadoDetalleUI {
         trabajoActual = trabajoActual.ifBlank { "Sin trabajo asignado" },
         pagoTotalSemana = salario.formatoMoneda(),
         estado = if (activo) "Activo" else "Inactivo",
-        notas = notas.ifBlank { "Sin notas registradas" }
+        notas = notas.ifBlank { "Sin notas registradas" },
+        fotoUri = fotoUri
     )
 }
 
-fun EmpleadoEntity.toEliminarUi(): EmpleadoEliminarUI {
-    return EmpleadoEliminarUI(
+fun EmpleadoEntity.toEliminarUi(): com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoEliminarUI {
+    return _root_ide_package_.com.example.arcshiftwelding.ui.Screen.empleados.EmpleadoEliminarUI(
         id = id,
         nombre = nombre,
         puesto = puesto,
