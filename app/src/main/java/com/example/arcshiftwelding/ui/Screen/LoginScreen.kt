@@ -303,7 +303,7 @@ fun LoginScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+               /* Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
                     onClick = {
@@ -354,7 +354,7 @@ fun LoginScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
-                }
+                }*/
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
