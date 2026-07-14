@@ -128,6 +128,11 @@ fun bottomNavigationItemColors(): NavigationBarItemColors {
 }
 
 fun NavController.navigateBottomBar(route: String) {
+    if (route == AppRoutes.MODULOS) {
+        navigateToModulesRoot()
+        return
+    }
+
     if (currentDestination?.route == route) return
 
     navigate(route) {
@@ -136,5 +141,29 @@ fun NavController.navigateBottomBar(route: String) {
         }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/**
+ * Regresa a la raíz de Módulos en lugar de restaurar la última pantalla abierta
+ * dentro del grupo. Esto evita que al tocar Módulos desde Ingresos, Gastos,
+ * Cotizaciones, Empleados, Reportes o Configuración se restaure esa misma pantalla.
+ */
+fun NavController.navigateToModulesRoot() {
+    if (currentDestination?.route == AppRoutes.MODULOS) return
+
+    val moduloYaEstabaEnPila = popBackStack(
+        route = AppRoutes.MODULOS,
+        inclusive = false
+    )
+
+    if (!moduloYaEstabaEnPila) {
+        navigate(AppRoutes.MODULOS) {
+            popUpTo(graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = false
+        }
     }
 }

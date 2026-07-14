@@ -7,6 +7,9 @@ import java.util.TimeZone
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
@@ -54,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,8 +72,12 @@ import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.data.local.entity.EmpleadoEntity
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NuevoEmpleadoScreen(
     onBack: () -> Unit = {},
@@ -101,7 +109,24 @@ fun NuevoEmpleadoScreen(
     var asignarTrabajos by remember { mutableStateOf(true) }
     var pagoSemanalActivo by remember { mutableStateOf(true) }
 
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+    val personalBring = remember { BringIntoViewRequester() }
+    val contactoBring = remember { BringIntoViewRequester() }
+    val laboralBring = remember { BringIntoViewRequester() }
+
+    fun mostrarErrorEmpleado(mensaje: String, destino: BringIntoViewRequester) {
+        mostrarErrorEnCampo(
+            scope = scope,
+            estado = validacion,
+            mensaje = mensaje,
+            bringIntoViewRequester = destino
+        )
+    }
+
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -148,36 +173,42 @@ fun NuevoEmpleadoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SeccionInformacionPersonalNuevoEmpleado(
-                nombre = nombre,
-                onNombreChange = { nombre = it },
-                puesto = puesto,
-                onPuestoChange = { puesto = it },
-                estatus = estatus,
-                onEstatusChange = { estatus = it },
-                fotoUri = fotoUri,
-                onFotoUriChange = { fotoUri = it }
-            )
+            Box(modifier = Modifier.bringIntoViewRequester(personalBring)) {
+                SeccionInformacionPersonalNuevoEmpleado(
+                    nombre = nombre,
+                    onNombreChange = { nombre = it },
+                    puesto = puesto,
+                    onPuestoChange = { puesto = it },
+                    estatus = estatus,
+                    onEstatusChange = { estatus = it },
+                    fotoUri = fotoUri,
+                    onFotoUriChange = { fotoUri = it }
+                )
+            }
 
-            SeccionInformacionContactoEmpleado(
-                telefono = telefono,
-                onTelefonoChange = { telefono = it },
-                correo = correo,
-                onCorreoChange = { correo = it },
-                direccion = direccion,
-                onDireccionChange = { direccion = it }
-            )
+            Box(modifier = Modifier.bringIntoViewRequester(contactoBring)) {
+                SeccionInformacionContactoEmpleado(
+                    telefono = telefono,
+                    onTelefonoChange = { telefono = it },
+                    correo = correo,
+                    onCorreoChange = { correo = it },
+                    direccion = direccion,
+                    onDireccionChange = { direccion = it }
+                )
+            }
 
-            SeccionInformacionLaboralNuevoEmpleado(
-                fechaIngreso = fechaIngreso,
-                onFechaIngresoChange = { fechaIngreso = it },
-                tipoContrato = tipoContrato,
-                onTipoContratoChange = { tipoContrato = it },
-                valorContrato = valorContrato,
-                onValorContratoChange = { valorContrato = it },
-                trabajoActual = trabajoActual,
-                onTrabajoActualChange = { trabajoActual = it }
-            )
+            Box(modifier = Modifier.bringIntoViewRequester(laboralBring)) {
+                SeccionInformacionLaboralNuevoEmpleado(
+                    fechaIngreso = fechaIngreso,
+                    onFechaIngresoChange = { fechaIngreso = it },
+                    tipoContrato = tipoContrato,
+                    onTipoContratoChange = { tipoContrato = it },
+                    valorContrato = valorContrato,
+                    onValorContratoChange = { valorContrato = it },
+                    trabajoActual = trabajoActual,
+                    onTrabajoActualChange = { trabajoActual = it }
+                )
+            }
 
             SeccionNotasNuevoEmpleado(
                 notas = notas,
@@ -193,12 +224,48 @@ fun NuevoEmpleadoScreen(
                             onPagoSemanalActivoChange = { pagoSemanalActivo = it }
                         )*/
 
+            AvisoValidacionFormulario(validacion)
+
             BotonesFormularioEmpleado(
                 onCancelarClick = {
                     onCancelar()
                     navController.popBackStack()
                 },
                 onGuardarClick = {
+                    validacion.limpiar()
+
+                    when {
+                        nombre.isBlank() -> {
+                            mostrarErrorEmpleado("El nombre completo es obligatorio.", personalBring)
+                            return@BotonesFormularioEmpleado
+                        }
+                        puesto.isBlank() -> {
+                            mostrarErrorEmpleado("Selecciona el puesto del empleado.", personalBring)
+                            return@BotonesFormularioEmpleado
+                        }
+                        estatus.isBlank() -> {
+                            mostrarErrorEmpleado("Selecciona el estatus del empleado.", personalBring)
+                            return@BotonesFormularioEmpleado
+                        }
+                        telefono.isBlank() -> {
+                            mostrarErrorEmpleado("El teléfono es obligatorio.", contactoBring)
+                            return@BotonesFormularioEmpleado
+                        }
+                        fechaIngreso.isBlank() -> {
+                            mostrarErrorEmpleado("Selecciona la fecha de ingreso.", laboralBring)
+                            return@BotonesFormularioEmpleado
+                        }
+                        tipoContrato.isNotBlank() &&
+                            tipoContrato != "Sin definir" &&
+                            (valorContrato.replace(",", ".").toDoubleOrNull() ?: 0.0) <= 0.0 -> {
+                            mostrarErrorEmpleado(
+                                "Ingresa un valor válido para el tipo de pago seleccionado.",
+                                laboralBring
+                            )
+                            return@BotonesFormularioEmpleado
+                        }
+                    }
+
                     val empleado = EmpleadoEntity(
                         nombre = nombre.trim(),
                         telefono = telefono.trim(),

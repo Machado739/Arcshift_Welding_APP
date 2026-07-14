@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 
 @Composable
 fun ProyectosScreen(
@@ -195,12 +196,7 @@ fun HeaderProyectos(
             modifier = Modifier.weight(1f)
         )
 
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
+        CampanaNotificacionesPrincipal(navController)
 
         IconButton(
             onClick = {

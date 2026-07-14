@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -54,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -67,6 +69,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlinx.coroutines.launch
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,6 +107,18 @@ fun NuevoProyectoScreen(
     var clienteId by remember { mutableStateOf<Int?>(null) }
     var fechaFin by remember { mutableStateOf("") }
 
+    val listaState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+
+    fun mostrarErrorProyecto(mensaje: String, indice: Int) {
+        validacion.establecerMensajePublico(mensaje)
+        scope.launch {
+            listaState.animateScrollToItem(indice)
+        }
+    }
+
     val cotizacionesFiltradas = if (clienteSeleccionado == null) {
         cotizaciones
     } else {
@@ -134,6 +152,7 @@ fun NuevoProyectoScreen(
 
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         contentWindowInsets = WindowInsets(0),
         containerColor = Color(0xFFF8FAFC),
         topBar = {
@@ -163,6 +182,7 @@ fun NuevoProyectoScreen(
     ) { paddingValues ->
 
         LazyColumn(
+            state = listaState,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
@@ -362,6 +382,10 @@ fun NuevoProyectoScreen(
             }
 
             item {
+                AvisoValidacionFormulario(validacion)
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -376,7 +400,41 @@ fun NuevoProyectoScreen(
 
                     Button(
                         onClick = {
-                            val clienteId = clienteSeleccionado?.id ?: return@Button
+                            validacion.limpiar()
+
+                            when {
+                                nombre.isBlank() -> {
+                                    mostrarErrorProyecto(
+                                        "El nombre del proyecto es obligatorio.",
+                                        0
+                                    )
+                                    return@Button
+                                }
+                                clienteSeleccionado == null -> {
+                                    mostrarErrorProyecto(
+                                        "Selecciona el cliente del proyecto.",
+                                        1
+                                    )
+                                    return@Button
+                                }
+                                fechaInicio.isBlank() -> {
+                                    mostrarErrorProyecto(
+                                        "Selecciona la fecha de inicio.",
+                                        2
+                                    )
+                                    return@Button
+                                }
+                                presupuestoEstimado.isNotBlank() &&
+                                    presupuestoEstimado.toDoubleOrNull() == null -> {
+                                    mostrarErrorProyecto(
+                                        "Ingresa un presupuesto válido.",
+                                        3
+                                    )
+                                    return@Button
+                                }
+                            }
+
+                            val clienteId = clienteSeleccionado!!.id
 
                             viewModel.registrarProyecto(
                                 nombre = nombre,
@@ -394,7 +452,7 @@ fun NuevoProyectoScreen(
 
                             navController.popBackStack()
                         },
-                        enabled = nombre.trim().isNotEmpty() && clienteSeleccionado != null,
+                        enabled = true,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(

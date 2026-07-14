@@ -59,6 +59,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +104,9 @@ fun ConfiguracionScreen(navController: NavController) {
                             contentDescription = "Regresar"
                         )
                     }
+                },
+                actions = {
+                    CampanaNotificacionesPrincipal(navController)
                 }
             )
         }

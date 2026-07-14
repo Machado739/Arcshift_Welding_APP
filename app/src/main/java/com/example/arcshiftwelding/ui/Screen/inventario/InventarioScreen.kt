@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
@@ -249,9 +250,7 @@ fun HeaderInventario(
             modifier = Modifier.weight(1f)
         )
 
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
-        }
+        CampanaNotificacionesPrincipal(navController)
 
         IconButton(
             onClick = {

@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,10 +68,8 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.navigateBottomBar
-import com.example.arcshiftwelding.notifications.NotificacionApp
-import com.example.arcshiftwelding.notifications.NotificacionesViewModel
 import com.example.arcshiftwelding.security.SesionUsuarioStore
-import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaConPanelNotificaciones
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.ui.viewmodel.ClienteRecienteDashboardUi
 import com.example.arcshiftwelding.ui.viewmodel.DashboardUiState
 import com.example.arcshiftwelding.ui.viewmodel.DashboardViewModel
@@ -83,9 +82,7 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun DashboardScreen(
-    navController: NavController,
-    notificacionesViewModel: NotificacionesViewModel,
-    solicitudAbrirNotificaciones: Int = 0
+    navController: NavController
 ) {
     val context = LocalContext.current
     val database = remember {
@@ -95,7 +92,6 @@ fun DashboardScreen(
         factory = DashboardViewModelFactory(database)
     )
     val estado by dashboardViewModel.uiState.collectAsStateWithLifecycle()
-    val notificaciones by notificacionesViewModel.notificaciones.collectAsStateWithLifecycle()
 
     Scaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
@@ -109,11 +105,7 @@ fun DashboardScreen(
                 .background(Color(0xFFF8FAFC))
         ) {
             HeaderDashboard(
-                navController = navController,
-                notificaciones = notificaciones,
-                solicitudAbrirNotificaciones = solicitudAbrirNotificaciones,
-                onMarcarComoLeida = notificacionesViewModel::marcarComoLeida,
-                onMarcarTodasComoLeidas = notificacionesViewModel::marcarTodasComoLeidas
+                navController = navController
             )
 
             if (estado.cargando) {
@@ -213,11 +205,7 @@ fun DashboardScreen(
 
 @Composable
 fun HeaderDashboard(
-    navController: NavController,
-    notificaciones: List<NotificacionApp>,
-    solicitudAbrirNotificaciones: Int,
-    onMarcarComoLeida: (String) -> Unit,
-    onMarcarTodasComoLeidas: () -> Unit
+    navController: NavController
 ) {
     Row(
         modifier = Modifier
@@ -233,17 +221,7 @@ fun HeaderDashboard(
             modifier = Modifier.weight(1f)
         )
 
-        CampanaConPanelNotificaciones(
-            notificaciones = notificaciones,
-            solicitudApertura = solicitudAbrirNotificaciones,
-            onNotificacionClick = { notificacion ->
-                onMarcarComoLeida(notificacion.id)
-                navController.navigate(notificacion.rutaDestino) {
-                    launchSingleTop = true
-                }
-            },
-            onMarcarTodasComoLeidas = onMarcarTodasComoLeidas
-        )
+        CampanaNotificacionesPrincipal(navController)
 
         val context = LocalContext.current
         IconButton(
@@ -440,48 +418,35 @@ private fun AccionesRapidas(
     val acciones = listOf(
         AccionRapida("Ingreso", Icons.Default.AttachMoney, Color(0xFF16A34A), onNuevoIngreso),
         AccionRapida("Gasto", Icons.Default.ShoppingBag, Color(0xFFDC2626), onNuevoGasto),
-        AccionRapida("Cotización", Icons.Default.Description, Color(0xFF2563EB), onNuevaCotizacion),
+        AccionRapida("Cotizar", Icons.Default.Description, Color(0xFF2563EB), onNuevaCotizacion),
         AccionRapida("Cliente", Icons.Default.PersonAdd, Color(0xFF7C3AED), onNuevoCliente),
         AccionRapida("Inventario", Icons.Default.Inventory, Color(0xFFF59E0B), onVerInventario)
     )
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        if (maxWidth < 350.dp) {
+        if (maxWidth < 340.dp) {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 contentPadding = PaddingValues(horizontal = 1.dp)
             ) {
                 items(acciones, key = { it.texto }) { accion ->
-                    TarjetaAccionRapida(
+                    TarjetaAccionRapidaCompacta(
                         accion = accion,
-                        modifier = Modifier.width(108.dp)
+                        modifier = Modifier.width(78.dp)
                     )
                 }
             }
         } else {
-            val columnas = when {
-                maxWidth >= 720.dp -> 5
-                maxWidth >= 390.dp -> 3
-                else -> 2
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                acciones.chunked(columnas).forEach { fila ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        fila.forEach { accion ->
-                            TarjetaAccionRapida(
-                                accion = accion,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        repeat(columnas - fila.size) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                acciones.forEach { accion ->
+                    TarjetaAccionRapidaCompacta(
+                        accion = accion,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -489,27 +454,28 @@ private fun AccionesRapidas(
 }
 
 @Composable
-private fun TarjetaAccionRapida(
+private fun TarjetaAccionRapidaCompacta(
     accion: AccionRapida,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .height(70.dp)
+            .height(58.dp)
             .clickable { accion.onClick() },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(11.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 9.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 3.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(31.dp)
+                    .size(27.dp)
                     .background(accion.color.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -517,16 +483,20 @@ private fun TarjetaAccionRapida(
                     imageVector = accion.icono,
                     contentDescription = null,
                     tint = accion.color,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(7.dp))
+
+            Spacer(modifier = Modifier.height(3.dp))
+
             Text(
                 text = accion.texto,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 10.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                fontSize = 8.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

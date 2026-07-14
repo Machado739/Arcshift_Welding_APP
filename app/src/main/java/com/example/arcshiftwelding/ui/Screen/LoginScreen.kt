@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -221,18 +222,28 @@ fun LoginScreen(
                     keyboardActions = KeyboardActions(onDone = { intentarLogin() })
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = {
-                            loginViewModel.limpiarEstadoRecuperacion()
-                            mostrarRecuperacion = true
-                        }
+                if (estadoLogin.intentosFallidos > 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text("Usar código de respaldo")
+                        TextButton(
+                            onClick = {
+                                loginViewModel.limpiarEstadoRecuperacion()
+                                mostrarRecuperacion = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Key,
+                                contentDescription = null,
+                                modifier = Modifier.size(17.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Usar código de respaldo")
+                        }
                     }
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 estadoLogin.mensaje?.let { mensaje ->

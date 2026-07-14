@@ -1,6 +1,9 @@
 package com.example.arcshiftwelding.ui.Screen.ingresos
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,8 +44,13 @@ import com.example.arcshiftwelding.utils.abrirComprobante
 import com.example.arcshiftwelding.utils.formatearTamanoComprobante
 import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
 import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NuevoIngresoScreen(
     navController: NavController,
@@ -54,8 +62,23 @@ fun NuevoIngresoScreen(
         mutableStateOf(emptyList<PagoProgramadoForm>())
     }
 
-    var mensajeError by remember {
-        mutableStateOf("")
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+    val generalBring = remember { BringIntoViewRequester() }
+    val financieraBring = remember { BringIntoViewRequester() }
+    val pagosBring = remember { BringIntoViewRequester() }
+
+    fun mostrarErrorIngreso(
+        mensaje: String,
+        destino: BringIntoViewRequester
+    ) {
+        mostrarErrorEnCampo(
+            scope = scope,
+            estado = validacion,
+            mensaje = mensaje,
+            bringIntoViewRequester = destino
+        )
     }
 
     LaunchedEffect(form.formaPago) {
@@ -63,7 +86,7 @@ fun NuevoIngresoScreen(
             pagosProgramados = emptyList<PagoProgramadoForm>()
         }
 
-        mensajeError = ""
+        validacion.limpiar()
     }
 
     val clientes by viewModel.clientesActivos.collectAsState(initial = emptyList())
@@ -77,6 +100,7 @@ fun NuevoIngresoScreen(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -121,30 +145,36 @@ fun NuevoIngresoScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            SeccionIngresoInformacionGeneralNueva(
-                form = form,
-                proyectos = proyectos,
-                cotizaciones = cotizaciones,
-                onChange = viewModel::actualizarFormulario
-            )
+            Box(modifier = Modifier.bringIntoViewRequester(generalBring)) {
+                SeccionIngresoInformacionGeneralNueva(
+                    form = form,
+                    proyectos = proyectos,
+                    cotizaciones = cotizaciones,
+                    onChange = viewModel::actualizarFormulario
+                )
+            }
 
-            SeccionIngresoInformacionFinanciera(
-                form = form,
-                onChange = viewModel::actualizarFormulario
-            )
+            Box(modifier = Modifier.bringIntoViewRequester(financieraBring)) {
+                SeccionIngresoInformacionFinanciera(
+                    form = form,
+                    onChange = viewModel::actualizarFormulario
+                )
+            }
 
             if (form.formaPago == "Anticipo") {
                 val montoRecibido = form.subtotal.aDouble()
                 val montoTotalProyecto = form.montoTotalProyecto.aDouble()
 
-                SeccionPagosProgramadosIngreso(
-                    pagos = pagosProgramados,
-                    montoTotalProyecto = montoTotalProyecto,
-                    montoRecibido = montoRecibido,
-                    onPagosChange = {
-                        pagosProgramados = it
-                    }
-                )
+                Box(modifier = Modifier.bringIntoViewRequester(pagosBring)) {
+                    SeccionPagosProgramadosIngreso(
+                        pagos = pagosProgramados,
+                        montoTotalProyecto = montoTotalProyecto,
+                        montoRecibido = montoRecibido,
+                        onPagosChange = {
+                            pagosProgramados = it
+                        }
+                    )
+                }
             }
 
             SeccionIngresoComprobanteNuevo(
@@ -158,19 +188,12 @@ fun NuevoIngresoScreen(
                 onChange = viewModel::actualizarFormulario
             )
 
-            if (mensajeError.isNotBlank()) {
-                Text(
-                    text = mensajeError,
-                    color = Color(0xFFDC2626),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            AvisoValidacionFormulario(validacion)
 
             BotonesNuevoIngreso(
                 onCancelar = { navController.popBackStack() },
                 onGuardar = {
-                    mensajeError = ""
+                    validacion.limpiar()
 
                     val esIngresoDeProyecto = form.proyectoId != null
                     val esAnticipo = form.formaPago == "Anticipo"
@@ -201,12 +224,18 @@ fun NuevoIngresoScreen(
                     }
 
                     if (form.trabajo.isBlank()) {
-                        mensajeError = "Ingresa el trabajo o selecciona un proyecto"
+                        mostrarErrorIngreso(
+                            "Ingresa el trabajo o selecciona un proyecto.",
+                            generalBring
+                        )
                         return@BotonesNuevoIngreso
                     }
 
                     if (form.concepto.isBlank()) {
-                        mensajeError = "Ingresa el concepto o descripción"
+                        mostrarErrorIngreso(
+                            "Ingresa el concepto o descripción.",
+                            generalBring
+                        )
                         return@BotonesNuevoIngreso
                     }
 /*
@@ -215,34 +244,60 @@ fun NuevoIngresoScreen(
                         return@BotonesNuevoIngreso
                     }
 */
+                    if (montoRecibido <= 0.0) {
+                        mostrarErrorIngreso(
+                            "Ingresa un monto recibido mayor a cero.",
+                            financieraBring
+                        )
+                        return@BotonesNuevoIngreso
+                    }
+
                     if (form.metodoPago.isBlank()) {
-                        mensajeError = "Selecciona el método de pago"
+                        mostrarErrorIngreso(
+                            "Selecciona el método de pago.",
+                            financieraBring
+                        )
                         return@BotonesNuevoIngreso
                     }
 
                     if (form.formaPago == "Anticipo") {
                         if (form.proyectoId == null) {
-                            mensajeError = "Para registrar un anticipo selecciona un proyecto"
+                            mostrarErrorIngreso(
+                                "Para registrar un anticipo selecciona un proyecto.",
+                                generalBring
+                            )
                             return@BotonesNuevoIngreso
                         }
 
                         if (montoTotalProyecto <= 0.0) {
-                            mensajeError = "Ingresa el monto total del proyecto"
+                            mostrarErrorIngreso(
+                                "Ingresa el monto total del proyecto.",
+                                financieraBring
+                            )
                             return@BotonesNuevoIngreso
                         }
 
                         if (totalRecibido > montoTotalProyecto) {
-                            mensajeError = "El monto recibido no puede ser mayor al monto total del proyecto"
+                            mostrarErrorIngreso(
+                                "El monto recibido no puede ser mayor al monto total del proyecto.",
+                                financieraBring
+                            )
                             return@BotonesNuevoIngreso
                         }
 
                         if (pagosIncompletos) {
-                            mensajeError = "Completa la fecha y el monto de los pagos programados"
+                            mostrarErrorIngreso(
+                                "Completa la fecha y el monto de los pagos programados.",
+                                pagosBring
+                            )
                             return@BotonesNuevoIngreso
                         }
 
                         if (sumaPagosProgramados > saldoPendiente) {
-                            mensajeError = "Los pagos programados superan el saldo pendiente"
+                            mostrarErrorIngreso(
+                                "Los pagos programados superan el saldo pendiente.",
+                                pagosBring
+                            )
                             return@BotonesNuevoIngreso
                         }
                     }

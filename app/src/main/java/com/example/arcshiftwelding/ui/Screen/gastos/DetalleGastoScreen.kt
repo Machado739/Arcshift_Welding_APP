@@ -159,9 +159,7 @@ fun DetalleGastoScreen(
                     onEditar = {
                         navController.navigate(AppRoutes.editarGasto(gastoActual.id))
                     },
-                    onDescargarPDF = {
-                        // Pendiente generar PDF
-                    },
+
                     onEliminar = {
                         navController.navigate(AppRoutes.eliminarGasto(gastoId = gastoActual.id))
                     }
@@ -658,7 +656,6 @@ fun ItemDatoConLink(
 @Composable
 fun SeccionAccionesRapidasGasto(
     onEditar: () -> Unit,
-    onDescargarPDF: () -> Unit,
     onEliminar: () -> Unit
 ) {
     TarjetaDetalleGasto(
@@ -676,13 +673,7 @@ fun SeccionAccionesRapidasGasto(
                 modifier = Modifier.weight(1f)
             )
 
-            BotonAccionRapida(
-                texto = "Descargar PDF",
-                icono = Icons.Default.AddCircleOutline,
-                onClick = onDescargarPDF,
-                modifier = Modifier.weight(1f),
-                iconTint = Color(0xFF1B7F3A)
-            )
+
 
             BotonAccionRapida(
                 texto = "Eliminar",

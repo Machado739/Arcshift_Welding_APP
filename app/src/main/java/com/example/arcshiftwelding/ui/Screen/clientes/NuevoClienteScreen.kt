@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,8 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NuevoClienteScreen(
     navController: NavController,
@@ -63,7 +70,23 @@ fun NuevoClienteScreen(
     var contactoLlamadas by remember { mutableStateOf(true) }
     var contactoCorreo by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+    val personalBring = remember { BringIntoViewRequester() }
+    val contactoBring = remember { BringIntoViewRequester() }
+
+    fun mostrarErrorCliente(mensaje: String, destino: BringIntoViewRequester) {
+        mostrarErrorEnCampo(
+            scope = scope,
+            estado = validacion,
+            mensaje = mensaje,
+            bringIntoViewRequester = destino
+        )
+    }
+
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -111,7 +134,8 @@ fun NuevoClienteScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            SeccionInformacionPersonalCliente(
+            Box(modifier = Modifier.bringIntoViewRequester(personalBring)) {
+                SeccionInformacionPersonalCliente(
                 nombre = nombre,
                 onNombreChange = { nombre = it },
                 empresa = empresa,
@@ -127,16 +151,19 @@ fun NuevoClienteScreen(
                 onEliminarFotoClick = {
                     fotoUri = ""
                 }
-            )
+                )
+            }
 
-            SeccionInformacionContactoCliente(
+            Box(modifier = Modifier.bringIntoViewRequester(contactoBring)) {
+                SeccionInformacionContactoCliente(
                 telefono = telefono,
                 onTelefonoChange = { telefono = it },
                 correo = correo,
                 onCorreoChange = { correo = it },
                 direccion = direccion,
                 onDireccionChange = { direccion = it }
-            )
+                )
+            }
 
             SeccionInformacionAdicionalNuevoCliente(
                 rfc = rfc,
@@ -162,11 +189,33 @@ fun NuevoClienteScreen(
                             onContactoCorreoChange = { contactoCorreo = it }
                         )*/
 
+            AvisoValidacionFormulario(validacion)
+
             BotonesFormularioCliente(
                 onCancelarClick = {
                     navController.popBackStack()
                 },
                 onGuardarClick = {
+                    validacion.limpiar()
+                    when {
+                        nombre.isBlank() -> {
+                            mostrarErrorCliente("El nombre completo es obligatorio.", personalBring)
+                            return@BotonesFormularioCliente
+                        }
+                        tipoCliente.isBlank() -> {
+                            mostrarErrorCliente("Selecciona el tipo de cliente.", personalBring)
+                            return@BotonesFormularioCliente
+                        }
+                        estatus.isBlank() -> {
+                            mostrarErrorCliente("Selecciona el estatus del cliente.", personalBring)
+                            return@BotonesFormularioCliente
+                        }
+                        telefono.isBlank() -> {
+                            mostrarErrorCliente("El teléfono es obligatorio.", contactoBring)
+                            return@BotonesFormularioCliente
+                        }
+                    }
+
                     viewModel.guardarCliente(
                         nombre = nombre,
                         empresa = empresa,

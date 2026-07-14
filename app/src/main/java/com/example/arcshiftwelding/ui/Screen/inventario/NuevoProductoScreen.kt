@@ -9,6 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +41,10 @@ import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFac
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
 import com.example.arcshiftwelding.utils.guardarImagenProductoEnInterno
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.text.KeyboardOptions
@@ -62,7 +69,7 @@ private val ArcErrorLight = Color(0xFFFEE2E2)
 private val ArcSuccess = Color(0xFF16A34A)
 private val ArcWarning = Color(0xFFF59E0B)
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NuevoProductoScreen(
     navController: NavController
@@ -112,6 +119,22 @@ fun NuevoProductoScreen(
     var productoActivo by remember { mutableStateOf(true) }
 
     var mensajeError by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+    val informacionBring = remember { BringIntoViewRequester() }
+    val inventarioBring = remember { BringIntoViewRequester() }
+    val costosBring = remember { BringIntoViewRequester() }
+
+    fun mostrarErrorProducto(mensaje: String, destino: BringIntoViewRequester) {
+        mensajeError = mensaje
+        mostrarErrorEnCampo(
+            scope = scope,
+            estado = validacion,
+            mensaje = mensaje,
+            bringIntoViewRequester = destino
+        )
+    }
 
     val fechaActual = remember {
         SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
@@ -123,47 +146,48 @@ fun NuevoProductoScreen(
 
     fun guardarProducto() {
         mensajeError = ""
+        validacion.limpiar()
 
         if (nombre.isBlank()) {
-            mensajeError = "Ingresa el nombre del producto"
+            mostrarErrorProducto("Ingresa el nombre del producto", informacionBring)
             return
         }
 
         if (categoria.isBlank()) {
-            mensajeError = "Selecciona una categoría"
+            mostrarErrorProducto("Selecciona una categoría", informacionBring)
             return
         }
 
         if (unidad.isBlank()) {
-            mensajeError = "Selecciona una unidad de medida"
+            mostrarErrorProducto("Selecciona una unidad de medida", informacionBring)
             return
         }
 
         if (codigoGenerado.isBlank()) {
-            mensajeError = "El código del producto es obligatorio"
+            mostrarErrorProducto("El código del producto es obligatorio", informacionBring)
             return
         }
 
         if (ubicacion.isBlank()) {
-            mensajeError = "La ubicación es obligatoria"
+            mostrarErrorProducto("La ubicación es obligatoria", informacionBring)
             return
         }
 
         val stock = stockInicial.toIntOrNull()
         if (stock == null) {
-            mensajeError = "El stock inicial debe ser un número válido"
+            mostrarErrorProducto("El stock inicial debe ser un número válido", inventarioBring)
             return
         }
 
         val minimo = stockMinimo.toIntOrNull()
         if (minimo == null) {
-            mensajeError = "El stock mínimo debe ser un número válido"
+            mostrarErrorProducto("El stock mínimo debe ser un número válido", inventarioBring)
             return
         }
 
         val costo = costoUnitario.toDoubleOrNull()
         if (costo == null) {
-            mensajeError = "El costo unitario debe ser un número válido"
+            mostrarErrorProducto("El costo unitario debe ser un número válido", costosBring)
             return
         }
 
@@ -233,6 +257,7 @@ fun NuevoProductoScreen(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             HeaderNuevoProducto(
                 onBack = {
@@ -269,7 +294,8 @@ fun NuevoProductoScreen(
                 unidad = unidad
             )
 
-            SeccionInformacionGeneral(
+            Box(modifier = Modifier.bringIntoViewRequester(informacionBring)) {
+                SeccionInformacionGeneral(
                 nombre = nombre,
                 onNombreChange = { nombre = it },
                 codigo = codigoGenerado,
@@ -287,9 +313,11 @@ fun NuevoProductoScreen(
                 onUnidadChange = { unidad = it },
                 imagenUri = imagenUri,
                 onImagenChange = { imagenUri = it }
-            )
+                )
+            }
 
-            SeccionInventario(
+            Box(modifier = Modifier.bringIntoViewRequester(inventarioBring)) {
+                SeccionInventario(
                 stockInicial = stockInicial,
                 onStockInicialChange = {
                     stockInicial = it.filter { caracter -> caracter.isDigit() }
@@ -302,9 +330,11 @@ fun NuevoProductoScreen(
                 onStockMaximoChange = {
                     stockMaximo = it.filter { caracter -> caracter.isDigit() }
                 }
-            )
+                )
+            }
 
-            SeccionCostos(
+            Box(modifier = Modifier.bringIntoViewRequester(costosBring)) {
+                SeccionCostos(
                 costoUnitario = costoUnitario,
                 onCostoUnitarioChange = {
                     if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
@@ -312,7 +342,8 @@ fun NuevoProductoScreen(
                     }
                 },
                 stockInicial = stockInicial
-            )
+                )
+            }
 
             SeccionInformacionAdicional(
                 proveedor = proveedor,
@@ -321,9 +352,7 @@ fun NuevoProductoScreen(
                 onNotasChange = { notas = it }
             )
 
-            if (mensajeError.isNotBlank()) {
-                MensajeErrorProducto(mensaje = mensajeError)
-            }
+            AvisoValidacionFormulario(validacion)
 
             Spacer(modifier = Modifier.height(10.dp))
         }

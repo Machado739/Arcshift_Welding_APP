@@ -30,7 +30,8 @@ data class EstadoAutenticacion(
     val cargando: Boolean = false,
     val mensaje: String? = null,
     val esError: Boolean = false,
-    val usuarioInicialCreado: Boolean = false
+    val usuarioInicialCreado: Boolean = false,
+    val intentosFallidos: Int = 0
 )
 
 data class EstadoRecuperacion(
@@ -98,7 +99,8 @@ class LoginViewModel(
                         it.copy(
                             cargando = false,
                             mensaje = "Usuario o contraseña incorrectos.",
-                            esError = true
+                            esError = true,
+                            intentosFallidos = it.intentosFallidos + 1
                         )
                     }
                     return@launch
@@ -116,7 +118,12 @@ class LoginViewModel(
 
                 sesionStore.iniciarSesion(usuarioActualizado)
                 _estadoAutenticacion.update {
-                    it.copy(cargando = false, mensaje = null, esError = false)
+                    it.copy(
+                        cargando = false,
+                        mensaje = null,
+                        esError = false,
+                        intentosFallidos = 0
+                    )
                 }
                 onLoginExitoso()
             } catch (e: Exception) {

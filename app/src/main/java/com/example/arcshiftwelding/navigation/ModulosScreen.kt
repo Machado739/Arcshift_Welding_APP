@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Work
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 
 private data class ModuloAplicacion(
     val titulo: String,
@@ -120,7 +122,7 @@ fun ModulosScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            EncabezadoModulos()
+            EncabezadoModulos(navController)
         }
 
         item {
@@ -163,18 +165,38 @@ fun ModulosScreen(
 }
 
 @Composable
-private fun EncabezadoModulos() {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = "Módulos",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF0F172A)
-        )
+private fun EncabezadoModulos(
+    navController: NavController
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Módulos",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF0F172A),
+                modifier = Modifier.weight(1f)
+            )
 
-        Spacer(modifier = Modifier.height(4.dp))
+            CampanaNotificacionesPrincipal(navController)
+
+            androidx.compose.material3.IconButton(
+                onClick = {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Salir"
+                )
+            }
+        }
 
         Text(
             text = "Accede a las herramientas administrativas de Arcshift Welding.",

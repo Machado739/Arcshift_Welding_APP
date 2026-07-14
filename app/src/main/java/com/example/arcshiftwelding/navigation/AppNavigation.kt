@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -88,6 +86,8 @@ import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModelFactory
 import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModelFactory
+import com.example.arcshiftwelding.ui.Screen.notificaciones.LocalNotificacionesUiController
+import com.example.arcshiftwelding.ui.Screen.notificaciones.NotificacionesUiController
 
 @Composable
 fun AppNavigation(
@@ -166,6 +166,16 @@ fun AppNavigation(
         .notificaciones
         .collectAsStateWithLifecycle()
 
+    val notificacionesUiController = remember(notificacionesViewModel) {
+        NotificacionesUiController(notificacionesViewModel)
+    }
+
+    LaunchedEffect(solicitudAbrirNotificaciones) {
+        notificacionesUiController.actualizarSolicitudApertura(
+            solicitudAbrirNotificaciones
+        )
+    }
+
     LaunchedEffect(notificacionesActivas) {
         NotificacionesScheduler.ejecutarRevisionInmediata(
             context.applicationContext
@@ -180,25 +190,6 @@ fun AppNavigation(
     LaunchedEffect(currentRoute) {
         if (currentRoute == AppRoutes.LOGIN) {
             sesionStore.cerrarSesion()
-        }
-    }
-
-    var ultimaSolicitudNotificacionAtendida by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-
-    LaunchedEffect(solicitudAbrirNotificaciones, currentRoute) {
-        val puedeAbrir = solicitudAbrirNotificaciones > ultimaSolicitudNotificacionAtendida &&
-            currentRoute != null &&
-            currentRoute != AppRoutes.LOGIN
-
-        if (puedeAbrir) {
-            ultimaSolicitudNotificacionAtendida = solicitudAbrirNotificaciones
-            if (currentRoute != AppRoutes.DASHBOARD) {
-                navController.navigate(AppRoutes.DASHBOARD) {
-                    launchSingleTop = true
-                }
-            }
         }
     }
 
@@ -227,8 +218,11 @@ fun AppNavigation(
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
+        CompositionLocalProvider(
+            LocalNotificacionesUiController provides notificacionesUiController
+        ) {
+            NavHost(
+                navController = navController,
             startDestination = destinoInicial,
             modifier = Modifier
                 .fillMaxSize()
@@ -250,9 +244,7 @@ fun AppNavigation(
 
             composable(AppRoutes.DASHBOARD) {
                 DashboardScreen(
-                    navController = navController,
-                    notificacionesViewModel = notificacionesViewModel,
-                    solicitudAbrirNotificaciones = solicitudAbrirNotificaciones
+                    navController = navController
                 )
             }
 
@@ -959,6 +951,7 @@ fun AppNavigation(
 
             composable(AppRoutes.CONFIGURACION) {
                 ConfiguracionScreen(navController = navController)
+            }
             }
         }
     }

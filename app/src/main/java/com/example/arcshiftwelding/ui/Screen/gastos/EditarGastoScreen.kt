@@ -1116,21 +1116,6 @@ fun SeccionAccionesRapidasGasto(
                 onClick = onEditarClick
             )
 
-            BotonAccionDetalleGasto(
-                texto = "Duplicar",
-                icono = Icons.Default.ContentCopy,
-                color = Color(0xFF374151),
-                modifier = Modifier.weight(1f),
-                onClick = { }
-            )
-
-            BotonAccionDetalleGasto(
-                texto = "Descargar PDF",
-                icono = Icons.Default.Download,
-                color = Color(0xFF2E7D32),
-                modifier = Modifier.weight(1f),
-                onClick = { }
-            )
 
             BotonAccionDetalleGasto(
                 texto = "Eliminar",

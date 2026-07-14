@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import okhttp3.internal.http2.Header
 
@@ -160,9 +161,7 @@ fun HeaderClientes(
             modifier = Modifier.weight(1f)
         )
 
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Notifications, contentDescription = "Notificaciones")
-        }
+        CampanaNotificacionesPrincipal(navController)
         IconButton(
             onClick = {
                 navController.navigate(AppRoutes.LOGIN) {

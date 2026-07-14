@@ -7,6 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,6 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,7 +48,12 @@ import com.example.arcshiftwelding.utils.formatearTamanoComprobante
 import com.example.arcshiftwelding.utils.prepararCapturaFotoGasto
 import com.example.arcshiftwelding.utils.prepararComprobanteGastoDesdeDocumento
 import com.example.arcshiftwelding.utils.serializarComprobantes
-@OptIn(ExperimentalMaterial3Api::class)
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
+import kotlinx.coroutines.CoroutineScope
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NuevoGastoScreen(
     navController: NavController,
@@ -79,7 +89,19 @@ fun NuevoGastoScreen(
         cotizacionesDb
     }
 
-    var mostrarError by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+
+    val conceptoBring = remember { BringIntoViewRequester() }
+    val conceptoFocus = remember { FocusRequester() }
+    val categoriaBring = remember { BringIntoViewRequester() }
+    val fechaBring = remember { BringIntoViewRequester() }
+    val proveedorBring = remember { BringIntoViewRequester() }
+    val proveedorFocus = remember { FocusRequester() }
+    val subtotalBring = remember { BringIntoViewRequester() }
+    val subtotalFocus = remember { FocusRequester() }
+    val metodoPagoBring = remember { BringIntoViewRequester() }
 
     var telefonoProveedor by remember { mutableStateOf("") }
     var correoProveedor by remember { mutableStateOf("") }
@@ -194,6 +216,7 @@ fun NuevoGastoScreen(
 
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -240,22 +263,8 @@ fun NuevoGastoScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
 
-            if (mostrarError) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFEE2E2)
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(
-                        text = "Completa los campos obligatorios antes de guardar.",
-                        color = Color(0xFFDC2626),
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
+            AvisoValidacionFormulario(validacion)
+
 
             TarjetaSeccion(
                 titulo = "Información general",
@@ -268,18 +277,29 @@ fun NuevoGastoScreen(
                     CampoTextoCompacto(
                         label = "Concepto *",
                         value = concepto,
-                        onValueChange = { concepto = it },
+                        onValueChange = {
+                            concepto = it
+                            validacion.limpiar()
+                        },
                         placeholder = "Ej. Compra de material",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(conceptoBring)
+                            .focusRequester(conceptoFocus)
                     )
 
                     CampoDropdownCompacto(
                         label = "Categoría *",
                         value = categoria,
                         opciones = categorias,
-                        onValueChange = { categoria = it },
+                        onValueChange = {
+                            categoria = it
+                            validacion.limpiar()
+                        },
                         placeholder = "Categoría",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(categoriaBring)
                     )
                 }
 
@@ -292,8 +312,13 @@ fun NuevoGastoScreen(
                     CampoFechaCompacto(
                         label = "Fecha *",
                         value = fecha,
-                        onValueChange = { fecha = it },
-                        modifier = Modifier.weight(0.9f)
+                        onValueChange = {
+                            fecha = it
+                            validacion.limpiar()
+                        },
+                        modifier = Modifier
+                            .weight(0.9f)
+                            .bringIntoViewRequester(fechaBring)
                     )
 
                     CampoTextoCompacto(
@@ -301,9 +326,13 @@ fun NuevoGastoScreen(
                         value = proveedor,
                         onValueChange = {
                             if (it.length <= 80) proveedor = it
+                            validacion.limpiar()
                         },
                         placeholder = "Ej. Aceros del Norte",
-                        modifier = Modifier.weight(1.1f)
+                        modifier = Modifier
+                            .weight(1.1f)
+                            .bringIntoViewRequester(proveedorBring)
+                            .focusRequester(proveedorFocus)
                     )
                 }
             }
@@ -319,9 +348,15 @@ fun NuevoGastoScreen(
                     CampoFinancieroCompacto(
                         label = "Subtotal *",
                         value = subtotal,
-                        onValueChange = { subtotal = it },
+                        onValueChange = {
+                            subtotal = it
+                            validacion.limpiar()
+                        },
                         placeholder = "$ 0.00",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(subtotalBring)
+                            .focusRequester(subtotalFocus)
                     )
 
                     CampoDropdownCompacto(
@@ -378,9 +413,14 @@ fun NuevoGastoScreen(
                         label = "Método de pago *",
                         value = metodoPago,
                         opciones = metodosPago,
-                        onValueChange = { metodoPago = it },
+                        onValueChange = {
+                            metodoPago = it
+                            validacion.limpiar()
+                        },
                         placeholder = "Método de pago",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .bringIntoViewRequester(metodoPagoBring)
                     )
                 }
             }
@@ -638,7 +678,49 @@ fun NuevoGastoScreen(
 
                 Button(
                     onClick = {
-                        if (datosValidos) {
+                        val error = when {
+                            concepto.isBlank() -> Triple(
+                                "El concepto es obligatorio.",
+                                conceptoBring,
+                                conceptoFocus
+                            )
+                            categoria.isBlank() -> Triple(
+                                "Selecciona una categoría.",
+                                categoriaBring,
+                                null
+                            )
+                            fecha.isBlank() -> Triple(
+                                "Selecciona la fecha del gasto.",
+                                fechaBring,
+                                null
+                            )
+                            proveedor.isBlank() -> Triple(
+                                "El proveedor es obligatorio.",
+                                proveedorBring,
+                                proveedorFocus
+                            )
+                            subtotalValor <= 0.0 -> Triple(
+                                "Ingresa un subtotal mayor a cero.",
+                                subtotalBring,
+                                subtotalFocus
+                            )
+                            metodoPago.isBlank() -> Triple(
+                                "Selecciona el método de pago.",
+                                metodoPagoBring,
+                                null
+                            )
+                            else -> null
+                        }
+
+                        if (error != null) {
+                            mostrarErrorEnCampo(
+                                scope = scope,
+                                estado = validacion,
+                                mensaje = error.first,
+                                bringIntoViewRequester = error.second,
+                                focusRequester = error.third
+                            )
+                        } else {
                             viewModel.guardarGasto(
                                 concepto = concepto,
                                 categoria = categoria,
@@ -665,8 +747,6 @@ fun NuevoGastoScreen(
                                 comprobantesJson = serializarComprobantes(comprobantes),
                                 onFinish = { navController.popBackStack() }
                             )
-                        } else {
-                            mostrarError = true
                         }
                     },
                     modifier = Modifier.weight(1f),

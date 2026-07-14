@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.ui.Screen.cotizaciones
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -31,6 +32,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
 import com.example.arcshiftwelding.utils.MAX_ARCHIVO_ADJUNTO_BYTES
 import com.example.arcshiftwelding.utils.MAX_ARCHIVOS_ADJUNTOS_POR_REGISTRO
@@ -39,6 +41,9 @@ import com.example.arcshiftwelding.utils.formatearTamanoComprobante
 import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
 import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
 import com.example.arcshiftwelding.utils.serializarComprobantes
+import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
+import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
@@ -192,6 +197,18 @@ fun NuevaCotizacionScreen(
         mutableStateOf<List<ConceptoCotizacionForm>>(emptyList())
     }
 
+    val listaState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val validacion = rememberEstadoValidacionFormulario()
+    val snackbarValidacion = rememberSnackbarValidacion(validacion)
+
+    fun mostrarErrorCotizacion(mensaje: String, indice: Int) {
+        validacion.establecerMensajePublico(mensaje)
+        scope.launch {
+            listaState.animateScrollToItem(indice)
+        }
+    }
+
     val subtotalCalculado = conceptos.sumOf { it.total }
     val descuentoCalculado = subtotalCalculado * ((descuento.toDoubleOrNull() ?: 0.0) / 100.0)
     val subtotalConDescuento = subtotalCalculado - descuentoCalculado
@@ -202,6 +219,7 @@ fun NuevaCotizacionScreen(
 
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -238,6 +256,7 @@ fun NuevaCotizacionScreen(
         contentWindowInsets = WindowInsets(0)
     ) {paddingValues ->
         LazyColumn(
+            state = listaState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -259,6 +278,7 @@ fun NuevaCotizacionScreen(
                     onClienteSeleccionado = {
                         clienteSeleccionadoId = it
                         errorCliente = false
+                        validacion.limpiar()
                     },
                     errorCliente = errorCliente,
                     proyecto = proyecto,
@@ -335,16 +355,48 @@ fun NuevaCotizacionScreen(
             }
 
             item {
+                AvisoValidacionFormulario(validacion)
+            }
+
+            item {
                 BotonesNuevaCotizacion(
                     onCancelarClick = {
                         navController.popBackStack()
                     },
                     onGuardarClick = {
+                        validacion.limpiar()
                         val clienteId = clienteSeleccionadoId
 
-                        if (clienteId == null) {
-                            errorCliente = true
-                            return@BotonesNuevaCotizacion
+                        when {
+                            clienteId == null -> {
+                                errorCliente = true
+                                mostrarErrorCotizacion(
+                                    "Selecciona el cliente de la cotización.",
+                                    0
+                                )
+                                return@BotonesNuevaCotizacion
+                            }
+                            fecha.isBlank() -> {
+                                mostrarErrorCotizacion(
+                                    "Selecciona la fecha de emisión.",
+                                    0
+                                )
+                                return@BotonesNuevaCotizacion
+                            }
+                            vigencia.isBlank() -> {
+                                mostrarErrorCotizacion(
+                                    "Selecciona la fecha de vigencia.",
+                                    0
+                                )
+                                return@BotonesNuevaCotizacion
+                            }
+                            descripcion.isBlank() -> {
+                                mostrarErrorCotizacion(
+                                    "Ingresa la descripción del trabajo.",
+                                    0
+                                )
+                                return@BotonesNuevaCotizacion
+                            }
                         }
 
                         val detallesCotizacion = conceptos
@@ -366,6 +418,10 @@ fun NuevaCotizacionScreen(
                             }
 
                         if (detallesCotizacion.isEmpty()) {
+                            mostrarErrorCotizacion(
+                                "Agrega al menos un concepto completo con descripción, cantidad y precio.",
+                                1
+                            )
                             return@BotonesNuevaCotizacion
                         }
 
