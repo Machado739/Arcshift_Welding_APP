@@ -49,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.components.DialogoExportarArchivo
 import com.example.arcshiftwelding.ui.viewmodel.PeriodoReporte
 import com.example.arcshiftwelding.ui.viewmodel.RegistroReporteUi
 import com.example.arcshiftwelding.ui.viewmodel.ReporteDetalleUi
@@ -74,6 +76,14 @@ import com.example.arcshiftwelding.utils.generarReportePdf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+
+private data class ArchivoExportacionDetallePendiente(
+    val archivo: File,
+    val mimeType: String,
+    val asunto: String,
+    val tituloDialogo: String
+)
 
 @Composable
 fun DetalleReporteScreen(
@@ -85,6 +95,9 @@ fun DetalleReporteScreen(
     val reporte = uiState.reportePorTipo(tipoReporte)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var exportacionPendiente by remember {
+        mutableStateOf<ArchivoExportacionDetallePendiente?>(null)
+    }
     var mostrarTodosLosRegistros by rememberSaveable(
         tipoReporte,
         uiState.periodo.name
@@ -251,11 +264,11 @@ fun DetalleReporteScreen(
                                 )
                             }
                             resultado.onSuccess { archivo ->
-                                compartirArchivoReporte(
-                                    context = context,
+                                exportacionPendiente = ArchivoExportacionDetallePendiente(
                                     archivo = archivo,
                                     mimeType = "application/pdf",
-                                    asunto = "Reporte de ${reporte.titulo}"
+                                    asunto = "Reporte de ${reporte.titulo}",
+                                    tituloDialogo = "PDF generado"
                                 )
                             }.onFailure {
                                 Toast.makeText(
@@ -277,11 +290,11 @@ fun DetalleReporteScreen(
                                 )
                             }
                             resultado.onSuccess { archivo ->
-                                compartirArchivoReporte(
-                                    context = context,
+                                exportacionPendiente = ArchivoExportacionDetallePendiente(
                                     archivo = archivo,
                                     mimeType = "text/csv",
-                                    asunto = "Reporte de ${reporte.titulo}"
+                                    asunto = "Reporte de ${reporte.titulo}",
+                                    tituloDialogo = "Archivo de Excel generado"
                                 )
                             }.onFailure {
                                 Toast.makeText(
@@ -295,6 +308,23 @@ fun DetalleReporteScreen(
                 )
             }
         }
+    }
+
+    exportacionPendiente?.let { exportacion ->
+        DialogoExportarArchivo(
+            archivo = exportacion.archivo,
+            mimeType = exportacion.mimeType,
+            titulo = exportacion.tituloDialogo,
+            onDismiss = { exportacionPendiente = null },
+            onCompartir = {
+                compartirArchivoReporte(
+                    context = context,
+                    archivo = exportacion.archivo,
+                    mimeType = exportacion.mimeType,
+                    asunto = exportacion.asunto
+                )
+            }
+        )
     }
 }
 

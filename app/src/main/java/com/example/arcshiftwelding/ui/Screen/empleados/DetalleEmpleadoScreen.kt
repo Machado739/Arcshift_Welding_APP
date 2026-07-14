@@ -2,7 +2,10 @@ package com.example.arcshiftwelding.ui.Screen.empleados
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,6 +62,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -330,68 +336,113 @@ fun BadgeEstadoEmpleado(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardsContactoEmpleado(
     empleado: EmpleadoDetalleUI
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CardContactoEmpleado(
-            titulo = "Teléfono",
-            valor = empleado.telefono,
-            /*   accion = "Llamar",*/
-            icono = Icons.Default.Phone,
-            color = Color(0xFF2563EB),
-            modifier = Modifier.weight(1f)
-        )
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
-        CardContactoEmpleado(
-            titulo = "Correo",
-            valor = empleado.correo,
-            /*  accion = "Enviar",*/
-            icono = Icons.Default.Email,
-            color = Color(0xFF7C3AED),
-            modifier = Modifier.weight(1f)
-        )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CardContactoEmpleado(
+                titulo = "Teléfono",
+                valor = empleado.telefono,
+                icono = Icons.Default.Phone,
+                color = Color(0xFF2563EB),
+                maxLines = 2,
+                onLongClick = {
+                    copiarInformacionEmpleado(
+                        context = context,
+                        clipboardManager = clipboardManager,
+                        titulo = "Teléfono",
+                        valor = empleado.telefono
+                    )
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            CardContactoEmpleado(
+                titulo = "Correo",
+                valor = empleado.correo,
+                icono = Icons.Default.Email,
+                color = Color(0xFF7C3AED),
+                maxLines = 2,
+                onLongClick = {
+                    copiarInformacionEmpleado(
+                        context = context,
+                        clipboardManager = clipboardManager,
+                        titulo = "Correo",
+                        valor = empleado.correo
+                    )
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         CardContactoEmpleado(
             titulo = "Dirección",
             valor = empleado.direccion,
-            /* accion = "Ver",*/
             icono = Icons.Default.LocationOn,
             color = Color(0xFF16A34A),
-            modifier = Modifier.weight(1f)
+            maxLines = 3,
+            onLongClick = {
+                copiarInformacionEmpleado(
+                    context = context,
+                    clipboardManager = clipboardManager,
+                    titulo = "Dirección",
+                    valor = empleado.direccion
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "Mantén presionada una tarjeta para copiar la información.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color(0xFF64748B),
+            modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CardContactoEmpleado(
     titulo: String,
     valor: String,
-    /*  accion: String,*/
     icono: ImageVector,
     color: Color,
+    maxLines: Int,
+    onLongClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val valorVisible = valor.ifBlank { "No registrado" }
+
     Card(
-        modifier = modifier.height(60.dp),
+        modifier = modifier
+            .heightIn(min = 76.dp)
+            .combinedClickable(
+                onClick = {},
+                onLongClick = onLongClick
+            ),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
+                .fillMaxWidth()
+                .padding(10.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
@@ -399,35 +450,54 @@ fun CardContactoEmpleado(
                     modifier = Modifier.size(18.dp)
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(5.dp))
 
                 Text(
                     text = titulo,
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = valor,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.DarkGray,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                text = valorVisible,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (valor.isBlank()) Color.Gray else Color(0xFF334155),
+                maxLines = maxLines,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-            /*
-                        Text(
-                            text = accion,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = color,
-                            fontWeight = FontWeight.Bold
-                        )*/
         }
     }
+}
+
+private fun copiarInformacionEmpleado(
+    context: android.content.Context,
+    clipboardManager: androidx.compose.ui.platform.ClipboardManager,
+    titulo: String,
+    valor: String
+) {
+    val contenido = valor.trim()
+
+    if (contenido.isBlank()) {
+        Toast.makeText(
+            context,
+            "$titulo no registrado.",
+            Toast.LENGTH_SHORT
+        ).show()
+        return
+    }
+
+    clipboardManager.setText(AnnotatedString(contenido))
+
+    Toast.makeText(
+        context,
+        "$titulo copiado.",
+        Toast.LENGTH_SHORT
+    ).show()
 }
 
 @Composable

@@ -35,9 +35,12 @@ import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
 import com.example.arcshiftwelding.utils.abrirComprobante
 import com.example.arcshiftwelding.utils.deserializarComprobantes
 import com.example.arcshiftwelding.utils.formatearTamanoComprobante
-import com.example.arcshiftwelding.utils.generarYCompartirPdfCotizacion
+import com.example.arcshiftwelding.ui.components.DialogoExportarArchivo
+import com.example.arcshiftwelding.utils.compartirPdfCotizacion
+import com.example.arcshiftwelding.utils.generarPdfCotizacion
 import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
 import android.widget.Toast
+import java.io.File
 data class CotizacionDetalleUI(
     val id: Int,
     val folio: String,
@@ -98,6 +101,7 @@ fun DetalleCotizacionScreen(
     }
 
     var mostrarDialogoCrearProyecto by remember { mutableStateOf(false) }
+    var pdfPendiente by remember { mutableStateOf<File?>(null) }
 
     Scaffold(
         topBar = {
@@ -189,16 +193,15 @@ fun DetalleCotizacionScreen(
                     viewModel.rechazarCotizacion(cotizacionId)
                 },
                 onGenerarPdfClick = {
-                    val resultado = generarYCompartirPdfCotizacion(
+                    generarPdfCotizacion(
                         context = context,
                         cotizacionCompleta = cotizacionActual
-                    )
-
-                    if (resultado.isFailure) {
+                    ).onSuccess { archivo ->
+                        pdfPendiente = archivo
+                    }.onFailure { error ->
                         Toast.makeText(
                             context,
-                            resultado.exceptionOrNull()?.message
-                                ?: "No fue posible generar el PDF.",
+                            error.message ?: "No fue posible generar el PDF.",
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -242,6 +245,28 @@ fun DetalleCotizacionScreen(
                     }
                 ) {
                     Text("No, solo aprobar")
+                }
+            }
+        )
+    }
+
+    pdfPendiente?.let { archivo ->
+        DialogoExportarArchivo(
+            archivo = archivo,
+            mimeType = "application/pdf",
+            titulo = "Cotización generada",
+            onDismiss = { pdfPendiente = null },
+            onCompartir = {
+                compartirPdfCotizacion(
+                    context = context,
+                    archivoPdf = archivo,
+                    folio = cotizacionActual.cotizacion.folio
+                ).onFailure { error ->
+                    Toast.makeText(
+                        context,
+                        error.message ?: "No fue posible compartir el PDF.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         )

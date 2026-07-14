@@ -47,6 +47,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.components.DialogoExportarArchivo
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.ui.viewmodel.PeriodoReporte
 import com.example.arcshiftwelding.ui.viewmodel.ReporteDetalleUi
@@ -71,6 +75,14 @@ import com.example.arcshiftwelding.utils.generarReportePdf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+
+private data class ArchivoExportacionGeneralPendiente(
+    val archivo: File,
+    val mimeType: String,
+    val asunto: String,
+    val tituloDialogo: String
+)
 
 @Composable
 fun ReportesScreen(
@@ -80,6 +92,9 @@ fun ReportesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var exportacionPendiente by remember {
+        mutableStateOf<ArchivoExportacionGeneralPendiente?>(null)
+    }
 
     Column(
         modifier = Modifier
@@ -165,11 +180,11 @@ fun ReportesScreen(
                                 )
                             }
                             resultado.onSuccess { archivo ->
-                                compartirArchivoReporte(
-                                    context = context,
+                                exportacionPendiente = ArchivoExportacionGeneralPendiente(
                                     archivo = archivo,
                                     mimeType = "application/pdf",
-                                    asunto = "Reporte general"
+                                    asunto = "Reporte general",
+                                    tituloDialogo = "PDF generado"
                                 )
                             }.onFailure {
                                 Toast.makeText(
@@ -191,11 +206,11 @@ fun ReportesScreen(
                                 )
                             }
                             resultado.onSuccess { archivo ->
-                                compartirArchivoReporte(
-                                    context = context,
+                                exportacionPendiente = ArchivoExportacionGeneralPendiente(
                                     archivo = archivo,
                                     mimeType = "text/csv",
-                                    asunto = "Reporte general"
+                                    asunto = "Reporte general",
+                                    tituloDialogo = "Archivo de Excel generado"
                                 )
                             }.onFailure {
                                 Toast.makeText(
@@ -209,6 +224,23 @@ fun ReportesScreen(
                 )
             }
         }
+    }
+
+    exportacionPendiente?.let { exportacion ->
+        DialogoExportarArchivo(
+            archivo = exportacion.archivo,
+            mimeType = exportacion.mimeType,
+            titulo = exportacion.tituloDialogo,
+            onDismiss = { exportacionPendiente = null },
+            onCompartir = {
+                compartirArchivoReporte(
+                    context = context,
+                    archivo = exportacion.archivo,
+                    mimeType = exportacion.mimeType,
+                    asunto = exportacion.asunto
+                )
+            }
+        )
     }
 }
 

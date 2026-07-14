@@ -36,7 +36,7 @@ private val COLOR_AMBER_LIGHT = Color.rgb(255, 251, 235)
 private val COLOR_RED = Color.rgb(185, 28, 28)
 private val COLOR_RED_LIGHT = Color.rgb(254, 242, 242)
 
-fun generarYCompartirPdfCotizacion(
+fun generarPdfCotizacion(
     context: Context,
     cotizacionCompleta: CotizacionCompleta
 ): Result<File> = runCatching {
@@ -49,13 +49,12 @@ fun generarYCompartirPdfCotizacion(
         }
     }
 
-    val folioSeguro = cotizacion.folio
-        .ifBlank { "cotizacion_${cotizacion.id}" }
-        .replace(Regex("[^A-Za-z0-9_-]"), "_")
-
     val archivoPdf = File(
         carpeta,
-        "ARCSHIFT_WELDING_COTIZACION_$folioSeguro.pdf"
+        nombreArchivoCotizacion(
+            folio = cotizacion.folio,
+            cotizacionId = cotizacion.id
+        )
     )
 
     val documento = PdfDocument()
@@ -141,6 +140,18 @@ fun generarYCompartirPdfCotizacion(
         documento.close()
     }
 
+    archivoPdf
+}
+
+fun compartirPdfCotizacion(
+    context: Context,
+    archivoPdf: File,
+    folio: String
+): Result<Unit> = runCatching {
+    require(archivoPdf.exists()) {
+        "No se encontró el PDF de la cotización."
+    }
+
     val uri = FileProvider.getUriForFile(
         context,
         "${context.packageName}.fileprovider",
@@ -152,21 +163,51 @@ fun generarYCompartirPdfCotizacion(
         putExtra(Intent.EXTRA_STREAM, uri)
         putExtra(
             Intent.EXTRA_SUBJECT,
-            "Cotización ${cotizacion.folio} - ARCSHIFT WELDING"
+            "Cotización $folio - ARCSHIFT WELDING"
         )
         putExtra(
             Intent.EXTRA_TEXT,
-            "Se adjunta la cotización ${cotizacion.folio} de ARCSHIFT WELDING."
+            "Se adjunta la cotización $folio de ARCSHIFT WELDING."
         )
-        clipData = ClipData.newRawUri("Cotización", uri)
+        clipData = ClipData.newRawUri(archivoPdf.name, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     context.startActivity(
         Intent.createChooser(compartir, "Compartir cotización")
     )
+}
 
-    archivoPdf
+fun generarYCompartirPdfCotizacion(
+    context: Context,
+    cotizacionCompleta: CotizacionCompleta
+): Result<File> {
+    return generarPdfCotizacion(
+        context = context,
+        cotizacionCompleta = cotizacionCompleta
+    ).mapCatching { archivo ->
+        compartirPdfCotizacion(
+            context = context,
+            archivoPdf = archivo,
+            folio = cotizacionCompleta.cotizacion.folio
+        ).getOrThrow()
+        archivo
+    }
+}
+
+private fun nombreArchivoCotizacion(
+    folio: String,
+    cotizacionId: Int
+): String {
+    val folioSeguro = folio
+        .trim()
+        .uppercase(Locale.ROOT)
+        .ifBlank { "COT-${cotizacionId.toString().padStart(4, '0')}" }
+        .replace(Regex("[^A-Z0-9_-]"), "_")
+        .replace(Regex("_+"), "_")
+        .trim('_')
+
+    return "ARCSHIFT_WELDING_COTIZACION_$folioSeguro.pdf"
 }
 
 private class CotizacionPdfWriter(
@@ -194,7 +235,7 @@ private class CotizacionPdfWriter(
         canvas.drawRect(
             0f,
             0f,
-            PDF_PAGE_WIDTH.toFloat(),
+            canvas.width.toFloat(),
             98f,
             pintura
         )
@@ -302,7 +343,7 @@ private class CotizacionPdfWriter(
         vigencia: String,
         fechaAprobacion: String
     ) {
-        val alto = 52f
+        val alto = 58f
         asegurarEspacio(alto + 6f)
         val top = y
         dibujarTarjeta(top, alto, COLOR_SURFACE)
@@ -312,21 +353,21 @@ private class CotizacionPdfWriter(
             etiqueta = "FECHA DE EMISIÓN",
             valor = fechaCreacion.ifBlank { "No especificada" },
             x = PDF_MARGIN + 16f,
-            top = top + 13f,
+            top = top + 15f,
             ancho = anchoColumna - 24f
         )
         dibujarDatoCompacto(
             etiqueta = "VÁLIDA HASTA",
             valor = vigencia,
             x = PDF_MARGIN + anchoColumna + 10f,
-            top = top + 13f,
+            top = top + 15f,
             ancho = anchoColumna - 24f
         )
         dibujarDatoCompacto(
             etiqueta = "FECHA DE APROBACIÓN",
             valor = fechaAprobacion,
             x = PDF_MARGIN + (anchoColumna * 2f) + 4f,
-            top = top + 13f,
+            top = top + 15f,
             ancho = anchoColumna - 20f
         )
 
@@ -385,47 +426,53 @@ private class CotizacionPdfWriter(
         correo: String
     ) {
         configurarPintura(9f, COLOR_NAVY, negrita = false)
-        val anchoValor = (PDF_CONTENT_WIDTH / 2f) - 34f
+        val anchoValor = (PDF_CONTENT_WIDTH / 2f) - 36f
         val nombreLineas = envolverTexto(nombre, anchoValor)
         val contactoLineas = envolverTexto(contacto, anchoValor)
         val telefonoLineas = envolverTexto(telefono, anchoValor)
         val correoLineas = envolverTexto(correo, anchoValor)
 
-        val altoFila1 = maxOf(nombreLineas.size, contactoLineas.size) * 11f + 20f
-        val altoFila2 = maxOf(telefonoLineas.size, correoLineas.size) * 11f + 20f
-        val alto = altoFila1 + altoFila2 + 12f
+        val altoFila1 = maxOf(
+            48f,
+            29f + (maxOf(nombreLineas.size, contactoLineas.size) * 12f)
+        )
+        val altoFila2 = maxOf(
+            48f,
+            29f + (maxOf(telefonoLineas.size, correoLineas.size) * 12f)
+        )
+        val alto = altoFila1 + altoFila2
 
         asegurarEspacio(alto)
         val top = y
         dibujarTarjeta(top, alto, Color.WHITE)
-
         val mitad = PDF_MARGIN + (PDF_CONTENT_WIDTH / 2f)
+
         dibujarCampoTarjeta(
             etiqueta = "CLIENTE",
             lineas = nombreLineas,
             x = PDF_MARGIN + 16f,
-            top = top + 13f,
+            top = top + 17f,
             ancho = anchoValor
         )
         dibujarCampoTarjeta(
             etiqueta = "CONTACTO",
             lineas = contactoLineas,
             x = mitad + 12f,
-            top = top + 13f,
+            top = top + 17f,
             ancho = anchoValor
         )
         dibujarCampoTarjeta(
             etiqueta = "TELÉFONO",
             lineas = telefonoLineas,
             x = PDF_MARGIN + 16f,
-            top = top + altoFila1 + 6f,
+            top = top + altoFila1 + 17f,
             ancho = anchoValor
         )
         dibujarCampoTarjeta(
             etiqueta = "CORREO",
             lineas = correoLineas,
             x = mitad + 12f,
-            top = top + altoFila1 + 6f,
+            top = top + altoFila1 + 17f,
             ancho = anchoValor
         )
 
@@ -433,9 +480,9 @@ private class CotizacionPdfWriter(
         pintura.strokeWidth = 0.7f
         canvasActual().drawLine(
             mitad,
-            top + 9f,
+            top + 10f,
             mitad,
-            top + alto - 9f,
+            top + alto - 10f,
             pintura
         )
         canvasActual().drawLine(
@@ -446,7 +493,7 @@ private class CotizacionPdfWriter(
             pintura
         )
 
-        y += alto + 4f
+        y += alto + 6f
     }
 
     fun tarjetaTrabajo(
@@ -457,11 +504,9 @@ private class CotizacionPdfWriter(
         val ancho = PDF_CONTENT_WIDTH - 32f
         val proyectoLineas = envolverTexto(proyecto, ancho)
         val descripcionLineas = envolverTexto(descripcion, ancho)
-        val alto = 22f +
-                (proyectoLineas.size * 11f) +
-                18f +
-                (descripcionLineas.size * 11f) +
-                12f
+        val altoProyecto = 22f + (proyectoLineas.size * 12f)
+        val altoDescripcion = 22f + (descripcionLineas.size * 12f)
+        val alto = 14f + altoProyecto + 8f + altoDescripcion + 10f
 
         asegurarEspacio(alto)
         val top = y
@@ -471,11 +516,11 @@ private class CotizacionPdfWriter(
             etiqueta = "PROYECTO",
             lineas = proyectoLineas,
             x = PDF_MARGIN + 16f,
-            top = top + 13f,
+            top = top + 17f,
             ancho = ancho
         )
 
-        val topDescripcion = top + 32f + (proyectoLineas.size * 11f)
+        val topDescripcion = top + 17f + altoProyecto + 8f
         dibujarCampoTarjeta(
             etiqueta = "DESCRIPCIÓN DEL TRABAJO",
             lineas = descripcionLineas,
@@ -484,7 +529,7 @@ private class CotizacionPdfWriter(
             ancho = ancho
         )
 
-        y += alto + 4f
+        y += alto + 6f
     }
 
     fun encabezadoConceptos() {
@@ -495,7 +540,7 @@ private class CotizacionPdfWriter(
                 PDF_MARGIN,
                 y,
                 PDF_PAGE_WIDTH - PDF_MARGIN,
-                y + 23f
+                y + 25f
             ),
             5f,
             5f,
@@ -508,7 +553,7 @@ private class CotizacionPdfWriter(
         canvasActual().drawText("UNIDAD", 386f, y + 15f, pintura)
         dibujarTextoDerecha("P. UNITARIO", 503f, y + 15f)
         dibujarTextoDerecha("IMPORTE", PDF_PAGE_WIDTH - PDF_MARGIN - 9f, y + 15f)
-        y += 27f
+        y += 29f
     }
 
     fun concepto(
@@ -521,7 +566,7 @@ private class CotizacionPdfWriter(
     ) {
         configurarPintura(8f, COLOR_NAVY, negrita = false)
         val lineas = envolverTexto(descripcion.ifBlank { "Sin descripción" }, 275f)
-        val alto = maxOf(26f, (lineas.size * 11f) + 13f)
+        val alto = maxOf(30f, (lineas.size * 12f) + 15f)
 
         if (!hayEspacio(alto)) {
             nuevaPagina()
@@ -542,33 +587,33 @@ private class CotizacionPdfWriter(
         }
 
         configurarPintura(8f, COLOR_NAVY, negrita = false)
-        var yTexto = top + 15f
+        var yTexto = top + 18f
         lineas.forEach { linea ->
             canvasActual().drawText(linea, PDF_MARGIN + 10f, yTexto, pintura)
-            yTexto += 11f
+            yTexto += 12f
         }
 
         canvasActual().drawText(
             formatearNumeroPdf(cantidad),
             337f,
-            top + 15f,
+            top + 18f,
             pintura
         )
         canvasActual().drawText(
             unidad.ifBlank { "-" }.take(11),
             386f,
-            top + 15f,
+            top + 18f,
             pintura
         )
         dibujarTextoDerecha(
             formatearMonedaPdf(precioUnitario),
             503f,
-            top + 15f
+            top + 18f
         )
         dibujarTextoDerecha(
             formatearMonedaPdf(importe),
             PDF_PAGE_WIDTH - PDF_MARGIN - 9f,
-            top + 15f,
+            top + 18f,
             negrita = true
         )
 
@@ -960,10 +1005,10 @@ private class CotizacionPdfWriter(
 
         configurarPintura(9f, COLOR_NAVY, negrita = true)
         val lineas = envolverTexto(valor, ancho).take(2)
-        var yTexto = top + 15f
+        var yTexto = top + 17f
         lineas.forEach { linea ->
             canvasActual().drawText(linea, x, yTexto, pintura)
-            yTexto += 11f
+            yTexto += 12f
         }
     }
 
@@ -978,10 +1023,10 @@ private class CotizacionPdfWriter(
         canvasActual().drawText(etiqueta, x, top, pintura)
 
         configurarPintura(9f, COLOR_NAVY, negrita = false)
-        var yTexto = top + 14f
+        var yTexto = top + 17f
         lineas.forEach { linea ->
             canvasActual().drawText(linea, x, yTexto, pintura)
-            yTexto += 11f
+            yTexto += 12f
         }
     }
 
@@ -1152,19 +1197,22 @@ private class CotizacionPdfWriter(
         if (texto.isBlank()) return listOf("-")
 
         val resultado = mutableListOf<String>()
+
         texto.split('\n').forEach { parrafo ->
-            val palabras = parrafo.trim().split(Regex("\\s+"))
+            val palabras = parrafo
+                .trim()
+                .split(Regex("\\s+"))
+                .filter { it.isNotBlank() }
+                .flatMap { palabra -> dividirPalabraLarga(palabra, anchoMaximo) }
+
             var linea = ""
 
             palabras.forEach { palabra ->
                 val candidata = if (linea.isBlank()) palabra else "$linea $palabra"
-                if (
-                    pintura.measureText(candidata) <= anchoMaximo ||
-                    linea.isBlank()
-                ) {
+                if (pintura.measureText(candidata) <= anchoMaximo) {
                     linea = candidata
                 } else {
-                    resultado += linea
+                    if (linea.isNotBlank()) resultado += linea
                     linea = palabra
                 }
             }
@@ -1175,6 +1223,31 @@ private class CotizacionPdfWriter(
         }
 
         return resultado.ifEmpty { listOf("-") }
+    }
+
+    private fun dividirPalabraLarga(
+        palabra: String,
+        anchoMaximo: Float
+    ): List<String> {
+        if (pintura.measureText(palabra) <= anchoMaximo) {
+            return listOf(palabra)
+        }
+
+        val partes = mutableListOf<String>()
+        var parte = ""
+
+        palabra.forEach { caracter ->
+            val candidata = parte + caracter
+            if (parte.isNotBlank() && pintura.measureText(candidata) > anchoMaximo) {
+                partes += parte
+                parte = caracter.toString()
+            } else {
+                parte = candidata
+            }
+        }
+
+        if (parte.isNotBlank()) partes += parte
+        return partes
     }
 
     private fun configurarPintura(
