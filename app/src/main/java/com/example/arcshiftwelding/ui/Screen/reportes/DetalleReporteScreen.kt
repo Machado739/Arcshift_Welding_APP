@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.People
@@ -46,7 +48,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,6 +85,15 @@ fun DetalleReporteScreen(
     val reporte = uiState.reportePorTipo(tipoReporte)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var mostrarTodosLosRegistros by rememberSaveable(
+        tipoReporte,
+        uiState.periodo.name
+    ) {
+        mutableStateOf(false)
+    }
+    val registrosVisibles = reporte?.registros?.let { registros ->
+        if (mostrarTodosLosRegistros) registros else registros.take(LIMITE_REGISTROS_VISIBLES)
+    }.orEmpty()
 
     Column(
         modifier = Modifier
@@ -150,10 +164,14 @@ fun DetalleReporteScreen(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = reporte.registros.size.toString(),
+                        text = if (reporte.registros.isEmpty()) {
+                            "0"
+                        } else {
+                            "Mostrando ${registrosVisibles.size} de ${reporte.registros.size}"
+                        },
                         color = Color(0xFF2563EB),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                        fontSize = 10.sp
                     )
                 }
             }
@@ -174,7 +192,7 @@ fun DetalleReporteScreen(
                 }
             } else {
                 items(
-                    items = reporte.registros,
+                    items = registrosVisibles,
                     key = { "${reporte.tipo}-${it.id}" }
                 ) { registro ->
                     RegistroReporteCard(
@@ -186,6 +204,37 @@ fun DetalleReporteScreen(
                             }
                         }
                     )
+                }
+
+                if (reporte.registros.size > LIMITE_REGISTROS_VISIBLES) {
+                    item {
+                        OutlinedButton(
+                            onClick = {
+                                mostrarTodosLosRegistros = !mostrarTodosLosRegistros
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (mostrarTodosLosRegistros) {
+                                    Icons.Default.ExpandLess
+                                } else {
+                                    Icons.Default.ExpandMore
+                                },
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (mostrarTodosLosRegistros) {
+                                    "Mostrar solo los primeros $LIMITE_REGISTROS_VISIBLES"
+                                } else {
+                                    "Ver todos (${reporte.registros.size})"
+                                },
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
             }
 
@@ -645,3 +694,6 @@ private fun rutaRegistroReporte(tipo: String, id: Int): String? {
         else -> null
     }
 }
+
+
+private const val LIMITE_REGISTROS_VISIBLES = 10

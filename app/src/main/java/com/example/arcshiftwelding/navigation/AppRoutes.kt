@@ -229,6 +229,7 @@ object AppRoutes {
 ///                     MÓDULOS
 ///                     MÓDULOS
     const val MODULOS = "modulos"
+    const val CONFIGURACION = "configuracion"
 
     /** Compatibilidad temporal con navegaciones anteriores. */
     @Deprecated("Usa MODULOS")

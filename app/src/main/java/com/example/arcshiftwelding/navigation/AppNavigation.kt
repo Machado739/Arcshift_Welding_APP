@@ -25,6 +25,7 @@ import androidx.navigation.navArgument
 import com.example.arcshiftwelding.ui.Screen.dashboard.DashboardScreen
 import com.example.arcshiftwelding.ui.Screen.reportes.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
+import com.example.arcshiftwelding.ui.Screen.configuracion.ConfiguracionScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosScreen
@@ -63,6 +64,7 @@ import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.notifications.NotificacionesViewModel
 import com.example.arcshiftwelding.notifications.NotificacionesViewModelFactory
 import com.example.arcshiftwelding.notifications.NotificacionesScheduler
+import com.example.arcshiftwelding.security.SesionUsuarioStore
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModel
 import com.example.arcshiftwelding.ui.Screen.clientes.ClientesViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesViewModel
@@ -94,7 +96,17 @@ fun AppNavigation(
     val navController = rememberNavController()
     val context = LocalContext.current
     val database = remember {
-        ArcshiftWeldingDatabase.getDatabase(context)
+        ArcshiftWeldingDatabase.getDatabase(context.applicationContext)
+    }
+    val sesionStore = remember {
+        SesionUsuarioStore(context.applicationContext)
+    }
+    val destinoInicial = remember {
+        if (sesionStore.haySesionActiva()) {
+            AppRoutes.DASHBOARD
+        } else {
+            AppRoutes.LOGIN
+        }
     }
     val clientesViewModel: ClientesViewModel = viewModel(
         factory = ClientesViewModelFactory(
@@ -162,6 +174,15 @@ fun AppNavigation(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Cualquier acción de salida que navegue a LOGIN también invalida la sesión,
+    // aunque la pantalla de origen no conozca SesionUsuarioStore.
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == AppRoutes.LOGIN) {
+            sesionStore.cerrarSesion()
+        }
+    }
+
     var ultimaSolicitudNotificacionAtendida by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -194,7 +215,8 @@ fun AppNavigation(
         AppRoutes.EMPLEADOS,
         AppRoutes.REPORTES,
         AppRoutes.PROYECTOS,
-        AppRoutes.MODULOS
+        AppRoutes.MODULOS,
+        AppRoutes.CONFIGURACION
     )
 
     Scaffold(
@@ -207,7 +229,7 @@ fun AppNavigation(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = AppRoutes.LOGIN,
+            startDestination = destinoInicial,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8FAFC))
@@ -215,7 +237,7 @@ fun AppNavigation(
         ) {
             composable(AppRoutes.LOGIN) {
                 LoginScreen(
-                    onLoginClick = {
+                    onLoginExitoso = {
                         navController.navigate(AppRoutes.DASHBOARD) {
                             popUpTo(AppRoutes.LOGIN) {
                                 inclusive = true
@@ -933,6 +955,10 @@ fun AppNavigation(
 
             composable(AppRoutes.MODULOS) {
                 ModulosScreen(navController = navController)
+            }
+
+            composable(AppRoutes.CONFIGURACION) {
+                ConfiguracionScreen(navController = navController)
             }
         }
     }

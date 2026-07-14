@@ -3,6 +3,7 @@ package com.example.arcshiftwelding.data
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteStatement
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.security.PasswordSecurity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -344,7 +345,7 @@ object DatosPruebaSeeder {
                 statement.bindLong(1, (index + 1).toLong())
                 statement.bindString(2, datos[0])
                 statement.bindString(3, datos[1])
-                statement.bindString(4, datos[2])
+                statement.bindString(4, PasswordSecurity.hashPassword(datos[2]))
                 statement.bindString(5, datos[3])
                 statement.executeInsert()
             }

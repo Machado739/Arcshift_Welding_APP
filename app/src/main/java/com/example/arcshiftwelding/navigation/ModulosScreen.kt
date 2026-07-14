@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -95,6 +96,14 @@ fun ModulosScreen(
             icono = Icons.Default.Assessment,
             color = Color(0xFFD97706),
             colorFondo = Color(0xFFFEF3C7)
+        ),
+        ModuloAplicacion(
+            titulo = "Configuración",
+            descripcion = "Cuenta, contraseña y códigos de respaldo",
+            ruta = AppRoutes.CONFIGURACION,
+            icono = Icons.Default.Settings,
+            color = Color(0xFF475569),
+            colorFondo = Color(0xFFF1F5F9)
         )
     )
 
@@ -136,7 +145,7 @@ fun ModulosScreen(
             Spacer(modifier = Modifier.height(2.dp))
             TituloGrupoModulos(
                 titulo = "Administración",
-                descripcion = "Personal e información general"
+                descripcion = "Personal, reportes y seguridad"
             )
         }
 

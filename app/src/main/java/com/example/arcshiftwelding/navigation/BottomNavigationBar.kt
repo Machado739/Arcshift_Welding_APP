@@ -71,7 +71,8 @@ fun BottomNavigationBar(
                 AppRoutes.GASTOS,
                 AppRoutes.COTIZACIONES,
                 AppRoutes.EMPLEADOS,
-                AppRoutes.REPORTES
+                AppRoutes.REPORTES,
+                AppRoutes.CONFIGURACION
             )
         )
     )

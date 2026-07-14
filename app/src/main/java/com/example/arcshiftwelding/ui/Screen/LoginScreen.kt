@@ -15,17 +15,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -45,7 +52,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,21 +63,36 @@ import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit
+    onLoginExitoso: () -> Unit
 ) {
     val context = LocalContext.current
     val database = remember {
-        ArcshiftWeldingDatabase.getDatabase(context)
+        ArcshiftWeldingDatabase.getDatabase(context.applicationContext)
     }
     val loginViewModel: LoginViewModel = viewModel(
-        factory = LoginViewModelFactory(database)
+        factory = LoginViewModelFactory(
+            database = database,
+            context = context.applicationContext
+        )
     )
+
     val estadoCarga by loginViewModel.estadoCargaDatosPrueba.collectAsState()
+    val estadoLogin by loginViewModel.estadoAutenticacion.collectAsState()
 
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var mostrarPassword by remember { mutableStateOf(false) }
     var mostrarSelectorDatos by remember { mutableStateOf(false) }
+    var mostrarRecuperacion by remember { mutableStateOf(false) }
     var perfilSeleccionado by remember { mutableStateOf(PerfilDatosPrueba.REPORTES) }
+
+    fun intentarLogin() {
+        loginViewModel.iniciarSesion(
+            usuario = usuario,
+            password = password,
+            onLoginExitoso = onLoginExitoso
+        )
+    }
 
     if (mostrarSelectorDatos) {
         SelectorPerfilDatosPrueba(
@@ -81,6 +105,17 @@ fun LoginScreen(
                     perfil = perfilSeleccionado,
                     reemplazarDatosExistentes = true
                 )
+            }
+        )
+    }
+
+    if (mostrarRecuperacion) {
+        DialogoRecuperarAcceso(
+            usuarioInicial = usuario,
+            viewModel = loginViewModel,
+            onCerrar = {
+                mostrarRecuperacion = false
+                loginViewModel.limpiarEstadoRecuperacion()
             }
         )
     }
@@ -107,7 +142,7 @@ fun LoginScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(90.dp)
+                        .size(82.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFE0ECFF)),
                     contentAlignment = Alignment.Center
@@ -116,11 +151,11 @@ fun LoginScreen(
                         imageVector = Icons.Default.Build,
                         contentDescription = "Logo",
                         tint = Color(0xFF1D4ED8),
-                        modifier = Modifier.size(42.dp)
+                        modifier = Modifier.size(39.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Arcshift Welding",
@@ -134,7 +169,7 @@ fun LoginScreen(
                     color = Color.Gray
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 OutlinedTextField(
                     value = usuario,
@@ -145,10 +180,11 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    shape = RoundedCornerShape(14.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 OutlinedTextField(
                     value = password,
@@ -157,16 +193,85 @@ fun LoginScreen(
                     leadingIcon = {
                         Icon(Icons.Default.Lock, contentDescription = null)
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { mostrarPassword = !mostrarPassword }) {
+                            Icon(
+                                imageVector = if (mostrarPassword) {
+                                    Icons.Default.VisibilityOff
+                                } else {
+                                    Icons.Default.Visibility
+                                },
+                                contentDescription = if (mostrarPassword) {
+                                    "Ocultar contraseña"
+                                } else {
+                                    "Mostrar contraseña"
+                                }
+                            )
+                        }
+                    },
+                    visualTransformation = if (mostrarPassword) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    shape = RoundedCornerShape(14.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { intentarLogin() })
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = {
+                            loginViewModel.limpiarEstadoRecuperacion()
+                            mostrarRecuperacion = true
+                        }
+                    ) {
+                        Text("Usar código de respaldo")
+                    }
+                }
+
+                estadoLogin.mensaje?.let { mensaje ->
+                    Text(
+                        text = mensaje,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (estadoLogin.esError) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            Color(0xFF15803D)
+                        },
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                }
+
+                if (estadoLogin.usuarioInicialCreado) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFF7ED)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "Primer acceso: admin / admin123. Cámbiala desde Configuración.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF9A3412),
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                }
 
                 Button(
-                    onClick = onLoginClick,
+                    onClick = { intentarLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
@@ -174,9 +279,17 @@ fun LoginScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1D4ED8)
                     ),
-                    enabled = !estadoCarga.cargando
+                    enabled = !estadoCarga.cargando && !estadoLogin.cargando
                 ) {
-                    Text("Iniciar Sesión", fontWeight = FontWeight.Bold)
+                    if (estadoLogin.cargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(21.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Iniciar sesión", fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -188,9 +301,9 @@ fun LoginScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
+                        .height(50.dp),
                     shape = RoundedCornerShape(14.dp),
-                    enabled = !estadoCarga.cargando
+                    enabled = !estadoCarga.cargando && !estadoLogin.cargando
                 ) {
                     Text(
                         if (estadoCarga.cargando) {
@@ -241,6 +354,153 @@ fun LoginScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DialogoRecuperarAcceso(
+    usuarioInicial: String,
+    viewModel: LoginViewModel,
+    onCerrar: () -> Unit
+) {
+    val estado by viewModel.estadoRecuperacion.collectAsState()
+    var usuario by remember(usuarioInicial) { mutableStateOf(usuarioInicial) }
+    var codigo by remember { mutableStateOf("") }
+    var nuevaPassword by remember { mutableStateOf("") }
+    var confirmacion by remember { mutableStateOf("") }
+    var mostrarPassword by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = {
+            if (!estado.cargando) onCerrar()
+        },
+        icon = {
+            Icon(Icons.Default.Key, contentDescription = null)
+        },
+        title = {
+            Text("Recuperar acceso", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Utiliza uno de los códigos generados previamente en Configuración. El código quedará inutilizado después del cambio.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF64748B)
+                )
+
+                OutlinedTextField(
+                    value = usuario,
+                    onValueChange = { usuario = it },
+                    label = { Text("Usuario") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !estado.exitosa
+                )
+
+                OutlinedTextField(
+                    value = codigo,
+                    onValueChange = { codigo = it.uppercase() },
+                    label = { Text("Código de respaldo") },
+                    placeholder = { Text("XXXX-XXXX-XXXX") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !estado.exitosa
+                )
+
+                OutlinedTextField(
+                    value = nuevaPassword,
+                    onValueChange = { nuevaPassword = it },
+                    label = { Text("Nueva contraseña") },
+                    visualTransformation = if (mostrarPassword) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { mostrarPassword = !mostrarPassword }) {
+                            Icon(
+                                if (mostrarPassword) Icons.Default.VisibilityOff
+                                else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !estado.exitosa
+                )
+
+                OutlinedTextField(
+                    value = confirmacion,
+                    onValueChange = { confirmacion = it },
+                    label = { Text("Confirmar contraseña") },
+                    visualTransformation = if (mostrarPassword) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = !estado.exitosa
+                )
+
+                estado.mensaje?.let { mensaje ->
+                    Text(
+                        text = mensaje,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (estado.exitosa) {
+                            Color(0xFF15803D)
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (estado.exitosa) {
+                Button(onClick = onCerrar) {
+                    Text("Cerrar")
+                }
+            } else {
+                Button(
+                    onClick = {
+                        viewModel.recuperarAcceso(
+                            usuario = usuario,
+                            codigoRespaldo = codigo,
+                            nuevaPassword = nuevaPassword,
+                            confirmacion = confirmacion,
+                            onRecuperacionExitosa = {}
+                        )
+                    },
+                    enabled = !estado.cargando
+                ) {
+                    if (estado.cargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Cambiar contraseña")
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            if (!estado.exitosa) {
+                TextButton(
+                    onClick = onCerrar,
+                    enabled = !estado.cargando
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        }
+    )
 }
 
 @Composable

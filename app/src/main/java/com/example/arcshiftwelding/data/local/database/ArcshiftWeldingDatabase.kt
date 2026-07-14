@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.arcshiftwelding.data.local.dao.ClienteDao
+import com.example.arcshiftwelding.data.local.dao.CodigoRespaldoDao
 import com.example.arcshiftwelding.data.local.dao.CotizacionDao
 import com.example.arcshiftwelding.data.local.dao.DetalleCotizacionDao
 import com.example.arcshiftwelding.data.local.dao.EmpleadoDao
@@ -20,7 +21,9 @@ import com.example.arcshiftwelding.data.local.dao.ProyectoAvanceDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoEmpleadoDao
 import com.example.arcshiftwelding.data.local.dao.ProyectoMaterialDao
+import com.example.arcshiftwelding.data.local.dao.UsuarioDao
 import com.example.arcshiftwelding.data.local.entity.CategoriaProductoEntity
+import com.example.arcshiftwelding.data.local.entity.CodigoRespaldoEntity
 import com.example.arcshiftwelding.data.local.entity.ClienteEntity
 import com.example.arcshiftwelding.data.local.entity.CotizacionEntity
 import com.example.arcshiftwelding.data.local.entity.DetalleCotizacionEntity
@@ -57,10 +60,10 @@ import com.example.arcshiftwelding.data.local.entity.UsuarioEntity
         ProyectoMaterialEntity::class,
         PagoProgramadoEntity::class,
         ProyectoCostoEntity::class,
-        ProyectoAvanceEntity::class
-
-               ],
-    version = 30,
+        ProyectoAvanceEntity::class,
+        CodigoRespaldoEntity::class
+    ],
+    version = 31,
     exportSchema = false
 )
 abstract class ArcshiftWeldingDatabase : RoomDatabase() {
@@ -79,6 +82,8 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
     abstract fun pagoProgramadoDao(): PagoProgramadoDao
     abstract fun proyectoCostoDao(): ProyectoCostoDao
     abstract fun proyectoAvanceDao(): ProyectoAvanceDao
+    abstract fun usuarioDao(): UsuarioDao
+    abstract fun codigoRespaldoDao(): CodigoRespaldoDao
 
 
     companion object {
@@ -160,6 +165,34 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_30_31 = object : Migration(30, 31) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS codigos_respaldo (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        usuarioId INTEGER NOT NULL,
+                        codigoHash TEXT NOT NULL,
+                        usado INTEGER NOT NULL,
+                        fechaCreacion TEXT NOT NULL,
+                        fechaUso TEXT NOT NULL,
+                        FOREIGN KEY(usuarioId) REFERENCES usuarios(id)
+                            ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_codigos_respaldo_usuarioId " +
+                        "ON codigos_respaldo(usuarioId)"
+                )
+                database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                        "index_codigos_respaldo_usuarioId_codigoHash " +
+                        "ON codigos_respaldo(usuarioId, codigoHash)"
+                )
+            }
+        }
+
         fun getDatabase(context: Context): ArcshiftWeldingDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -172,7 +205,8 @@ abstract class ArcshiftWeldingDatabase : RoomDatabase() {
                         MIGRATION_26_27,
                         MIGRATION_27_28,
                         MIGRATION_28_29,
-                        MIGRATION_29_30
+                        MIGRATION_29_30,
+                        MIGRATION_30_31
                     )
                     .fallbackToDestructiveMigration()
                     .build()

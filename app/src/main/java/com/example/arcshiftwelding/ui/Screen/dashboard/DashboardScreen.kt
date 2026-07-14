@@ -1,78 +1,111 @@
 package com.example.arcshiftwelding.ui.Screen.dashboard
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.example.arcshiftwelding.TextoAutoAjustable
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.style.TextAlign
-import com.example.arcshiftwelding.navigation.AppRoutes
-import com.example.arcshiftwelding.notifications.NotificacionesViewModel
-import com.example.arcshiftwelding.notifications.NotificacionApp
-import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaConPanelNotificaciones
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlin.collections.take
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.navigation.navigateBottomBar
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.wrapContentHeight
+import com.example.arcshiftwelding.notifications.NotificacionApp
+import com.example.arcshiftwelding.notifications.NotificacionesViewModel
+import com.example.arcshiftwelding.security.SesionUsuarioStore
+import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaConPanelNotificaciones
+import com.example.arcshiftwelding.ui.viewmodel.ClienteRecienteDashboardUi
+import com.example.arcshiftwelding.ui.viewmodel.DashboardUiState
+import com.example.arcshiftwelding.ui.viewmodel.DashboardViewModel
+import com.example.arcshiftwelding.ui.viewmodel.DashboardViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.ProductoBajoStockDashboardUi
+import java.text.NumberFormat
+import java.time.LocalTime
+import java.util.Locale
+import kotlin.math.absoluteValue
 
-
-data class ProductoBajoStockDashboard(
-    val nombre: String,
-    val stock: String,
-    val estado: String
-)
-data class ClienteDashboard(
-    val nombre: String,
-    val detalle: String,
-    val color: Color
-)
 @Composable
 fun DashboardScreen(
     navController: NavController,
     notificacionesViewModel: NotificacionesViewModel,
     solicitudAbrirNotificaciones: Int = 0
 ) {
+    val context = LocalContext.current
+    val database = remember {
+        ArcshiftWeldingDatabase.getDatabase(context.applicationContext)
+    }
+    val dashboardViewModel: DashboardViewModel = viewModel(
+        factory = DashboardViewModelFactory(database)
+    )
+    val estado by dashboardViewModel.uiState.collectAsStateWithLifecycle()
     val notificaciones by notificacionesViewModel.notificaciones.collectAsStateWithLifecycle()
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
         containerColor = Color(0xFFF8FAFC)
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(
-                    start = 8.dp,
-                    top = 0.dp,
-                    end = 8.dp,
-                    bottom = 8.dp
-                )
+                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
                 .background(Color(0xFFF8FAFC))
         ) {
             HeaderDashboard(
@@ -83,45 +116,81 @@ fun DashboardScreen(
                 onMarcarTodasComoLeidas = notificacionesViewModel::marcarTodasComoLeidas
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            TarjetaBienvenida()
+            if (estado.cargando) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF2563EB)
+                )
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 14.dp)
             ) {
                 item {
+                    TarjetaBienvenida()
+                }
+
+                item {
                     TituloSeccion(
-                        titulo = "Resumen general",
-                        accion = "19 May - 26 May 2026"
+                        titulo = "Resumen del mes",
+                        accion = estado.periodoTexto
                     )
                 }
 
                 item {
-                    ResumenGeneral()
+                    ResumenGeneral(estado)
                 }
 
                 item {
                     Text(
                         text = "Acciones rápidas",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
                 }
 
                 item {
                     AccionesRapidas(
-                        onNuevoIngreso = {
-                            navController.navigateBottomBar(AppRoutes.INGRESOS)
-                        },
-                        onNuevoGasto = {
-                            navController.navigateBottomBar(AppRoutes.NUEVO_GASTO)
-                        },
-                        onNuevaCotizacion = {
+                        onNuevoIngreso = { navController.navigate(AppRoutes.NUEVO_INGRESO) },
+                        onNuevoGasto = { navController.navigate(AppRoutes.NUEVO_GASTO) },
+                        onNuevaCotizacion = { navController.navigate(AppRoutes.NUEVA_COTIZACION) },
+                        onNuevoCliente = { navController.navigate(AppRoutes.NUEVO_CLIENTE) },
+                        onVerInventario = {
+                            navController.navigateBottomBar(AppRoutes.INVENTARIO)
+                        }
+                    )
+                }
+
+                item {
+                    GraficaIngresosGastos(
+                        ingresos = estado.ingresosUltimos7Dias,
+                        gastos = estado.gastosUltimos7Dias,
+                        etiquetas = estado.etiquetasUltimos7Dias,
+                        totalIngresos = estado.ingresos,
+                        totalGastos = estado.gastos
+                    )
+                }
+
+                item {
+                    CotizacionesEstado(
+                        pendientes = estado.cotizacionesPendientes,
+                        aprobadas = estado.cotizacionesAprobadas,
+                        rechazadas = estado.cotizacionesRechazadas,
+                        onClick = {
                             navController.navigateBottomBar(AppRoutes.COTIZACIONES)
-                        },
-                        onNuevoCliente = {
-                            navController.navigateBottomBar(AppRoutes.NUEVO_CLIENTE)
+                        }
+                    )
+                }
+
+                item {
+                    SeccionClientesInventarioDashboard(
+                        clientes = estado.clientesRecientes,
+                        productos = estado.productosBajoStock,
+                        totalBajoStock = estado.cantidadProductosBajoStock,
+                        onVerClientes = {
+                            navController.navigateBottomBar(AppRoutes.CLIENTES)
                         },
                         onVerInventario = {
                             navController.navigateBottomBar(AppRoutes.INVENTARIO)
@@ -130,40 +199,18 @@ fun DashboardScreen(
                 }
 
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        GraficaIngresosGastos(
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        CotizacionesEstado(
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                item {
-                    SeccionClientesInventarioDashboard(
-                        onVerClientes = {
-                            navController.navigateBottomBar(AppRoutes.CLIENTES)
-                        },
-                        onVerInventario = {
-                            navController.navigateBottomBar(AppRoutes.SELECCIONAR_PRODUCTO_REPONER)
+                    ProximosCobros(
+                        estado = estado,
+                        onClick = {
+                            navController.navigateBottomBar(AppRoutes.INGRESOS)
                         }
                     )
-                }
-
-                item {
-                    ProximosCobros()
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeaderDashboard(
     navController: NavController,
@@ -174,22 +221,17 @@ fun HeaderDashboard(
 ) {
     Row(
         modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.White)
-        .padding(8.dp),
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
-    ){
-        IconButton(onClick = { }) {
-            Icon(Icons.Default.Menu, contentDescription = "Menú")
-        }
-
+    ) {
         Text(
             text = "Dashboard",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
-
 
         CampanaConPanelNotificaciones(
             notificaciones = notificaciones,
@@ -203,12 +245,12 @@ fun HeaderDashboard(
             onMarcarTodasComoLeidas = onMarcarTodasComoLeidas
         )
 
+        val context = LocalContext.current
         IconButton(
             onClick = {
+                SesionUsuarioStore(context.applicationContext).cerrarSesion()
                 navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
+                    popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
             }
@@ -222,13 +264,19 @@ fun HeaderDashboard(
 }
 
 @Composable
-fun TarjetaBienvenida() {
+private fun TarjetaBienvenida() {
+    val saludo = remember {
+        when (LocalTime.now().hour) {
+            in 5..11 -> "Buenos días"
+            in 12..18 -> "Buenas tardes"
+            else -> "Buenas noches"
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF0F3D73)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF0F3D73))
     ) {
         Row(
             modifier = Modifier
@@ -238,7 +286,7 @@ fun TarjetaBienvenida() {
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(46.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
@@ -247,391 +295,346 @@ fun TarjetaBienvenida() {
                     imageVector = Icons.Default.Build,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(27.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "ARCSHIFT",
+                    text = "ARCSHIFT WELDING",
                     color = Color.White,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
                 )
                 Text(
-                    text = "WELDING",
-                    color = Color(0xFF60A5FA),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "¡Buenos días, Jaime!",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Bienvenido a Arcshift Welding",
-                    color = Color.White.copy(alpha = 0.8f),
+                    text = "$saludo. Este es el estado actual del taller.",
+                    color = Color.White.copy(alpha = 0.82f),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
     }
 }
+
 @Composable
-fun ResumenGeneral() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        TarjetaResumen(
-            titulo = "Ingresos",
-            monto = "$24,000",
-            porcentaje = "15% vs mes anterior",
-            icono = Icons.Default.AttachMoney,
-            color = Color(0xFF16A34A),
-            datosGrafica = listOf(8f, 12f, 10f, 18f, 15f, 22f, 28f),
-            modifier = Modifier.weight(1f)
-        )
+private fun ResumenGeneral(estado: DashboardUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TarjetaResumen(
+                titulo = "Ingresos",
+                valor = moneda(estado.ingresos),
+                detalle = textoVariacion(estado.variacionIngresos),
+                icono = Icons.Default.AttachMoney,
+                color = Color(0xFF16A34A),
+                modifier = Modifier.weight(1f)
+            )
+            TarjetaResumen(
+                titulo = "Gastos",
+                valor = moneda(estado.gastos),
+                detalle = textoVariacion(estado.variacionGastos),
+                icono = Icons.Default.ShoppingBag,
+                color = Color(0xFFDC2626),
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-        TarjetaResumen(
-            titulo = "Gastos",
-            monto = "$13,500",
-            porcentaje = "8% vs mes anterior",
-            icono = Icons.Default.ShoppingBag,
-            color = Color(0xFFDC2626),
-            datosGrafica = listOf(6f, 8f, 9f, 12f, 15f, 17f, 21f),
-            modifier = Modifier.weight(1f)
-        )
-
-        TarjetaResumen(
-            titulo = "Utilidad",
-            monto = "$10,500",
-            porcentaje = "22% vs mes anterior",
-            icono = Icons.Default.BarChart,
-            color = Color(0xFF2563EB),
-            datosGrafica = listOf(5f, 9f, 7f, 13f, 11f, 18f, 20f),
-            modifier = Modifier.weight(1f)
-        )
-
-        TarjetaResumen(
-            titulo = "Cotizaciones",
-            monto = "15",
-            porcentaje = "7 pendientes",
-            icono = Icons.Default.Description,
-            color = Color(0xFF7C3AED),
-            datosGrafica = listOf(2f, 4f, 3f, 6f, 5f, 8f, 9f),
-            modifier = Modifier.weight(1f)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TarjetaResumen(
+                titulo = "Utilidad",
+                valor = moneda(estado.utilidad),
+                detalle = if (estado.utilidad >= 0) "Resultado positivo" else "Resultado negativo",
+                icono = Icons.Default.BarChart,
+                color = if (estado.utilidad >= 0) Color(0xFF2563EB) else Color(0xFFDC2626),
+                modifier = Modifier.weight(1f)
+            )
+            TarjetaResumen(
+                titulo = "Cotizaciones",
+                valor = estado.cotizaciones.toString(),
+                detalle = "${estado.cotizacionesPendientes} pendientes",
+                icono = Icons.Default.Description,
+                color = Color(0xFF7C3AED),
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
+
 @Composable
-fun TarjetaResumen(
+private fun TarjetaResumen(
     titulo: String,
-    monto: String,
-    porcentaje: String,
+    valor: String,
+    detalle: String,
     icono: ImageVector,
     color: Color,
-    datosGrafica: List<Float>,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.height(120.dp),
+        modifier = modifier.height(88.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .background(color.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
             ) {
+                Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(9.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = titulo,
-                    color = color,
+                    color = Color(0xFF64748B),
+                    fontSize = 10.sp,
+                    maxLines = 1
+                )
+                Text(
+                    text = valor,
+                    color = Color(0xFF0F172A),
                     fontWeight = FontWeight.Bold,
+                    fontSize = tamanoMonto(valor),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = detalle,
+                    color = color,
                     fontSize = 9.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
-
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(color.copy(alpha = 0.15f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icono,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.size(15.dp)
-                    )
-                }
             }
-
-            Text(
-                text = monto,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            TextoAutoAjustable(
-                text = porcentaje,
-                color = Color.Gray,
-                maxFontSize = 8.sp,
-                minFontSize = 5.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            MiniGraficaResumen(
-                datos = datosGrafica,
-                color = color,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(30.dp)
-            )
         }
     }
 }
 
 @Composable
-fun MiniGraficaResumen(
-    datos: List<Float>,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Canvas(
-        modifier = modifier
-            .background(color.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
-            .padding(4.dp)
-    ) {
-        if (datos.size < 2) return@Canvas
-
-        val maxDato = datos.maxOrNull() ?: 1f
-        val minDato = datos.minOrNull() ?: 0f
-        val rango = (maxDato - minDato).takeIf { it != 0f } ?: 1f
-
-        val espacioX = size.width / (datos.size - 1)
-
-        val path = Path()
-
-        datos.forEachIndexed { index, valor ->
-            val x = index * espacioX
-            val y = size.height - ((valor - minDato) / rango * size.height)
-
-            if (index == 0) {
-                path.moveTo(x, y)
-            } else {
-                path.lineTo(x, y)
-            }
-        }
-
-        drawPath(
-            path = path,
-            color = color,
-            style = Stroke(
-                width = 3.dp.toPx(),
-                cap = StrokeCap.Round
-            )
-        )
-
-        datos.forEachIndexed { index, valor ->
-            val x = index * espacioX
-            val y = size.height - ((valor - minDato) / rango * size.height)
-
-            drawCircle(
-                color = color,
-                radius = 2.5.dp.toPx(),
-                center = Offset(x, y)
-            )
-        }
-    }
-}
-@Composable
-fun AccionesRapidas(
+private fun AccionesRapidas(
     onNuevoIngreso: () -> Unit,
     onNuevoGasto: () -> Unit,
     onNuevaCotizacion: () -> Unit,
     onNuevoCliente: () -> Unit,
     onVerInventario: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        BotonAccionRapida(
-            texto = "Nuevo ingreso",
-            icono = Icons.Default.AttachMoney,
-            color = Color(0xFF16A34A),
-            onClick = onNuevoIngreso,
-            modifier = Modifier.weight(1f)
-        )
+    val acciones = listOf(
+        AccionRapida("Ingreso", Icons.Default.AttachMoney, Color(0xFF16A34A), onNuevoIngreso),
+        AccionRapida("Gasto", Icons.Default.ShoppingBag, Color(0xFFDC2626), onNuevoGasto),
+        AccionRapida("Cotización", Icons.Default.Description, Color(0xFF2563EB), onNuevaCotizacion),
+        AccionRapida("Cliente", Icons.Default.PersonAdd, Color(0xFF7C3AED), onNuevoCliente),
+        AccionRapida("Inventario", Icons.Default.Inventory, Color(0xFFF59E0B), onVerInventario)
+    )
 
-        BotonAccionRapida(
-            texto = "Nuevo gasto",
-            icono = Icons.Default.ShoppingBag,
-            color = Color(0xFFEF4444),
-            onClick = onNuevoGasto,
-            modifier = Modifier.weight(1f)
-        )
-
-        BotonAccionRapida(
-            texto = "Nueva cotización",
-            icono = Icons.Default.Description,
-            color = Color(0xFF2563EB),
-            onClick = onNuevaCotizacion,
-            modifier = Modifier.weight(1f)
-        )
-
-        BotonAccionRapida(
-            texto = "Nuevo cliente",
-            icono = Icons.Default.PersonAdd,
-            color = Color(0xFF16A34A),
-            onClick = onNuevoCliente,
-            modifier = Modifier.weight(1f)
-        )
-
-        BotonAccionRapida(
-            texto = "Ver inventario",
-            icono = Icons.Default.Inventory,
-            color = Color(0xFF7C3AED),
-            onClick = onVerInventario,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-fun BotonAccionRapida(
-    texto: String,
-    icono: ImageVector,
-    color: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        onClick = onClick,
-        modifier = modifier.height(82.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = texto,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-    }
-}
-@Composable
-fun GraficaIngresosGastos(
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(210.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                text = "Ingresos vs Gastos",
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            GraficaLinealIngresosGastos(
-                ingresos = listOf(3000f, 8000f, 14000f, 18000f, 17000f, 21000f, 24000f),
-                gastos = listOf(2000f, 6000f, 9000f, 11000f, 12000f, 13500f, 15000f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth()
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        if (maxWidth < 350.dp) {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 1.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Total ingresos",
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-
-                    Text(
-                        text = "$24,000",
-                        color = Color(0xFF16A34A),
-                        fontWeight = FontWeight.Bold
+                items(acciones, key = { it.texto }) { accion ->
+                    TarjetaAccionRapida(
+                        accion = accion,
+                        modifier = Modifier.width(108.dp)
                     )
                 }
+            }
+        } else {
+            val columnas = when {
+                maxWidth >= 720.dp -> 5
+                maxWidth >= 390.dp -> 3
+                else -> 2
+            }
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "Total gastos",
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-
-                    Text(
-                        text = "$13,500",
-                        color = Color(0xFFDC2626),
-                        fontWeight = FontWeight.Bold
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                acciones.chunked(columnas).forEach { fila ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        fila.forEach { accion ->
+                            TarjetaAccionRapida(
+                                accion = accion,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        repeat(columnas - fila.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 @Composable
-fun GraficaLinealIngresosGastos(
+private fun TarjetaAccionRapida(
+    accion: AccionRapida,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(70.dp)
+            .clickable { accion.onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 9.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(31.dp)
+                    .background(accion.color.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = accion.icono,
+                    contentDescription = null,
+                    tint = accion.color,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(7.dp))
+            Text(
+                text = accion.texto,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 10.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+private data class AccionRapida(
+    val texto: String,
+    val icono: ImageVector,
+    val color: Color,
+    val onClick: () -> Unit
+)
+
+@Composable
+private fun GraficaIngresosGastos(
+    ingresos: List<Float>,
+    gastos: List<Float>,
+    etiquetas: List<String>,
+    totalIngresos: Double,
+    totalGastos: Double
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(196.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Ingresos vs. gastos",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Últimos 7 días",
+                    color = Color(0xFF64748B),
+                    fontSize = 10.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            GraficaLinealIngresosGastos(
+                ingresos = ingresos,
+                gastos = gastos,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+
+            if (etiquetas.isNotEmpty()) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    etiquetas.forEach { etiqueta ->
+                        Text(
+                            text = etiqueta,
+                            color = Color(0xFF94A3B8),
+                            fontSize = 8.sp,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(7.dp))
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                IndicadorGrafica(
+                    titulo = "Ingresos del mes",
+                    valor = moneda(totalIngresos),
+                    color = Color(0xFF16A34A),
+                    modifier = Modifier.weight(1f)
+                )
+                IndicadorGrafica(
+                    titulo = "Gastos del mes",
+                    valor = moneda(totalGastos),
+                    color = Color(0xFFDC2626),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun IndicadorGrafica(
+    titulo: String,
+    valor: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(text = titulo, color = Color(0xFF64748B), fontSize = 9.sp)
+        Text(
+            text = valor,
+            color = color,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun GraficaLinealIngresosGastos(
     ingresos: List<Float>,
     gastos: List<Float>,
     modifier: Modifier = Modifier
@@ -641,504 +644,458 @@ fun GraficaLinealIngresosGastos(
             .background(Color(0xFFF8FAFC), RoundedCornerShape(10.dp))
             .padding(10.dp)
     ) {
-        val todosLosDatos = ingresos + gastos
+        val cantidad = minOf(ingresos.size, gastos.size)
+        if (cantidad < 2) return@Canvas
 
-        if (ingresos.size < 2 || gastos.size < 2) return@Canvas
+        val datos = ingresos.take(cantidad) + gastos.take(cantidad)
+        val maximo = (datos.maxOrNull() ?: 0f).coerceAtLeast(1f)
+        val espacioX = size.width / (cantidad - 1)
 
-        val maxDato = todosLosDatos.maxOrNull() ?: 1f
-        val minDato = todosLosDatos.minOrNull() ?: 0f
-        val rango = (maxDato - minDato).takeIf { it != 0f } ?: 1f
-
-        val ancho = size.width
-        val alto = size.height
-
-        fun crearPath(datos: List<Float>): Path {
-            val path = Path()
-            val espacioX = ancho / (datos.size - 1)
-
-            datos.forEachIndexed { index, valor ->
-                val x = index * espacioX
-                val y = alto - ((valor - minDato) / rango * alto)
-
-                if (index == 0) {
-                    path.moveTo(x, y)
-                } else {
-                    path.lineTo(x, y)
+        fun path(lista: List<Float>): Path {
+            return Path().apply {
+                lista.take(cantidad).forEachIndexed { index, valor ->
+                    val x = index * espacioX
+                    val y = size.height - (valor.coerceAtLeast(0f) / maximo * size.height)
+                    if (index == 0) moveTo(x, y) else lineTo(x, y)
                 }
             }
-
-            return path
         }
 
         drawPath(
-            path = crearPath(ingresos),
+            path = path(ingresos),
             color = Color(0xFF16A34A),
-            style = Stroke(
-                width = 3.dp.toPx(),
-                cap = StrokeCap.Round
-            )
+            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
         )
-
         drawPath(
-            path = crearPath(gastos),
+            path = path(gastos),
             color = Color(0xFFDC2626),
-            style = Stroke(
-                width = 3.dp.toPx(),
-                cap = StrokeCap.Round
-            )
+            style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
         )
-
-        ingresos.forEachIndexed { index, valor ->
-            val espacioX = ancho / (ingresos.size - 1)
-            val x = index * espacioX
-            val y = alto - ((valor - minDato) / rango * alto)
-
-            drawCircle(
-                color = Color(0xFF16A34A),
-                radius = 3.dp.toPx(),
-                center = Offset(x, y)
-            )
-        }
-
-        gastos.forEachIndexed { index, valor ->
-            val espacioX = ancho / (gastos.size - 1)
-            val x = index * espacioX
-            val y = alto - ((valor - minDato) / rango * alto)
-
-            drawCircle(
-                color = Color(0xFFDC2626),
-                radius = 3.dp.toPx(),
-                center = Offset(x, y)
-            )
-        }
     }
-}@Composable
-fun CotizacionesEstado(
-    modifier: Modifier = Modifier
+}
+
+@Composable
+private fun CotizacionesEstado(
+    pendientes: Int,
+    aprobadas: Int,
+    rechazadas: Int,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = modifier.height(210.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp)
         ) {
             Text(
                 text = "Cotizaciones por estado",
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp
             )
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val tamanoDona = if (maxWidth < 340.dp) 88.dp else 104.dp
 
-            GraficaDonaCotizaciones(
-                pendientes = 7,
-                aceptadas = 5,
-                rechazadas = 3,
-                modifier = Modifier
-                    .size(90.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        EstadoCotizacion("Pendientes", pendientes, Color(0xFFF59E0B))
+                        EstadoCotizacion("Aprobadas", aprobadas, Color(0xFF16A34A))
+                        EstadoCotizacion("Rechazadas", rechazadas, Color(0xFFDC2626))
+                    }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            EstadoCotizacion("Pendientes", "7", Color(0xFFF59E0B))
-            EstadoCotizacion("Aceptadas", "5", Color(0xFF16A34A))
-            EstadoCotizacion("Rechazadas", "3", Color(0xFFDC2626))
+                    GraficaDonaCotizaciones(
+                        pendientes = pendientes,
+                        aprobadas = aprobadas,
+                        rechazadas = rechazadas,
+                        modifier = Modifier.size(tamanoDona)
+                    )
+                }
+            }
         }
     }
 }
+
 @Composable
-fun GraficaDonaCotizaciones(
+private fun GraficaDonaCotizaciones(
     pendientes: Int,
-    aceptadas: Int,
+    aprobadas: Int,
     rechazadas: Int,
     modifier: Modifier = Modifier
 ) {
-    val total = pendientes + aceptadas + rechazadas
+    val total = pendientes + aprobadas + rechazadas
 
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (total <= 0) return@Canvas
-
-            val strokeWidth = 16.dp.toPx()
-
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val grosor = 14.dp.toPx()
             val rect = Rect(
-                left = strokeWidth / 2,
-                top = strokeWidth / 2,
-                right = size.width - strokeWidth / 2,
-                bottom = size.height - strokeWidth / 2
+                left = grosor / 2,
+                top = grosor / 2,
+                right = size.width - grosor / 2,
+                bottom = size.height - grosor / 2
             )
 
-            var anguloInicio = -90f
-
-            val anguloPendientes = 360f * pendientes / total
-            val anguloAceptadas = 360f * aceptadas / total
-            val anguloRechazadas = 360f * rechazadas / total
-
-            drawArc(
-                color = Color(0xFFF59E0B),
-                startAngle = anguloInicio,
-                sweepAngle = anguloPendientes,
-                useCenter = false,
-                topLeft = rect.topLeft,
-                size = rect.size,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Butt
+            if (total <= 0) {
+                drawArc(
+                    color = Color(0xFFE2E8F0),
+                    startAngle = -90f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    topLeft = rect.topLeft,
+                    size = rect.size,
+                    style = Stroke(width = grosor)
                 )
-            )
+                return@Canvas
+            }
 
-            anguloInicio += anguloPendientes
-
-            drawArc(
-                color = Color(0xFF16A34A),
-                startAngle = anguloInicio,
-                sweepAngle = anguloAceptadas,
-                useCenter = false,
-                topLeft = rect.topLeft,
-                size = rect.size,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Butt
-                )
-            )
-
-            anguloInicio += anguloAceptadas
-
-            drawArc(
-                color = Color(0xFFDC2626),
-                startAngle = anguloInicio,
-                sweepAngle = anguloRechazadas,
-                useCenter = false,
-                topLeft = rect.topLeft,
-                size = rect.size,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Butt
-                )
-            )
+            var inicio = -90f
+            listOf(
+                pendientes to Color(0xFFF59E0B),
+                aprobadas to Color(0xFF16A34A),
+                rechazadas to Color(0xFFDC2626)
+            ).forEach { (cantidad, color) ->
+                val angulo = 360f * cantidad / total
+                if (angulo > 0f) {
+                    drawArc(
+                        color = color,
+                        startAngle = inicio,
+                        sweepAngle = angulo,
+                        useCenter = false,
+                        topLeft = rect.topLeft,
+                        size = rect.size,
+                        style = Stroke(width = grosor, cap = StrokeCap.Butt)
+                    )
+                }
+                inicio += angulo
+            }
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = total.toString(),
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
+                fontSize = 18.sp
             )
-
-            Text(
-                text = "Total",
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall
-            )
+            Text(text = "Mes", color = Color(0xFF64748B), fontSize = 9.sp)
         }
     }
 }
+
 @Composable
-fun EstadoCotizacion(
-    texto: String,
-    cantidad: String,
-    color: Color
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 1.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(7.dp)
-                .background(color, CircleShape)
-        )
-
-        Spacer(modifier = Modifier.width(5.dp))
-
-        Text(
-            text = texto,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 9.sp,
-            modifier = Modifier.weight(1f)
-        )
-
-        Text(
-            text = cantidad,
-            style = MaterialTheme.typography.labelSmall,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-@Composable
-fun ClientesRecientes(
-    modifier: Modifier = Modifier,
-    clientes: List<ClienteDashboard> = listOf(
-        ClienteDashboard("Eduardo Barrios", "2 cotizaciones", Color(0xFF16A34A)),
-        ClienteDashboard("José Vera", "1 cotización", Color(0xFF2563EB)),
-        ClienteDashboard("María López", "1 cotización", Color(0xFF7C3AED)),
-        ClienteDashboard("Carlos Ruiz", "3 cotizaciones", Color(0xFFF59E0B))
-    ),
-    onVerTodos: () -> Unit = {}
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Clientes recientes",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Text(
-                    text = "Ver todos",
-                    color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.clickable {
-                        onVerTodos()
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            clientes.take(4).forEach { cliente ->
-                ClienteItem(
-                    nombre = cliente.nombre,
-                    detalle = cliente.detalle,
-                    color = cliente.color
-                )
-            }
-        }
-    }
-}
-@Composable
-fun ClienteItem(
-    nombre: String,
-    detalle: String,
-    color: Color
-) {
+private fun EstadoCotizacion(texto: String, cantidad: Int, color: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(20.dp)
+        Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
+        Spacer(modifier = Modifier.width(7.dp))
+        Text(text = texto, fontSize = 11.sp, modifier = Modifier.weight(1f))
+        Text(
+            text = cantidad.toString(),
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp
         )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column {
-            Text(
-                text = nombre,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Text(
-                text = detalle,
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
     }
 }
 
+@Composable
+private fun SeccionClientesInventarioDashboard(
+    clientes: List<ClienteRecienteDashboardUi>,
+    productos: List<ProductoBajoStockDashboardUi>,
+    totalBajoStock: Int,
+    onVerClientes: () -> Unit,
+    onVerInventario: () -> Unit
+) {
+    val cantidadVisible = maxOf(clientes.size.coerceAtMost(4), productos.size.coerceAtMost(4))
+    val altura = when (cantidadVisible) {
+        0 -> 112.dp
+        1 -> 128.dp
+        2 -> 158.dp
+        3 -> 188.dp
+        else -> 218.dp
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(altura),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ClientesRecientes(
+            clientes = clientes,
+            onVerTodos = onVerClientes,
+            modifier = Modifier.weight(1f).fillMaxHeight()
+        )
+        InventarioBajoStock(
+            productos = productos,
+            totalBajoStock = totalBajoStock,
+            onVerInventario = onVerInventario,
+            modifier = Modifier.weight(1f).fillMaxHeight()
+        )
+    }
+}
 
 @Composable
-fun InventarioBajoStock(
-    modifier: Modifier = Modifier,
-    productos: List<ProductoBajoStockDashboard> = listOf(
-        ProductoBajoStockDashboard("PTR 2\" x 2\"", "Stock: 10", "Bajo"),
-        ProductoBajoStockDashboard("Tubo 1 1/2\"", "Stock: 8", "Bajo"),
-        ProductoBajoStockDashboard("Placa 1/4\"", "Stock: 5", "Bajo"),
-        ProductoBajoStockDashboard("Soldadura 6013", "Stock: 3", "Bajo")
-    ),
-    onVerInventario: () -> Unit = {}
+private fun ClientesRecientes(
+    clientes: List<ClienteRecienteDashboardUi>,
+    onVerTodos: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Text(
-                    text = "Inventario con bajo stock",
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    modifier = Modifier.weight(1f)
-                )
+        Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+            EncabezadoTarjetaLista(
+                titulo = "Clientes recientes",
+                onVerTodos = onVerTodos
+            )
+            Spacer(modifier = Modifier.height(7.dp))
 
-                Text(
-                    text = "Ver todos",
-                    color = Color(0xFF2563EB),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.clickable {
-                        onVerInventario()
+            if (clientes.isEmpty()) {
+                MensajeSinDatos("No hay clientes registrados.")
+            } else {
+                clientes.take(4).forEach { cliente ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(27.dp)
+                                .background(Color(0xFFDBEAFE), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = Color(0xFF2563EB),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(7.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = cliente.nombre,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 10.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = cliente.detalle,
+                                color = Color(0xFF64748B),
+                                fontSize = 8.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            productos.take(4).forEach { producto ->
-                ProductoStockItem(
-                    nombre = producto.nombre,
-                    stock = producto.stock,
-                    estado = producto.estado
-                )
+                }
             }
         }
     }
 }
+
 @Composable
-fun ProductoStockItem(
-    nombre: String,
-    stock: String,
-    estado: String
+private fun InventarioBajoStock(
+    productos: List<ProductoBajoStockDashboardUi>,
+    totalBajoStock: Int,
+    onVerInventario: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Row(
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+            EncabezadoTarjetaLista(
+                titulo = "Stock bajo ($totalBajoStock)",
+                onVerTodos = onVerInventario
+            )
+            Spacer(modifier = Modifier.height(7.dp))
+
+            if (productos.isEmpty()) {
+                MensajeSinDatos("No hay productos con stock bajo.")
+            } else {
+                productos.take(4).forEach { producto ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(27.dp)
+                                .background(
+                                    if (producto.agotado) Color(0xFFFEE2E2) else Color(0xFFFEF3C7),
+                                    RoundedCornerShape(8.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (producto.agotado) Icons.Default.Warning else Icons.Default.Inventory,
+                                contentDescription = null,
+                                tint = if (producto.agotado) Color(0xFFDC2626) else Color(0xFFF59E0B),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(7.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = producto.nombre,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 10.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${producto.stock} ${producto.unidad} · mín. ${producto.stockMinimo}",
+                                color = if (producto.agotado) Color(0xFFDC2626) else Color(0xFFF59E0B),
+                                fontSize = 8.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EncabezadoTarjetaLista(
+    titulo: String,
+    onVerTodos: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = titulo,
+            fontWeight = FontWeight.Bold,
+            fontSize = 11.sp,
+            modifier = Modifier.weight(1f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = "Ver",
+            color = Color(0xFF2563EB),
+            fontSize = 9.sp,
+            modifier = Modifier.clickable(onClick = onVerTodos)
+        )
+    }
+}
+
+@Composable
+private fun MensajeSinDatos(texto: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = texto,
+            color = Color(0xFF94A3B8),
+            fontSize = 9.sp
+        )
+    }
+}
+
+@Composable
+private fun ProximosCobros(
+    estado: DashboardUiState,
+    onClick: () -> Unit
+) {
+    val proximo = estado.proximoCobro
+    val fondo = if (proximo?.vencido == true) Color(0xFFFFF1F2) else Color(0xFFEAF2FF)
+    val color = if (proximo?.vencido == true) Color(0xFFDC2626) else Color(0xFF2563EB)
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .background(Color(0xFFE5E7EB), RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Inventory,
-                contentDescription = null,
-                tint = Color.DarkGray,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = nombre,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 10.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = stock,
-                color = Color(0xFFF59E0B),
-                fontSize = 9.sp,
-                maxLines = 1
-            )
-        }
-
-        Text(
-            text = estado,
-            color = Color(0xFFDC2626),
-            fontWeight = FontWeight.Bold,
-            fontSize = 9.sp,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-fun ProximosCobros() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFEAF2FF)
-        )
+        colors = CardDefaults.cardColors(containerColor = fondo)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.CalendarMonth,
-                contentDescription = null,
-                tint = Color(0xFF2563EB)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .background(color.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Próximos cobros",
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Tienes 3 cobros pendientes por cobrar",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(21.dp)
                 )
             }
-
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (proximo?.vencido == true) "Cobros vencidos" else "Próximos cobros",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0F172A)
+                )
+                Text(
+                    text = when {
+                        estado.cantidadPagosPendientes == 0 -> "No hay pagos pendientes."
+                        proximo == null -> "${estado.cantidadPagosPendientes} pagos por cobrar."
+                        else -> "${proximo.descripcion} · ${proximo.fecha} · ${moneda(proximo.monto)}"
+                    },
+                    color = Color(0xFF64748B),
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (estado.cantidadPagosPendientes > 0) {
+                    Text(
+                        text = "${estado.cantidadPagosPendientes} pendientes · Total ${moneda(estado.totalPorCobrar)}",
+                        color = color,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null
+                contentDescription = null,
+                tint = color
             )
         }
     }
 }
 
 @Composable
-fun TituloSeccion(
-    titulo: String,
-    accion: String
-) {
+private fun TituloSeccion(titulo: String, accion: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -1148,76 +1105,45 @@ fun TituloSeccion(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
-
-        AssistChip(
-            onClick = { },
-            label = {
-                Text(
-                    text = accion,
-                    style = MaterialTheme.typography.labelSmall
-                )
-            },
-            leadingIcon = {
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFFEFF6FF)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF2563EB),
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = accion,
+                    color = Color(0xFF2563EB),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-        )
+        }
     }
 }
 
-@Composable
-fun SeccionClientesInventarioDashboard(
-    clientes: List<ClienteDashboard> = listOf(
-        ClienteDashboard("Eduardo Barrios", "2 cotizaciones", Color(0xFF16A34A)),
-        ClienteDashboard("José Vera", "1 cotización", Color(0xFF2563EB)),
-        ClienteDashboard("María López", "1 cotización", Color(0xFF7C3AED)),
-        ClienteDashboard("Carlos Ruiz", "3 cotizaciones", Color(0xFFF59E0B))
-    ),
-    productos: List<ProductoBajoStockDashboard> = listOf(
-        ProductoBajoStockDashboard("PTR 2\" x 2\"", "Stock: 10", "Bajo"),
-        ProductoBajoStockDashboard("Tubo 1 1/2\"", "Stock: 8", "Bajo"),
-        ProductoBajoStockDashboard("Placa 1/4\"", "Stock: 5", "Bajo"),
-        ProductoBajoStockDashboard("Soldadura 6013", "Stock: 3", "Bajo")
-    ),
-    onVerClientes: () -> Unit = {},
-    onVerInventario: () -> Unit = {}
-) {
-    val cantidadVisible = maxOf(
-        clientes.size.coerceAtMost(4),
-        productos.size.coerceAtMost(4)
-    )
+private fun moneda(valor: Double): String =
+    NumberFormat.getCurrencyInstance(Locale("es", "MX")).format(valor)
 
-    val alturaTarjetas = when (cantidadVisible) {
-        0 -> 100.dp
-        1 -> 120.dp
-        2 -> 150.dp
-        3 -> 185.dp
-        else -> 230.dp
+private fun textoVariacion(valor: Double?): String {
+    if (valor == null || valor.isNaN() || valor.isInfinite()) {
+        return "Sin comparación anterior"
     }
+    val signo = if (valor >= 0) "+" else "-"
+    return "$signo${String.format(Locale("es", "MX"), "%.1f", valor.absoluteValue)}% vs. mes anterior"
+}
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(alturaTarjetas),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        ClientesRecientes(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            clientes = clientes,
-            onVerTodos = onVerClientes
-        )
-
-        InventarioBajoStock(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            productos = productos,
-            onVerInventario = onVerInventario
-        )
-    }
+private fun tamanoMonto(valor: String) = when {
+    valor.length >= 15 -> 13.sp
+    valor.length >= 12 -> 15.sp
+    else -> 17.sp
 }
