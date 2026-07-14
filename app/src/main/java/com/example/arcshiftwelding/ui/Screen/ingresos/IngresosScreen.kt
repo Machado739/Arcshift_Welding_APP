@@ -1,5 +1,7 @@
 package com.example.arcshiftwelding.ui.Screen.ingresos
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,12 +18,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,7 +34,133 @@ import com.example.arcshiftwelding.ui.viewmodel.IngresoUI
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.PagoPorCobrarUI
 import com.example.arcshiftwelding.ui.viewmodel.formatoDinero
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
+
+enum class PeriodoIngresos(val etiqueta: String) {
+    TODO("Todo"),
+    HOY("Hoy"),
+    SEMANA("Semana"),
+    MES("Mes"),
+    ANIO("Año")
+}
+
+private val formatosFechaIngresos = listOf(
+    DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+    DateTimeFormatter.ISO_LOCAL_DATE
+)
+
+private fun convertirFechaIngreso(valor: String): LocalDate? {
+    val fechaLimpia = valor
+        .trim()
+        .substringBefore(" ")
+        .substringBefore("T")
+
+    if (fechaLimpia.isBlank() || fechaLimpia.equals("Sin fecha", ignoreCase = true)) {
+        return null
+    }
+
+    formatosFechaIngresos.forEach { formato ->
+        runCatching {
+            LocalDate.parse(fechaLimpia, formato)
+        }.getOrNull()?.let { fecha ->
+            return fecha
+        }
+    }
+
+    return null
+}
+
+private fun fechaPerteneceAlPeriodo(
+    fechaTexto: String,
+    periodo: PeriodoIngresos,
+    hoy: LocalDate = LocalDate.now()
+): Boolean {
+    if (periodo == PeriodoIngresos.TODO) return true
+
+    val fecha = convertirFechaIngreso(fechaTexto) ?: return false
+
+    return when (periodo) {
+        PeriodoIngresos.TODO -> true
+        PeriodoIngresos.HOY -> fecha == hoy
+        PeriodoIngresos.SEMANA -> {
+            val inicioSemana = hoy.with(
+                TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)
+            )
+            val finSemana = hoy.with(
+                TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)
+            )
+
+            !fecha.isBefore(inicioSemana) && !fecha.isAfter(finSemana)
+        }
+
+        PeriodoIngresos.MES ->
+            fecha.year == hoy.year && fecha.month == hoy.month
+
+        PeriodoIngresos.ANIO -> fecha.year == hoy.year
+    }
+}
+
+@Composable
+fun FiltroPeriodoIngresos(
+    seleccionado: PeriodoIngresos,
+    onSeleccionar: (PeriodoIngresos) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(29.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PeriodoIngresos.values().forEach { periodo ->
+            val estaSeleccionado = seleccionado == periodo
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable { onSeleccionar(periodo) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = periodo.etiqueta,
+                    fontSize = 10.sp,
+                    fontWeight = if (estaSeleccionado) {
+                        FontWeight.SemiBold
+                    } else {
+                        FontWeight.Normal
+                    },
+                    color = if (estaSeleccionado) {
+                        Color(0xFF1D4ED8)
+                    } else {
+                        Color(0xFF64748B)
+                    },
+                    maxLines = 1
+                )
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                Box(
+                    modifier = Modifier
+                        .width(22.dp)
+                        .height(2.dp)
+                        .background(
+                            color = if (estaSeleccionado) {
+                                Color(0xFF1D4ED8)
+                            } else {
+                                Color.Transparent
+                            },
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun IngresosScreen(
@@ -38,41 +168,80 @@ fun IngresosScreen(
     viewModel: IngresosViewModel
 ) {
     var categoriaSeleccionada by remember { mutableStateOf("Todos") }
+    var periodoSeleccionado by remember { mutableStateOf(PeriodoIngresos.TODO) }
+    var resumenExpandido by rememberSaveable { mutableStateOf(false) }
     var busqueda by remember { mutableStateOf("") }
 
     val ingresos by viewModel.ingresos.collectAsState()
     val pagosPorCobrar by viewModel.pagosPorCobrar.collectAsState()
+    val hoy = LocalDate.now()
 
-    val ingresosFiltrados = ingresos.filter { ingreso ->
-        val coincideCategoria =
-            categoriaSeleccionada == "Todos" ||
-                    categoriaSeleccionada == "Pagos" && ingreso.categoria == "Pagos" ||
-                    categoriaSeleccionada == "Anticipos" && ingreso.categoria == "Anticipos"
-
-        val coincideBusqueda =
-            ingreso.cliente.contains(busqueda, ignoreCase = true) ||
-                    ingreso.trabajo.contains(busqueda, ignoreCase = true) ||
-                    ingreso.proyecto.contains(busqueda, ignoreCase = true) ||
-                    ingreso.concepto.contains(busqueda, ignoreCase = true) ||
-                    ingreso.folio.contains(busqueda, ignoreCase = true) ||
-                    ingreso.metodoPago.contains(busqueda, ignoreCase = true)
-
-        coincideCategoria && coincideBusqueda
+    val ingresosPorPeriodo = remember(ingresos, periodoSeleccionado, hoy) {
+        ingresos.filter { ingreso ->
+            fechaPerteneceAlPeriodo(
+                fechaTexto = ingreso.fecha,
+                periodo = periodoSeleccionado,
+                hoy = hoy
+            )
+        }
     }
 
-    val pagosPorCobrarFiltrados = pagosPorCobrar.filter { pago ->
-        val coincideCategoria =
-            categoriaSeleccionada == "Todos" ||
-                    categoriaSeleccionada == "Por cobrar"
+    val pagosPorCobrarPorPeriodo = remember(
+        pagosPorCobrar,
+        periodoSeleccionado,
+        hoy
+    ) {
+        pagosPorCobrar.filter { pago ->
+            fechaPerteneceAlPeriodo(
+                fechaTexto = pago.fechaProgramada,
+                periodo = periodoSeleccionado,
+                hoy = hoy
+            )
+        }
+    }
 
-        val coincideBusqueda =
-            pago.cliente.contains(busqueda, ignoreCase = true) ||
-                    pago.trabajo.contains(busqueda, ignoreCase = true) ||
-                    pago.proyecto.contains(busqueda, ignoreCase = true) ||
-                    pago.fechaProgramada.contains(busqueda, ignoreCase = true) ||
-                    pago.observaciones.contains(busqueda, ignoreCase = true)
+    val ingresosFiltrados = remember(
+        ingresosPorPeriodo,
+        categoriaSeleccionada,
+        busqueda
+    ) {
+        ingresosPorPeriodo.filter { ingreso ->
+            val coincideCategoria =
+                categoriaSeleccionada == "Todos" ||
+                        categoriaSeleccionada == "Pagos" && ingreso.categoria == "Pagos" ||
+                        categoriaSeleccionada == "Anticipos" && ingreso.categoria == "Anticipos"
 
-        coincideCategoria && coincideBusqueda
+            val coincideBusqueda =
+                ingreso.cliente.contains(busqueda, ignoreCase = true) ||
+                        ingreso.trabajo.contains(busqueda, ignoreCase = true) ||
+                        ingreso.proyecto.contains(busqueda, ignoreCase = true) ||
+                        ingreso.concepto.contains(busqueda, ignoreCase = true) ||
+                        ingreso.folio.contains(busqueda, ignoreCase = true) ||
+                        ingreso.metodoPago.contains(busqueda, ignoreCase = true)
+
+            coincideCategoria && coincideBusqueda
+        }
+    }
+
+    val pagosPorCobrarFiltrados = remember(
+        pagosPorCobrarPorPeriodo,
+        categoriaSeleccionada,
+        busqueda
+    ) {
+        pagosPorCobrarPorPeriodo.filter { pago ->
+            val coincideCategoria =
+                categoriaSeleccionada == "Todos" ||
+                        categoriaSeleccionada == "Por cobrar"
+
+            val coincideBusqueda =
+                pago.cliente.contains(busqueda, ignoreCase = true) ||
+                        pago.trabajo.contains(busqueda, ignoreCase = true) ||
+                        pago.proyecto.contains(busqueda, ignoreCase = true) ||
+                        pago.fechaProgramada.contains(busqueda, ignoreCase = true) ||
+                        pago.observaciones.contains(busqueda, ignoreCase = true)
+
+            coincideCategoria && coincideBusqueda
+        }
     }
 
     Column(
@@ -88,37 +257,33 @@ fun IngresosScreen(
     ) {
         HeaderIngresos(navController = navController)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        ResumenIngresos(
-            ingresos = ingresos,
-            pagosPorCobrar = pagosPorCobrar
+        FiltroPeriodoIngresos(
+            seleccionado = periodoSeleccionado,
+            onSeleccionar = { periodoSeleccionado = it }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(5.dp))
+
+        ResumenIngresos(
+            ingresos = ingresosPorPeriodo,
+            pagosPorCobrar = pagosPorCobrarPorPeriodo,
+            expandido = resumenExpandido,
+            onCambiarExpandido = { resumenExpandido = !resumenExpandido }
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
 
         BarraBusquedaIngresos(
             busqueda = busqueda,
-            onBusquedaChange = { busqueda = it }
+            onBusquedaChange = { busqueda = it },
+            onNuevoIngreso = {
+                navController.navigate(AppRoutes.NUEVO_INGRESO)
+            }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                navController.navigate(AppRoutes.NUEVO_INGRESO)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D4ED8)
-            )
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Nuevo Ingreso")
-        }
-
+        Spacer(modifier = Modifier.height(5.dp))
 
         FiltrosCategoriaIngresos(
             seleccionada = categoriaSeleccionada,
@@ -127,7 +292,7 @@ fun IngresosScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         when (categoriaSeleccionada) {
             "Por cobrar" -> {
@@ -221,125 +386,231 @@ fun HeaderIngresos(
 @Composable
 fun ResumenIngresos(
     ingresos: List<IngresoUI>,
-    pagosPorCobrar: List<PagoPorCobrarUI>
+    pagosPorCobrar: List<PagoPorCobrarUI>,
+    expandido: Boolean,
+    onCambiarExpandido: () -> Unit
 ) {
     val totalRecibido = ingresos.sumOf { it.totalNumero }
-
     val totalPagos = ingresos
         .filter { it.categoria == "Pagos" }
         .sumOf { it.totalNumero }
-
     val totalAnticipos = ingresos
         .filter { it.categoria == "Anticipos" }
         .sumOf { it.totalNumero }
-
     val totalPorCobrar = pagosPorCobrar.sumOf {
         it.totalPendienteProgramadoNumero
     }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable { onCambiarExpandido() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        CardResumenIngreso(
-            modifier = Modifier.weight(1f),
-            titulo = "Recibido",
-            monto = totalRecibido.formatoDinero(),
-            subtitulo = "Total",
-            icono = Icons.Default.AttachMoney,
-            color = Color(0xFF2563EB),
-            fondo = Color(0xFFEFF6FF)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 11.dp, vertical = 9.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ResumenPrincipalIngreso(
+                    titulo = "Recibido",
+                    monto = totalRecibido.formatoDinero(),
+                    icono = Icons.Default.AttachMoney,
+                    color = Color(0xFF2563EB),
+                    fondo = Color(0xFFEFF6FF),
+                    modifier = Modifier.weight(1f)
+                )
 
-        CardResumenIngreso(
-            modifier = Modifier.weight(1f),
-            titulo = "Pagos",
-            monto = totalPagos.formatoDinero(),
-            subtitulo = "Directos",
-            icono = Icons.Default.CheckCircle,
-            color = Color(0xFF16A34A),
-            fondo = Color(0xFFF0FDF4)
-        )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .width(1.dp)
+                        .height(34.dp)
+                        .background(Color(0xFFE2E8F0))
+                )
 
-        CardResumenIngreso(
-            modifier = Modifier.weight(1f),
-            titulo = "Anticipos",
-            monto = totalAnticipos.formatoDinero(),
-            subtitulo = "Iniciales",
-            icono = Icons.Default.Savings,
-            color = Color(0xFFF59E0B),
-            fondo = Color(0xFFFFFBEB)
-        )
+                ResumenPrincipalIngreso(
+                    titulo = "Por cobrar",
+                    monto = totalPorCobrar.formatoDinero(),
+                    icono = Icons.Default.Schedule,
+                    color = Color(0xFF7C3AED),
+                    fondo = Color(0xFFF5F3FF),
+                    modifier = Modifier.weight(1f)
+                )
 
-        CardResumenIngreso(
-            modifier = Modifier.weight(1f),
-            titulo = "Por cobrar",
-            monto = totalPorCobrar.formatoDinero(),
-            subtitulo = "Programado",
-            icono = Icons.Default.Schedule,
-            color = Color(0xFF7C3AED),
-            fondo = Color(0xFFF5F3FF)
-        )
+                Icon(
+                    imageVector = if (expandido) {
+                        Icons.Default.ExpandLess
+                    } else {
+                        Icons.Default.ExpandMore
+                    },
+                    contentDescription = if (expandido) {
+                        "Contraer resumen"
+                    } else {
+                        "Desplegar resumen"
+                    },
+                    tint = Color(0xFF64748B),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = expandido) {
+                Column {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 9.dp, bottom = 8.dp),
+                        color = Color(0xFFE2E8F0)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ResumenSecundarioIngreso(
+                            titulo = "Pagos",
+                            monto = totalPagos.formatoDinero(),
+                            subtitulo = "Directos",
+                            icono = Icons.Default.CheckCircle,
+                            color = Color(0xFF16A34A),
+                            fondo = Color(0xFFF0FDF4),
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        ResumenSecundarioIngreso(
+                            titulo = "Anticipos",
+                            monto = totalAnticipos.formatoDinero(),
+                            subtitulo = "Iniciales",
+                            icono = Icons.Default.Savings,
+                            color = Color(0xFFF59E0B),
+                            fondo = Color(0xFFFFFBEB),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun CardResumenIngreso(
-    modifier: Modifier = Modifier,
+private fun ResumenPrincipalIngreso(
+    titulo: String,
+    monto: String,
+    icono: ImageVector,
+    color: Color,
+    fondo: Color,
+    modifier: Modifier = Modifier
+) {
+    val tamanoMonto = when {
+        monto.length >= 17 -> 11.sp
+        monto.length >= 14 -> 12.sp
+        monto.length >= 11 -> 13.sp
+        else -> 15.sp
+    }
+
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(fondo, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(7.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = titulo,
+                fontSize = 9.sp,
+                color = Color(0xFF64748B),
+                maxLines = 1
+            )
+            Text(
+                text = monto,
+                fontSize = tamanoMonto,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF0F172A),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResumenSecundarioIngreso(
     titulo: String,
     monto: String,
     subtitulo: String,
     icono: ImageVector,
     color: Color,
-    fondo: Color
+    fondo: Color,
+    modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.height(105.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    val tamanoMonto = when {
+        monto.length >= 17 -> 10.sp
+        monto.length >= 14 -> 11.sp
+        else -> 12.sp
+    }
+
+    Row(
+        modifier = modifier
+            .background(Color(0xFFF8FAFC), RoundedCornerShape(9.dp))
+            .padding(horizontal = 9.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .size(28.dp)
+                .background(fondo, CircleShape),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(fondo.copy(alpha = 0.15f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icono,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(16.dp)
+            )
+        }
 
-            Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.width(7.dp))
 
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = titulo,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
-
+                fontSize = 9.sp,
+                color = Color(0xFF64748B),
+                maxLines = 1
             )
-
             Text(
                 text = monto,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Black
+                fontSize = tamanoMonto,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF0F172A),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-
             Text(
                 text = subtitulo,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                fontSize = 8.sp,
+                color = Color(0xFF94A3B8),
+                maxLines = 1
             )
         }
     }
@@ -348,11 +619,12 @@ fun CardResumenIngreso(
 @Composable
 fun BarraBusquedaIngresos(
     busqueda: String,
-    onBusquedaChange: (String) -> Unit
+    onBusquedaChange: (String) -> Unit,
+    onNuevoIngreso: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -360,10 +632,11 @@ fun BarraBusquedaIngresos(
             onValueChange = onBusquedaChange,
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp),
+                .height(46.dp),
             placeholder = {
                 Text(
-                    text = "Buscar ingreso..."
+                    text = "Buscar ingreso...",
+                    fontSize = 13.sp
                 )
             },
             leadingIcon = {
@@ -374,31 +647,26 @@ fun BarraBusquedaIngresos(
                 )
             },
             singleLine = true,
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(10.dp)
         )
-/*
-        OutlinedButton(
-            onClick = { },
-            modifier = Modifier.height(48.dp),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp)
+
+        FilledIconButton(
+            onClick = onNuevoIngreso,
+            modifier = Modifier.size(46.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = Color(0xFF1D4ED8),
+                contentColor = Color.White
+            )
         ) {
             Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                imageVector = Icons.Default.Add,
+                contentDescription = "Nuevo ingreso",
+                modifier = Modifier.size(22.dp)
             )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-                text = "Filtros",
-                fontSize = 12.sp
-            )
-        }*/
+        }
     }
 }
-
 
 @Composable
 fun FiltrosCategoriaIngresos(
@@ -436,28 +704,41 @@ fun CategoriaChip(
     seleccionado: Boolean,
     onClick: () -> Unit
 ) {
-    AssistChip(
-        onClick = onClick,
-        label = {
-            Text(
-                text = texto,
-                maxLines = 1
-            )
-        },
-        leadingIcon = {
+    Surface(
+        modifier = Modifier
+            .height(32.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(10.dp),
+        color = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = if (seleccionado) Color(0xFF93C5FD) else Color(0xFFCBD5E1)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             if (seleccionado) {
                 Icon(
-                    Icons.Default.Check,
+                    imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF1D4ED8),
+                    modifier = Modifier.size(14.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
             }
-        },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF1D4ED8) else Color.DarkGray
-        )
-    )
+
+            Text(
+                text = texto,
+                fontSize = 11.sp,
+                fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (seleccionado) Color(0xFF1D4ED8) else Color(0xFF334155),
+                maxLines = 1
+            )
+        }
+    }
 }
 
 @Composable
@@ -627,7 +908,7 @@ fun ItemIngreso(
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -1,5 +1,10 @@
 package com.example.arcshiftwelding.ui.Screen.gastos
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,18 +17,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
-import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
 import com.example.arcshiftwelding.utils.ComprobanteArchivoSeleccionado
-import kotlin.collections.filter
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.time.temporal.TemporalAdjusters
+import java.util.Locale
+
 
 data class GastoUi(
     val id: Int,
@@ -50,94 +63,115 @@ data class GastoUi(
     val comprobantes: List<ComprobanteArchivoSeleccionado> = emptyList()
 )
 
+private enum class PeriodoGastos(val etiqueta: String) {
+    TODO("Todo"),
+    HOY("Hoy"),
+    SEMANA("Semana"),
+    MES("Mes"),
+    ANIO("Año")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastosScreen(
     navController: NavController,
     viewModel: GastosViewModel
 ) {
-    var categoriaSeleccionada by remember { mutableStateOf("Todos") }
-    var textoBusqueda by remember { mutableStateOf("") }
+    var categoriaSeleccionada by rememberSaveable { mutableStateOf("Todos") }
+    var periodoSeleccionado by rememberSaveable { mutableStateOf(PeriodoGastos.TODO) }
+    var textoBusqueda by rememberSaveable { mutableStateOf("") }
+    var resumenExpandido by rememberSaveable { mutableStateOf(false) }
 
     val gastos by viewModel.gastos.collectAsState()
+    val hoy = remember { LocalDate.now() }
 
-    val gastosFiltrados = gastos.filter { gasto ->
-        val coincideCategoria =
-            categoriaSeleccionada == "Todos" || gasto.categoria == categoriaSeleccionada
+    val gastosDelPeriodo = remember(gastos, periodoSeleccionado, hoy) {
+        gastos.filter { gasto ->
+            perteneceAlPeriodo(
+                fechaTexto = gasto.fecha,
+                periodo = periodoSeleccionado,
+                hoy = hoy
+            )
+        }
+    }
 
-        val coincideBusqueda =
-            textoBusqueda.isBlank() ||
-                    gasto.concepto.contains(textoBusqueda, ignoreCase = true) ||
-                    gasto.proveedor.contains(textoBusqueda, ignoreCase = true) ||
-                    gasto.categoria.contains(textoBusqueda, ignoreCase = true)
+    val gastosFiltrados = remember(
+        gastosDelPeriodo,
+        categoriaSeleccionada,
+        textoBusqueda
+    ) {
+        gastosDelPeriodo.filter { gasto ->
+            val coincideCategoria = when (categoriaSeleccionada) {
+                "Todos" -> true
+                "Más" -> gasto.categoria !in categoriasPrincipalesGastos
+                else -> gasto.categoria.equals(categoriaSeleccionada, ignoreCase = true)
+            }
 
-        coincideCategoria && coincideBusqueda
+            val coincideBusqueda = textoBusqueda.isBlank() ||
+                gasto.concepto.contains(textoBusqueda, ignoreCase = true) ||
+                gasto.proveedor.contains(textoBusqueda, ignoreCase = true) ||
+                gasto.categoria.contains(textoBusqueda, ignoreCase = true) ||
+                gasto.proyecto.contains(textoBusqueda, ignoreCase = true) ||
+                gasto.cliente.contains(textoBusqueda, ignoreCase = true)
+
+            coincideCategoria && coincideBusqueda
+        }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8FAFC))
-            .padding(
-                start = 8.dp,
-                top = 0.dp,
-                end = 8.dp,
-                bottom = 8.dp
-            )
+            .padding(horizontal = 8.dp)
     ) {
         HeaderGastos(navController = navController)
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TarjetasResumenGastos(
-            gastos = gastos
+        SelectorPeriodoGastos(
+            seleccionado = periodoSeleccionado,
+            onSeleccionar = { periodoSeleccionado = it }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        ResumenCompactoGastos(
+            gastos = gastosDelPeriodo,
+            periodo = periodoSeleccionado,
+            expandido = resumenExpandido,
+            onCambiarExpansion = { resumenExpandido = !resumenExpandido }
+        )
 
-        BarraBusquedaFiltros(
+        Spacer(modifier = Modifier.height(6.dp))
+
+        BarraBusquedaGastosCompacta(
             textoBusqueda = textoBusqueda,
-            onTextoBusquedaChange = {
-                textoBusqueda = it
-            }
+            onTextoBusquedaChange = { textoBusqueda = it },
+            onNuevoGasto = { navController.navigate(AppRoutes.NUEVO_GASTO) }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                navController.navigate(AppRoutes.NUEVO_GASTO)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D4ED8)
-            )
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Nuevo gasto")
-        }
-
+        Spacer(modifier = Modifier.height(4.dp))
 
         FiltrosCategoriaGastos(
             seleccionada = categoriaSeleccionada,
-            onSeleccionar = {
-                categoriaSeleccionada = it
-            }
+            onSeleccionar = { categoriaSeleccionada = it }
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = if (gastosFiltrados.size == 1) "1 gasto registrado" else "${gastosFiltrados.size} gastos registrados",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color(0xFF475569),
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
+        )
 
         if (gastosFiltrados.isEmpty()) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 40.dp),
-                contentAlignment = Alignment.TopCenter
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No hay gastos registrados",
+                    text = "No hay gastos para los filtros seleccionados",
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -147,13 +181,12 @@ fun GastosScreen(
                 gastos = gastosFiltrados,
                 onClickGasto = { gasto ->
                     navController.navigate(AppRoutes.detalleGasto(gasto.id))
-                }
+                },
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
-
-
 
 @Composable
 fun HeaderGastos(
@@ -203,170 +236,286 @@ fun HeaderGastos(
 }
 
 @Composable
-fun TarjetasResumenGastos(
-    gastos: List<GastoUi>
+private fun SelectorPeriodoGastos(
+    seleccionado: PeriodoGastos,
+    onSeleccionar: (PeriodoGastos) -> Unit
 ) {
-    val totalGastos = gastos.sumOf { it.total }
-    val totalCategorias = gastos.map { it.categoria }.distinct().size
-    val promedio = if (gastos.isNotEmpty()) {
-        totalGastos / gastos.size
-    } else {
-        0.0
-    }
-
-    val gastosHoy = gastos
-        .filter { it.fecha == "19/5/2026" }
-        .sumOf { it.total }
-
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(34.dp)
+            .background(Color(0xFFF8FAFC)),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        TarjetaResumenGasto(
-            titulo = "Total gastos",
-            valor = "$${String.format("%.2f", totalGastos)}",
-            subtitulo = "Registrados",
-            icono = Icons.Default.AttachMoney,
-            colorIcono = Color(0xFF2563EB),
-            modifier = Modifier.weight(1f)
-        )
+        PeriodoGastos.entries.forEach { periodo ->
+            val activo = seleccionado == periodo
 
-        TarjetaResumenGasto(
-            titulo = "Gastos hoy",
-            valor = "$${String.format("%.2f", gastosHoy)}",
-            subtitulo = "Hoy",
-            icono = Icons.Default.ArrowDownward,
-            colorIcono = Color(0xFF16A34A),
-            modifier = Modifier.weight(1f)
-        )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable { onSeleccionar(periodo) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Text(
+                    text = periodo.etiqueta,
+                    fontSize = 11.sp,
+                    color = if (activo) Color(0xFF1D4ED8) else Color(0xFF64748B),
+                    fontWeight = if (activo) FontWeight.SemiBold else FontWeight.Normal
+                )
 
-        TarjetaResumenGasto(
-            titulo = "Categorías",
-            valor = totalCategorias.toString(),
-            subtitulo = "Registradas",
-            icono = Icons.Default.Category,
-            colorIcono = Color(0xFF7C3AED),
-            modifier = Modifier.weight(1f)
-        )
+                Spacer(modifier = Modifier.height(5.dp))
 
-        TarjetaResumenGasto(
-            titulo = "Promedio",
-            valor = "$${String.format("%.2f", promedio)}",
-            subtitulo = "Por gasto",
-            icono = Icons.Default.Analytics,
-            colorIcono = Color(0xFFF59E0B),
-            modifier = Modifier.weight(1f)
-        )
+                Box(
+                    modifier = Modifier
+                        .height(2.dp)
+                        .width(if (activo) 24.dp else 0.dp)
+                        .background(
+                            color = if (activo) Color(0xFF2563EB) else Color.Transparent,
+                            shape = RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)
+                        )
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun TarjetaResumenGasto(
-    titulo: String,
-    valor: String,
-    subtitulo: String,
-    icono: androidx.compose.ui.graphics.vector.ImageVector,
-    colorIcono: Color,
-    modifier: Modifier = Modifier
+private fun ResumenCompactoGastos(
+    gastos: List<GastoUi>,
+    periodo: PeriodoGastos,
+    expandido: Boolean,
+    onCambiarExpansion: () -> Unit
 ) {
+    val total = remember(gastos) { gastos.sumOf { it.total } }
+    val promedio = remember(gastos, total) {
+        if (gastos.isEmpty()) 0.0 else total / gastos.size
+    }
+    val categorias = remember(gastos) {
+        gastos.map { it.categoria.trim() }.filter { it.isNotEmpty() }.distinct().size
+    }
+
     Card(
-        modifier = modifier.height(105.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onCambiarExpansion),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
                 modifier = Modifier
-                    .size(28.dp)
-                    .background(colorIcono.copy(alpha = 0.15f), CircleShape),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, top = 8.dp, end = 6.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                DatoResumenGastoCompacto(
+                    titulo = "Total gastos",
+                    valor = formatearMonedaGasto(total),
+                    subtitulo = periodo.etiqueta,
+                    icono = Icons.Default.AttachMoney,
+                    colorIcono = Color(0xFF2563EB),
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                DatoResumenGastoCompacto(
+                    titulo = "Promedio",
+                    valor = formatearMonedaGasto(promedio),
+                    subtitulo = "Por gasto",
+                    icono = Icons.Default.Analytics,
+                    colorIcono = Color(0xFFF59E0B),
+                    modifier = Modifier.weight(1f)
+                )
+
                 Icon(
-                    imageVector = icono,
-                    contentDescription = null,
-                    tint = colorIcono,
-                    modifier = Modifier.size(18.dp)
+                    imageVector = if (expandido) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expandido) "Contraer resumen" else "Desplegar resumen",
+                    tint = Color(0xFF64748B),
+                    modifier = Modifier.size(22.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            AnimatedVisibility(
+                visible = expandido,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column {
+                    HorizontalDivider(color = Color(0xFFE2E8F0))
 
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        DatoSecundarioResumenGasto(
+                            titulo = "Registros",
+                            valor = gastos.size.toString(),
+                            modifier = Modifier.weight(1f)
+                        )
+                        DatoSecundarioResumenGasto(
+                            titulo = "Categorías",
+                            valor = categorias.toString(),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DatoResumenGastoCompacto(
+    titulo: String,
+    valor: String,
+    subtitulo: String,
+    icono: ImageVector,
+    colorIcono: Color,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(colorIcono.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = colorIcono,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(7.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = titulo,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                fontSize = 10.sp,
+                color = Color(0xFF64748B),
+                maxLines = 1
             )
-
             Text(
                 text = valor,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontSize = tamanoTextoMonto(valor),
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF0F172A),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-
             Text(
                 text = subtitulo,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                fontSize = 9.sp,
+                color = Color(0xFF94A3B8),
+                maxLines = 1
             )
         }
     }
 }
 
 @Composable
-fun BarraBusquedaFiltros(
+private fun DatoSecundarioResumenGasto(
+    titulo: String,
+    valor: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = titulo,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color(0xFF64748B)
+        )
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF0F172A)
+        )
+    }
+}
+
+@Composable
+private fun BarraBusquedaGastosCompacta(
     textoBusqueda: String,
-    onTextoBusquedaChange: (String) -> Unit
+    onTextoBusquedaChange: (String) -> Unit,
+    onNuevoGasto: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             value = textoBusqueda,
             onValueChange = onTextoBusquedaChange,
-            placeholder = {
-                Text("Buscar gasto...")
-            },
+            placeholder = { Text("Buscar gasto...", fontSize = 12.sp) },
             leadingIcon = {
-                Icon(Icons.Default.Search,
-                    contentDescription = null)
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
             },
-            modifier = Modifier.weight(1f)
-                .height(48.dp),
+            trailingIcon = {
+                if (textoBusqueda.isNotBlank()) {
+                    IconButton(onClick = { onTextoBusquedaChange("") }) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Limpiar búsqueda",
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
+                }
+            },
+            modifier = Modifier
+                .weight(1f)
+                .height(46.dp),
             singleLine = true,
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(9.dp)
         )
-/*
-        OutlinedButton(
-            onClick = { },
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.height(48.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp)
 
+        FilledIconButton(
+            onClick = onNuevoGasto,
+            modifier = Modifier.size(46.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = Color(0xFF1D4ED8),
+                contentColor = Color.White
+            )
         ) {
-            Icon(Icons.Default.FilterList,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Nuevo gasto",
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-                text = "Filtros",
-                fontSize = 12.sp
-            )
-        }*/
+        }
     }
 }
+
+private val categoriasPrincipalesGastos = setOf(
+    "Materiales",
+    "Servicios",
+    "Transporte",
+    "Nómina",
+    "Herramientas"
+)
 
 @Composable
 fun FiltrosCategoriaGastos(
@@ -392,9 +541,7 @@ fun FiltrosCategoriaGastos(
             CategoriaChip(
                 texto = categoria,
                 seleccionado = seleccionada == categoria,
-                onClick = {
-                    onSeleccionar(categoria)
-                }
+                onClick = { onSeleccionar(categoria) }
             )
         }
     }
@@ -406,12 +553,14 @@ fun CategoriaChip(
     seleccionado: Boolean,
     onClick: () -> Unit
 ) {
-    AssistChip(
+    FilterChip(
+        selected = seleccionado,
         onClick = onClick,
         label = {
             Text(
                 text = texto,
-                maxLines = 1
+                maxLines = 1,
+                fontSize = 11.sp
             )
         },
         leadingIcon = {
@@ -419,13 +568,22 @@ fun CategoriaChip(
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
             }
         },
-        colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF1D4ED8) else Color.DarkGray
+        modifier = Modifier.height(32.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = Color(0xFFE0ECFF),
+            selectedLabelColor = Color(0xFF1D4ED8),
+            containerColor = Color.White,
+            labelColor = Color(0xFF334155)
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = seleccionado,
+            borderColor = Color(0xFFCBD5E1),
+            selectedBorderColor = Color(0xFF93C5FD)
         )
     )
 }
@@ -433,24 +591,21 @@ fun CategoriaChip(
 @Composable
 fun ListaGastos(
     gastos: List<GastoUi>,
-    onClickGasto: (GastoUi) -> Unit
+    onClickGasto: (GastoUi) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxSize()
-            .padding(
-                start = 0.dp,
-                top = 0.dp,
-                end = 0.dp,
-                bottom = 8.dp
-            )
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(bottom = 8.dp)
     ) {
-        items(gastos) { gasto ->
+        items(
+            items = gastos,
+            key = { it.id }
+        ) { gasto ->
             ItemGasto(
                 gasto = gasto,
-                onClick = {
-                    onClickGasto(gasto)
-                }
+                onClick = { onClickGasto(gasto) }
             )
         }
     }
@@ -464,11 +619,9 @@ fun ItemGasto(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -481,51 +634,59 @@ fun ItemGasto(
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = gasto.concepto,
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
-                    text = "Proveedor: ${gasto.proveedor}",
+                    text = "Proveedor: ${gasto.proveedor.ifBlank { "Sin proveedor" }}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = gasto.categoria,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2563EB)
+                    color = Color(0xFF2563EB),
+                    maxLines = 1
                 )
             }
 
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.widthIn(min = 84.dp, max = 112.dp)
             ) {
                 Text(
-                    text = "$${String.format("%.2f", gasto.total)}",
+                    text = formatearMonedaGasto(gasto.total),
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFDC2626),
-                    style = MaterialTheme.typography.bodyMedium
+                    fontSize = tamanoTextoMonto(formatearMonedaGasto(gasto.total)),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Text(
                     text = gasto.fecha,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    maxLines = 1
                 )
 
                 Text(
                     text = gasto.metodoPago,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
-            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 }
@@ -539,6 +700,7 @@ fun IconoCategoriaGasto(
         "Transporte" -> Icons.Default.LocalGasStation
         "Servicios" -> Icons.Default.Build
         "Nómina" -> Icons.Default.Person
+        "Herramientas" -> Icons.Default.Handyman
         else -> Icons.Default.MoreHoriz
     }
 
@@ -547,19 +709,77 @@ fun IconoCategoriaGasto(
         "Transporte" -> Color(0xFF16A34A)
         "Servicios" -> Color(0xFFF59E0B)
         "Nómina" -> Color(0xFF22C55E)
+        "Herramientas" -> Color(0xFF7C3AED)
         else -> Color.Gray
     }
 
     Box(
         modifier = Modifier
-            .size(45.dp)
+            .size(42.dp)
             .background(color.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = color
+            tint = color,
+            modifier = Modifier.size(22.dp)
         )
     }
+}
+
+private fun perteneceAlPeriodo(
+    fechaTexto: String,
+    periodo: PeriodoGastos,
+    hoy: LocalDate
+): Boolean {
+    if (periodo == PeriodoGastos.TODO) return true
+
+    val fecha = parsearFechaGasto(fechaTexto) ?: return false
+
+    return when (periodo) {
+        PeriodoGastos.TODO -> true
+        PeriodoGastos.HOY -> fecha == hoy
+        PeriodoGastos.SEMANA -> {
+            val inicioSemana = hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            val finSemana = hoy.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            !fecha.isBefore(inicioSemana) && !fecha.isAfter(finSemana)
+        }
+        PeriodoGastos.MES -> fecha.year == hoy.year && fecha.month == hoy.month
+        PeriodoGastos.ANIO -> fecha.year == hoy.year
+    }
+}
+
+private fun parsearFechaGasto(fechaTexto: String): LocalDate? {
+    val valor = fechaTexto.trim()
+    if (valor.isBlank()) return null
+
+    val formatos = listOf(
+        DateTimeFormatter.ofPattern("d/M/yyyy"),
+        DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+        DateTimeFormatter.ofPattern("d-M-yyyy"),
+        DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+        DateTimeFormatter.ISO_LOCAL_DATE
+    )
+
+    formatos.forEach { formato ->
+        try {
+            return LocalDate.parse(valor, formato)
+        } catch (_: DateTimeParseException) {
+            // Se intenta con el siguiente formato.
+        }
+    }
+
+    return null
+}
+
+private fun formatearMonedaGasto(valor: Double): String {
+    return String.format(Locale.US, "$%,.2f", valor)
+}
+
+private fun tamanoTextoMonto(texto: String) = when {
+    texto.length >= 15 -> 11.sp
+    texto.length >= 12 -> 12.sp
+    texto.length >= 10 -> 13.sp
+    else -> 14.sp
 }

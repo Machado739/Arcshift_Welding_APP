@@ -1,12 +1,14 @@
-package com.example.arcshiftwelding.ui.Screen
+package com.example.arcshiftwelding.ui.Screen.reportes
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,23 +16,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.RequestQuote
 import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,173 +42,215 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-
-data class DetalleReporteUI(
-    val titulo: String,
-    val descripcion: String,
-    val icono: ImageVector,
-    val color: Color,
-    val totalPrincipal: String,
-    val tituloTotalPrincipal: String,
-    val totalSecundario: String,
-    val tituloTotalSecundario: String
-)
-
-data class RegistroReporteUI(
-    val titulo: String,
-    val descripcion: String,
-    val monto: String,
-    val fecha: String,
-    val color: Color
-)
+import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.viewmodel.PeriodoReporte
+import com.example.arcshiftwelding.ui.viewmodel.RegistroReporteUi
+import com.example.arcshiftwelding.ui.viewmodel.ReporteDetalleUi
+import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModel
+import com.example.arcshiftwelding.utils.compartirArchivoReporte
+import com.example.arcshiftwelding.utils.generarReporteCsv
+import com.example.arcshiftwelding.utils.generarReportePdf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun DetalleReporteScreen(
     navController: NavController,
-    tipoReporte: String
+    tipoReporte: String,
+    viewModel: ReportesViewModel
 ) {
-    val reporte = obtenerDetalleReporte(tipoReporte)
-    val registros = obtenerRegistrosReporte(tipoReporte, reporte.color)
+    val uiState by viewModel.uiState.collectAsState()
+    val reporte = uiState.reportePorTipo(tipoReporte)
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF8FAFC)
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8FAFC))
+            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+    ) {
+        HeaderDetalleReporte(
+            titulo = reporte?.titulo ?: "Reporte",
+            navController = navController
+        )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(
-                    start = 8.dp,
-                    top = 0.dp,
-                    end = 8.dp,
-                    bottom = 8.dp
-                )
-                .background(Color(0xFFF8FAFC))
-        ) {
-            HeaderDetalleReporte(
-                titulo = reporte.titulo,
-                navController = navController
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        if (reporte == null) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-                item {
-                    TarjetaPrincipalDetalleReporte(
-                        reporte = reporte,
-                        tipoReporte =  tipoReporte
-                    )
-                }
+                Text(
+                    text = if (uiState.cargando) {
+                        "Calculando información..."
+                    } else {
+                        "No se encontró información para este reporte."
+                    },
+                    modifier = Modifier.padding(20.dp),
+                    color = Color(0xFF64748B)
+                )
+            }
+        } else LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(top = 6.dp, bottom = 14.dp)
+        ) {
+            item {
+                SelectorPeriodoDetalle(
+                    periodo = uiState.periodo,
+                    onSeleccionar = viewModel::seleccionarPeriodo
+                )
+            }
 
-                item {
-                    ResumenDetalleReporte(
-                        reporte = reporte
-                    )
-                }
+            item {
+                CabeceraReporteDetalle(
+                    reporte = reporte,
+                    periodo = uiState.textoPeriodo
+                )
+            }
 
-                item {
-                    SeccionPeriodoReporte()
-                }
+            item {
+                ResumenReporteDetalle(reporte)
+            }
 
-                item {
+            item {
+                MetricasReporteDetalle(reporte)
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 2.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = obtenerTituloResumenReporte(tipoReporte),
+                        text = "Registros",
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = reporte.registros.size.toString(),
+                        color = Color(0xFF2563EB),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
                     )
                 }
+            }
 
+            if (reporte.registros.isEmpty()) {
                 item {
-                    when (tipoReporte.lowercase()) {
-                        "ingresos" -> {
-                            SeccionResumenFinancieroIngresos()
-                        }
-
-                        "inventario" -> {
-                            SeccionResumenInventario()
-                        }
-
-                        else -> {
-                            DatosReporte(
-                                tipoReporte = tipoReporte
-                            )
-                        }
-                    }
-                }
-
-                if (tipoReporte.lowercase() == "ingresos") {
-                    item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
                         Text(
-                            text = "Métodos de pago",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp)
+                            text = "No hay registros en el periodo seleccionado.",
+                            modifier = Modifier.padding(18.dp),
+                            color = Color(0xFF64748B),
+                            fontSize = 12.sp
                         )
                     }
-
-                    item {
-                        SeccionMetodosPagoReporteIngresos()
-                    }
                 }
-
-                if (tipoReporte.lowercase() == "inventario") {
-                    item {
-                        Text(
-                            text = "Estado del inventario",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-
-                    item {
-                        SeccionEstadoInventarioReporte()
-                    }
-                }
-
-                item {
-                    Text(
-                        text = "Registros recientes",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
+            } else {
+                items(
+                    items = reporte.registros,
+                    key = { "${reporte.tipo}-${it.id}" }
+                ) { registro ->
+                    RegistroReporteCard(
+                        registro = registro,
+                        color = colorReporteDetalle(reporte.tipo),
+                        onClick = {
+                            rutaRegistroReporte(reporte.tipo, registro.id)?.let { ruta ->
+                                navController.navigate(ruta)
+                            }
+                        }
                     )
                 }
+            }
 
-                items(registros.size) { index ->
-                    ItemRegistroReporte(
-                        registro = registros[index]
-                    )
-                }
-
-                item {
-                    SeccionAccionesDetalleReporte()
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
+            item {
+                AccionesDetalleReporte(
+                    onPdf = {
+                        scope.launch {
+                            val resultado = withContext(Dispatchers.IO) {
+                                generarReportePdf(
+                                    context = context,
+                                    titulo = "Reporte de ${reporte.titulo}",
+                                    periodo = uiState.textoPeriodo,
+                                    reportes = listOf(reporte)
+                                )
+                            }
+                            resultado.onSuccess { archivo ->
+                                compartirArchivoReporte(
+                                    context = context,
+                                    archivo = archivo,
+                                    mimeType = "application/pdf",
+                                    asunto = "Reporte de ${reporte.titulo}"
+                                )
+                            }.onFailure {
+                                Toast.makeText(
+                                    context,
+                                    it.message ?: "No fue posible generar el PDF.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    },
+                    onCsv = {
+                        scope.launch {
+                            val resultado = withContext(Dispatchers.IO) {
+                                generarReporteCsv(
+                                    context = context,
+                                    titulo = "Reporte de ${reporte.titulo}",
+                                    periodo = uiState.textoPeriodo,
+                                    reportes = listOf(reporte)
+                                )
+                            }
+                            resultado.onSuccess { archivo ->
+                                compartirArchivoReporte(
+                                    context = context,
+                                    archivo = archivo,
+                                    mimeType = "text/csv",
+                                    asunto = "Reporte de ${reporte.titulo}"
+                                )
+                            }.onFailure {
+                                Toast.makeText(
+                                    context,
+                                    it.message ?: "No fue posible generar el archivo para Excel.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-fun HeaderDetalleReporte(
+private fun HeaderDetalleReporte(
     titulo: String,
     navController: NavController
 ) {
@@ -217,232 +261,54 @@ fun HeaderDetalleReporte(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = {
-                navController.popBackStack()
-            }
-        ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Regresar"
-            )
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
         }
-
         Text(
             text = titulo,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
-
-        IconButton(onClick = { }) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = "Notificaciones"
-            )
-        }
-    }
-}
-
-@Composable
-fun TarjetaPrincipalDetalleReporte(
-    reporte: DetalleReporteUI,
-    tipoReporte: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = reporte.color.copy(alpha = 0.15f),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = reporte.icono,
-                        contentDescription = null,
-                        tint = reporte.color,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = reporte.titulo,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Text(
-                        text = reporte.descripcion,
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                MiniEstadoReporte(
-                    titulo = "Estado",
-                    valor = if (tipoReporte.lowercase() == "inventario") "Revisado" else "Actualizado",
-                    color = Color(0xFF16A34A)
-                )
-
-                MiniEstadoReporte(
-                    titulo = "Periodo",
-                    valor = "Mes actual",
-                    color = Color(0xFF2563EB)
-                )
-
-                MiniEstadoReporte(
-                    titulo = if (tipoReporte.lowercase() == "inventario") "Alertas" else "Registros",
-                    valor = if (tipoReporte.lowercase() == "inventario") "4" else reporte.totalSecundario,
-                    color = if (tipoReporte.lowercase() == "inventario") Color(0xFFF59E0B) else Color(0xFF7C3AED)
-                )
-            }
-        }
-    }
-}
-@Composable
-fun MiniEstadoReporte(
-    titulo: String,
-    valor: String,
-    color: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = titulo,
-            color = Color.Gray,
-            fontSize = 10.sp
-        )
-
-        Text(
-            text = valor,
-            color = color,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp,
+            modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
 }
+
 @Composable
-fun ResumenDetalleReporte(
-    reporte: DetalleReporteUI
+private fun SelectorPeriodoDetalle(
+    periodo: PeriodoReporte,
+    onSeleccionar: (PeriodoReporte) -> Unit
 ) {
-    Row(
+    LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp)
     ) {
-        CardDatoDetalleReporte(
-            titulo = reporte.tituloTotalPrincipal,
-            valor = reporte.totalPrincipal,
-            icono = reporte.icono,
-            color = reporte.color,
-            modifier = Modifier.weight(1f)
-        )
-
-        CardDatoDetalleReporte(
-            titulo = reporte.tituloTotalSecundario,
-            valor = reporte.totalSecundario,
-            icono = Icons.Default.Description,
-            color = Color(0xFF2563EB),
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-@Composable
-fun CardDatoDetalleReporte(
-    titulo: String,
-    valor: String,
-    icono: ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(78.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 9.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .background(
-                        color = color.copy(alpha = 0.13f),
-                        shape = RoundedCornerShape(9.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icono,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
+        items(PeriodoReporte.entries) { opcion ->
+            val seleccionado = opcion == periodo
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onSeleccionar(opcion) }
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = titulo,
-                    color = Color.Gray,
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    text = opcion.etiqueta,
+                    color = if (seleccionado) Color(0xFF2563EB) else Color(0xFF64748B),
+                    fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 11.sp
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = valor,
-                    color = color,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                Spacer(modifier = Modifier.height(3.dp))
+                Box(
+                    modifier = Modifier
+                        .width(24.dp)
+                        .height(2.dp)
+                        .background(
+                            if (seleccionado) Color(0xFF2563EB) else Color.Transparent,
+                            RoundedCornerShape(2.dp)
+                        )
                 )
             }
         }
@@ -450,13 +316,15 @@ fun CardDatoDetalleReporte(
 }
 
 @Composable
-fun SeccionPeriodoReporte() {
+private fun CabeceraReporteDetalle(
+    reporte: ReporteDetalleUi,
+    periodo: String
+) {
+    val color = colorReporteDetalle(reporte.tipo)
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -465,84 +333,151 @@ fun SeccionPeriodoReporte() {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.CalendarMonth,
-                contentDescription = null,
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(22.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(color.copy(alpha = 0.13f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Periodo del reporte",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-
-                Text(
-                    text = "Mes actual · 01 May - 31 May 2026",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall
+                Icon(
+                    imageVector = iconoReporteDetalle(reporte.tipo),
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(25.dp)
                 )
             }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = reporte.titulo,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = reporte.descripcion,
+                    color = Color(0xFF64748B),
+                    fontSize = 10.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = periodo,
+                    color = color,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Text(
+                text = reporte.estado,
+                color = color,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .background(color.copy(alpha = 0.10f), RoundedCornerShape(7.dp))
+                    .padding(horizontal = 7.dp, vertical = 4.dp)
+            )
         }
     }
 }
 
 @Composable
-fun DatosReporte(
-    tipoReporte: String
+private fun ResumenReporteDetalle(reporte: ReporteDetalleUi) {
+    val color = colorReporteDetalle(reporte.tipo)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        DatoPrincipalReporte(
+            titulo = reporte.etiquetaPrincipal,
+            valor = reporte.valorPrincipal,
+            color = color,
+            modifier = Modifier.weight(1f)
+        )
+        DatoPrincipalReporte(
+            titulo = reporte.etiquetaSecundaria,
+            valor = reporte.valorSecundario,
+            color = Color(0xFF2563EB),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun DatoPrincipalReporte(
+    titulo: String,
+    valor: String,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.height(72.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.Center
         ) {
-            when (tipoReporte.lowercase()) {
-                "ingresos" -> {
-                    LineaDatoReporte("Mayor ingreso", "$8,500")
-                    LineaDatoReporte("Método más usado", "Transferencia")
-                    LineaDatoReporte("Categoría principal", "Trabajos de soldadura")
-                }
+            Text(
+                text = titulo,
+                color = Color(0xFF64748B),
+                fontSize = 9.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = valor,
+                color = color,
+                fontWeight = FontWeight.Bold,
+                fontSize = when {
+                    valor.length >= 16 -> 12.sp
+                    valor.length >= 12 -> 15.sp
+                    else -> 19.sp
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
 
-                "gastos" -> {
-                    LineaDatoReporte("Mayor gasto", "$3,200")
-                    LineaDatoReporte("Proveedor principal", "Aceros del Norte")
-                    LineaDatoReporte("Categoría principal", "Materiales")
+@Composable
+private fun MetricasReporteDetalle(reporte: ReporteDetalleUi) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+            reporte.metricas.forEachIndexed { index, metrica ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = metrica.titulo,
+                        color = Color(0xFF64748B),
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = metrica.valor,
+                        color = Color(0xFF0F172A),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-
-                "inventario" -> {
-                    LineaDatoReporte("Productos registrados", "28")
-                    LineaDatoReporte("Productos bajo stock", "4")
-                    LineaDatoReporte("Último movimiento", "Salida de material")
-                }
-
-                "cotizaciones" -> {
-                    LineaDatoReporte("Cotizaciones aceptadas", "5")
-                    LineaDatoReporte("Cotizaciones pendientes", "7")
-                    LineaDatoReporte("Cotizaciones rechazadas", "3")
-                }
-
-                "clientes" -> {
-                    LineaDatoReporte("Clientes activos", "18")
-                    LineaDatoReporte("Clientes inactivos", "3")
-                    LineaDatoReporte("Cliente con más cotizaciones", "Carlos Ruiz")
-                }
-
-                else -> {
-                    LineaDatoReporte("Estado", "Sin información")
-                    LineaDatoReporte("Registros encontrados", "0")
-                    LineaDatoReporte("Última actualización", "No disponible")
+                if (index < reporte.metricas.lastIndex) {
+                    Divider(color = Color(0xFFE2E8F0))
                 }
             }
         }
@@ -550,48 +485,18 @@ fun DatosReporte(
 }
 
 @Composable
-fun LineaDatoReporte(
-    titulo: String,
-    valor: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = titulo,
-            color = Color.Gray,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f)
-        )
-
-        Text(
-            text = valor,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-
-    Divider(
-        color = Color(0xFFE5E7EB)
-    )
-}
-
-@Composable
-fun ItemRegistroReporte(
-    registro: RegistroReporteUI
+private fun RegistroReporteCard(
+    registro: RegistroReporteUi,
+    color: Color,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(
             modifier = Modifier
@@ -601,644 +506,142 @@ fun ItemRegistroReporte(
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
-                    .background(
-                        registro.color.copy(alpha = 0.15f),
-                        CircleShape
-                    ),
+                    .size(35.dp)
+                    .background(color.copy(alpha = 0.12f), RoundedCornerShape(9.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Description,
+                    imageVector = Icons.Default.Assessment,
                     contentDescription = null,
-                    tint = registro.color,
-                    modifier = Modifier.size(21.dp)
+                    tint = color,
+                    modifier = Modifier.size(19.dp)
                 )
             }
-
             Spacer(modifier = Modifier.width(9.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = registro.titulo,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
                 Text(
                     text = registro.descripcion,
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF64748B),
+                    fontSize = 9.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
                 Text(
-                    text = registro.fecha,
-                    color = Color.Gray,
-                    fontSize = 10.sp
+                    text = listOf(registro.fecha, registro.estado)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
+                    color = Color(0xFF94A3B8),
+                    fontSize = 8.sp,
+                    maxLines = 1
                 )
             }
-
             Text(
-                text = registro.monto,
-                color = registro.color,
+                text = registro.valor,
+                color = color,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
+                fontSize = when {
+                    registro.valor.length >= 14 -> 9.sp
+                    registro.valor.length >= 10 -> 10.sp
+                    else -> 12.sp
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Abrir registro",
+                tint = Color(0xFF94A3B8),
+                modifier = Modifier.size(18.dp)
             )
         }
     }
 }
 
 @Composable
-fun SeccionAccionesDetalleReporte() {
+private fun AccionesDetalleReporte(
+    onPdf: () -> Unit,
+    onCsv: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                text = "Acciones",
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "Puedes visualizar o exportar la información del reporte.",
-                color = Color.Gray,
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text("Exportar reporte", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { },
+                    onClick = onPdf,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2563EB)
-                    )
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PictureAsPdf,
-                        contentDescription = null,
-                        modifier = Modifier.size(17.dp)
-                    )
-
+                    Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(17.dp))
                     Spacer(modifier = Modifier.width(5.dp))
-
-                    Text(
-                        text = "PDF",
-                        fontSize = 12.sp
-                    )
+                    Text("PDF", fontSize = 12.sp)
                 }
-
                 OutlinedButton(
-                    onClick = { },
+                    onClick = onCsv,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Download,
-                        contentDescription = null,
-                        modifier = Modifier.size(17.dp)
-                    )
-
+                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(17.dp))
                     Spacer(modifier = Modifier.width(5.dp))
-
-                    Text(
-                        text = "Excel",
-                        fontSize = 12.sp
-                    )
+                    Text("Excel CSV", fontSize = 12.sp)
                 }
             }
         }
     }
 }
 
-fun obtenerDetalleReporte(tipoReporte: String): DetalleReporteUI {
-    return when (tipoReporte.lowercase()) {
-        "ingresos" -> DetalleReporteUI(
-            titulo = "Reporte de ingresos",
-            descripcion = "Resumen de entradas registradas en el periodo.",
-            icono = Icons.Default.AttachMoney,
-            color = Color(0xFF16A34A),
-            totalPrincipal = "$24,000",
-            tituloTotalPrincipal = "Total ingresos",
-            totalSecundario = "12",
-            tituloTotalSecundario = "Registros"
-        )
-
-        "gastos" -> DetalleReporteUI(
-            titulo = "Reporte de gastos",
-            descripcion = "Resumen de salidas registradas en el periodo.",
-            icono = Icons.Default.ShoppingBag,
-            color = Color(0xFFDC2626),
-            totalPrincipal = "$13,500",
-            tituloTotalPrincipal = "Total gastos",
-            totalSecundario = "9",
-            tituloTotalSecundario = "Registros"
-        )
-
-        "inventario" -> DetalleReporteUI(
-            titulo = "Reporte de inventario",
-            descripcion = "Resumen de productos, existencias y movimientos.",
-            icono = Icons.Default.Inventory,
-            color = Color(0xFF2563EB),
-            totalPrincipal = "28",
-            tituloTotalPrincipal = "Productos",
-            totalSecundario = "4",
-            tituloTotalSecundario = "Bajo stock"
-        )
-
-        "cotizaciones" -> DetalleReporteUI(
-            titulo = "Reporte de cotizaciones",
-            descripcion = "Estado general de cotizaciones registradas.",
-            icono = Icons.Default.RequestQuote,
-            color = Color(0xFFF59E0B),
-            totalPrincipal = "15",
-            tituloTotalPrincipal = "Cotizaciones",
-            totalSecundario = "7",
-            tituloTotalSecundario = "Pendientes"
-        )
-
-        "clientes" -> DetalleReporteUI(
-            titulo = "Reporte de clientes",
-            descripcion = "Resumen de clientes registrados y actividad reciente.",
-            icono = Icons.Default.People,
-            color = Color(0xFF7C3AED),
-            totalPrincipal = "21",
-            tituloTotalPrincipal = "Clientes",
-            totalSecundario = "18",
-            tituloTotalSecundario = "Activos"
-        )
-
-        else -> DetalleReporteUI(
-            titulo = "Reporte",
-            descripcion = "Información general del reporte.",
-            icono = Icons.Default.Assessment,
-            color = Color(0xFF2563EB),
-            totalPrincipal = "0",
-            tituloTotalPrincipal = "Total",
-            totalSecundario = "0",
-            tituloTotalSecundario = "Registros"
-        )
+private fun iconoReporteDetalle(tipo: String): ImageVector {
+    return when (tipo.lowercase()) {
+        "ingresos" -> Icons.Default.AttachMoney
+        "gastos" -> Icons.Default.ShoppingBag
+        "inventario" -> Icons.Default.Inventory
+        "cotizaciones" -> Icons.Default.RequestQuote
+        "clientes" -> Icons.Default.People
+        "proyectos" -> Icons.Default.Work
+        "empleados" -> Icons.Default.Groups
+        else -> Icons.Default.Assessment
     }
 }
 
-fun obtenerRegistrosReporte(
-    tipoReporte: String,
-    color: Color
-): List<RegistroReporteUI> {
-    return when (tipoReporte.lowercase()) {
-        "ingresos" -> listOf(
-            RegistroReporteUI("Pago de estructura metálica", "Cliente: Eduardo Barrios", "$8,500", "20/05/2026", color),
-            RegistroReporteUI("Anticipo de portón", "Cliente: José Vera", "$5,000", "18/05/2026", color),
-            RegistroReporteUI("Trabajo de reparación", "Cliente: María López", "$2,800", "15/05/2026", color)
-        )
-
-        "gastos" -> listOf(
-            RegistroReporteUI("Compra de material", "Proveedor: Aceros del Norte", "$3,200", "19/05/2026", color),
-            RegistroReporteUI("Combustible", "Proveedor: PEMEX", "$850", "18/05/2026", color),
-            RegistroReporteUI("Servicio eléctrico", "Proveedor: CFE", "$2,100", "16/05/2026", color)
-        )
-
-        "inventario" -> listOf(
-            RegistroReporteUI(
-                titulo = "PTR 2x2 Cal.14",
-                descripcion = "Stock actual: 10 piezas",
-                monto = "Bajo",
-                fecha = "20/05/2026",
-                color = Color(0xFFF59E0B)
-            ),
-            RegistroReporteUI(
-                titulo = "Soldadura 6013",
-                descripcion = "Stock actual: 25 cajas",
-                monto = "OK",
-                fecha = "18/05/2026",
-                color = Color(0xFF16A34A)
-            ),
-            RegistroReporteUI(
-                titulo = "Disco de corte",
-                descripcion = "Stock actual: 0 piezas",
-                monto = "Agotado",
-                fecha = "17/05/2026",
-                color = Color(0xFFDC2626)
-            )
-        )
-
-        "cotizaciones" -> listOf(
-            RegistroReporteUI("Cotización #001", "Cliente: Eduardo Barrios", "$12,000", "20/05/2026", color),
-            RegistroReporteUI("Cotización #002", "Cliente: Carlos Ruiz", "$8,700", "18/05/2026", color),
-            RegistroReporteUI("Cotización #003", "Cliente: María López", "$4,500", "16/05/2026", color)
-        )
-
-        "clientes" -> listOf(
-            RegistroReporteUI("Eduardo Barrios", "2 cotizaciones registradas", "Activo", "20/05/2026", color),
-            RegistroReporteUI("José Vera", "1 cotización registrada", "Activo", "18/05/2026", color),
-            RegistroReporteUI("María López", "1 cotización registrada", "Inactivo", "16/05/2026", color)
-        )
-
-        else -> emptyList()
+private fun colorReporteDetalle(tipo: String): Color {
+    return when (tipo.lowercase()) {
+        "ingresos" -> Color(0xFF16A34A)
+        "gastos" -> Color(0xFFDC2626)
+        "inventario" -> Color(0xFF2563EB)
+        "cotizaciones" -> Color(0xFFF59E0B)
+        "clientes" -> Color(0xFF7C3AED)
+        "proyectos" -> Color(0xFF0891B2)
+        "empleados" -> Color(0xFF4F46E5)
+        else -> Color(0xFF2563EB)
     }
 }
 
-@Composable
-fun SeccionResumenFinancieroIngresos() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            LineaDatoReporteMejorada(
-                titulo = "Total cobrado",
-                valor = "$24,000",
-                icono = Icons.Default.AttachMoney,
-                color = Color(0xFF16A34A)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Ingreso promedio",
-                valor = "$2,000",
-                icono = Icons.Default.TrendingUp,
-                color = Color(0xFF2563EB)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Método más usado",
-                valor = "Transferencia",
-                icono = Icons.Default.Description,
-                color = Color(0xFF7C3AED)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Mayor ingreso",
-                valor = "$8,500",
-                icono = Icons.Default.Assessment,
-                color = Color(0xFFF59E0B),
-                mostrarDivider = false
-            )
-        }
-    }
-}
-
-@Composable
-fun LineaDatoReporteMejorada(
-    titulo: String,
-    valor: String,
-    icono: ImageVector,
-    color: Color,
-    mostrarDivider: Boolean = true
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .background(
-                    color = color.copy(alpha = 0.12f),
-                    shape = RoundedCornerShape(9.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(19.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(9.dp))
-
-        Text(
-            text = titulo,
-            color = Color.Gray,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.weight(1f)
-        )
-
-        Text(
-            text = valor,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-
-    if (mostrarDivider) {
-        Divider(
-            color = Color(0xFFE5E7EB)
-        )
-    }
-}
-
-@Composable
-fun SeccionMetodosPagoReporteIngresos() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            MetodoPagoReporteItem(
-                metodo = "Transferencia",
-                monto = "$13,500",
-                porcentaje = "56%",
-                color = Color(0xFF2563EB)
-            )
-
-            MetodoPagoReporteItem(
-                metodo = "Efectivo",
-                monto = "$7,200",
-                porcentaje = "30%",
-                color = Color(0xFF16A34A)
-            )
-
-            MetodoPagoReporteItem(
-                metodo = "Tarjeta",
-                monto = "$3,300",
-                porcentaje = "14%",
-                color = Color(0xFFF59E0B),
-                mostrarDivider = false
-            )
-        }
-    }
-}
-
-@Composable
-fun MetodoPagoReporteItem(
-    metodo: String,
-    monto: String,
-    porcentaje: String,
-    color: Color,
-    mostrarDivider: Boolean = true
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 7.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(9.dp)
-                    .background(color, CircleShape)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = metodo,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                text = monto,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-                color = color
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = porcentaje,
-                color = Color.Gray,
-                fontSize = 11.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .background(
-                    color = Color(0xFFE5E7EB),
-                    shape = RoundedCornerShape(50)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(
-                        when (porcentaje) {
-                            "56%" -> 0.56f
-                            "30%" -> 0.30f
-                            "14%" -> 0.14f
-                            else -> 0.20f
-                        }
-                    )
-                    .height(6.dp)
-                    .background(
-                        color = color,
-                        shape = RoundedCornerShape(50)
-                    )
-            )
-        }
-    }
-
-    if (mostrarDivider) {
-        Divider(
-            color = Color(0xFFE5E7EB)
-        )
-    }
-}
-
-fun obtenerTituloResumenReporte(tipoReporte: String): String {
-    return when (tipoReporte.lowercase()) {
-        "ingresos" -> "Resumen financiero"
-        "gastos" -> "Resumen de gastos"
-        "inventario" -> "Resumen de inventario"
-        "cotizaciones" -> "Resumen de cotizaciones"
-        "clientes" -> "Resumen de clientes"
-        else -> "Información del reporte"
-    }
-}
-
-@Composable
-fun SeccionResumenInventario() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            LineaDatoReporteMejorada(
-                titulo = "Productos registrados",
-                valor = "28",
-                icono = Icons.Default.Inventory,
-                color = Color(0xFF2563EB)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Productos bajo stock",
-                valor = "4",
-                icono = Icons.Default.Assessment,
-                color = Color(0xFFF59E0B)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Productos agotados",
-                valor = "1",
-                icono = Icons.Default.Description,
-                color = Color(0xFFDC2626)
-            )
-
-            LineaDatoReporteMejorada(
-                titulo = "Último movimiento",
-                valor = "Salida",
-                icono = Icons.Default.TrendingUp,
-                color = Color(0xFF7C3AED),
-                mostrarDivider = false
-            )
-        }
-    }
-}
-
-@Composable
-fun SeccionEstadoInventarioReporte() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            EstadoInventarioReporteItem(
-                estado = "Stock correcto",
-                cantidad = "23 productos",
-                porcentaje = 0.82f,
-                color = Color(0xFF16A34A)
-            )
-
-            EstadoInventarioReporteItem(
-                estado = "Bajo stock",
-                cantidad = "4 productos",
-                porcentaje = 0.14f,
-                color = Color(0xFFF59E0B)
-            )
-
-            EstadoInventarioReporteItem(
-                estado = "Agotados",
-                cantidad = "1 producto",
-                porcentaje = 0.04f,
-                color = Color(0xFFDC2626),
-                mostrarDivider = false
-            )
-        }
-    }
-}
-
-@Composable
-fun EstadoInventarioReporteItem(
-    estado: String,
-    cantidad: String,
-    porcentaje: Float,
-    color: Color,
-    mostrarDivider: Boolean = true
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 7.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(9.dp)
-                    .background(color, CircleShape)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = estado,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
-                modifier = Modifier.weight(1f)
-            )
-
-            Text(
-                text = cantidad,
-                color = Color.Gray,
-                fontSize = 11.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .background(
-                    color = Color(0xFFE5E7EB),
-                    shape = RoundedCornerShape(50)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(porcentaje)
-                    .height(6.dp)
-                    .background(
-                        color = color,
-                        shape = RoundedCornerShape(50)
-                    )
-            )
-        }
-    }
-
-    if (mostrarDivider) {
-        Divider(
-            color = Color(0xFFE5E7EB)
-        )
+private fun rutaRegistroReporte(tipo: String, id: Int): String? {
+    return when (tipo.lowercase()) {
+        "ingresos" -> AppRoutes.detalleIngreso(id)
+        "gastos" -> AppRoutes.detalleGasto(id)
+        "inventario" -> AppRoutes.detalleProducto(id)
+        "cotizaciones" -> AppRoutes.detalleCotizacion(id)
+        "clientes" -> AppRoutes.detalleCliente(id)
+        "proyectos" -> AppRoutes.detalleProyecto(id)
+        "empleados" -> AppRoutes.detalleEmpleado(id)
+        else -> null
     }
 }

@@ -23,14 +23,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.arcshiftwelding.ui.Screen.dashboard.DashboardScreen
-import com.example.arcshiftwelding.ui.Screen.DetalleReporteScreen
+import com.example.arcshiftwelding.ui.Screen.reportes.DetalleReporteScreen
 import com.example.arcshiftwelding.ui.Screen.cotizaciones.CotizacionesScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.DetalleProductoScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.EditarProductoScreen
 import com.example.arcshiftwelding.ui.Screen.empleados.EmpleadosScreen
 import com.example.arcshiftwelding.ui.Screen.ingresos.IngresosScreen
 import com.example.arcshiftwelding.ui.Screen.LoginScreen
-import com.example.arcshiftwelding.ui.Screen.ReportesScreen
+import com.example.arcshiftwelding.ui.Screen.reportes.ReportesScreen
 import com.example.arcshiftwelding.ui.Screen.inventario.NuevoProductoScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.DetalleClienteScreen
 import com.example.arcshiftwelding.ui.Screen.clientes.EditarClienteScreen
@@ -84,6 +84,8 @@ import com.example.arcshiftwelding.ui.Screen.proyectos.EditarProyectoScreen
 import com.example.arcshiftwelding.ui.Screen.proyectos.RegistrarMaterialProyectoScreen
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModelFactory
+import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModel
+import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModelFactory
 
 @Composable
 fun AppNavigation(
@@ -179,6 +181,9 @@ fun AppNavigation(
         }
     }
 
+    val reportesViewModel: ReportesViewModel = viewModel(
+        factory = ReportesViewModelFactory(database)
+    )
     val mostrarBottomBar = currentRoute in listOf(
         AppRoutes.DASHBOARD,
         AppRoutes.INVENTARIO,
@@ -690,7 +695,8 @@ fun AppNavigation(
 
             composable(AppRoutes.REPORTES) {
                 ReportesScreen(
-                    navController = navController
+                    navController = navController,
+                    viewModel = reportesViewModel
                 )
             }
 
@@ -703,11 +709,13 @@ fun AppNavigation(
                 )
             ) { backStackEntry ->
 
-                val tipoReporte = backStackEntry.arguments?.getString("tipoReporte") ?: ""
+                val tipoReporte =
+                    backStackEntry.arguments?.getString("tipoReporte").orEmpty()
 
                 DetalleReporteScreen(
                     navController = navController,
-                    tipoReporte = tipoReporte
+                    tipoReporte = tipoReporte,
+                    viewModel = reportesViewModel
                 )
             }
 
