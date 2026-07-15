@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +118,7 @@ fun EditarEmpleadoScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Text("Empleado no encontrado")
@@ -129,7 +130,7 @@ fun EditarEmpleadoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -158,14 +159,14 @@ fun EditarEmpleadoScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(12.dp),
@@ -261,7 +262,7 @@ fun SeccionInformacionPersonalEditarEmpleado(
     CardFormularioEmpleado(
         titulo = "Información personal",
         icono = Icons.Default.Person,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -351,7 +352,7 @@ fun BotonesFormularioEditarEmpleado(
                 .height(52.dp),
             shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF16A34A)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(

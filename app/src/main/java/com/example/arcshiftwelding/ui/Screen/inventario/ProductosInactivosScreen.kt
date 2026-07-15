@@ -27,7 +27,7 @@ fun ItemProductoInactivo(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -42,13 +42,13 @@ fun ItemProductoInactivo(
 
             Text(
                 text = "Código: ${producto.codigo}",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
 
             Text(
                 text = "Categoría: ${producto.categoria}",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall
             )
 

@@ -154,14 +154,14 @@ fun NuevoProyectoScreen(
     Scaffold(
         snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "Nuevo proyecto",
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -175,7 +175,7 @@ fun NuevoProyectoScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
@@ -185,7 +185,7 @@ fun NuevoProyectoScreen(
             state = listaState,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .navigationBarsPadding()
                 .imePadding(),
@@ -323,7 +323,7 @@ fun NuevoProyectoScreen(
                             .fillMaxWidth()
                             .height(7.dp),
                         color = colorEstadoProyecto(estado),
-                        trackColor = Color(0xFFE2E8F0)
+                        trackColor = MaterialTheme.colorScheme.outlineVariant
                     )
                 }
             }
@@ -369,7 +369,7 @@ fun NuevoProyectoScreen(
                     Text(
                         text = "Selecciona fotografías de referencia, del área de trabajo o del resultado esperado.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -456,7 +456,7 @@ fun NuevoProyectoScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2563EB)
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(
@@ -484,7 +484,7 @@ fun CardSeccionProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -495,7 +495,7 @@ fun CardSeccionProyecto(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB)
+                    tint = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -504,7 +504,7 @@ fun CardSeccionProyecto(
                     text = titulo,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 

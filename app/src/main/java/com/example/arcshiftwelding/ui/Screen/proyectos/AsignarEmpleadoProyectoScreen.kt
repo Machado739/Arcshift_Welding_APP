@@ -201,7 +201,7 @@ fun AsignarEmpleadoProyectoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Column(
@@ -211,7 +211,7 @@ fun AsignarEmpleadoProyectoScreen(
                         Text(
                             text = "Empleado seleccionado",
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0F172A)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Text(
@@ -223,13 +223,13 @@ fun AsignarEmpleadoProyectoScreen(
                         Text(
                             text = "Puesto: ${empleadoSeleccionado!!.puesto.ifBlank { "Sin puesto" }}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF64748B)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
                             text = "Tipo de pago: ${textoTipoPagoEmpleadoProyecto(tipoPagoEmpleado)}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF2563EB),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
 
@@ -237,13 +237,13 @@ fun AsignarEmpleadoProyectoScreen(
                             Text(
                                 text = "Porcentaje registrado: ${"%.2f".format(valorPagoEmpleado)}%",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
                         } else {
                             Text(
                                 text = "Pago base: ${formatoMonedaProyecto(valorPagoEmpleado)}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -293,11 +293,11 @@ fun AsignarEmpleadoProyectoScreen(
                 Text(
                     text = "El costo se calculará con el porcentaje del empleado sobre el presupuesto del proyecto.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFEFF6FF),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .padding(10.dp)
@@ -336,7 +336,7 @@ fun AsignarEmpleadoProyectoScreen(
                 Text(
                     text = mensaje ?: "",
                     color = if (mensaje == "Este empleado ya está asignado al proyecto") {
-                        Color(0xFFDC2626)
+                        MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.error
                     },

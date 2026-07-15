@@ -44,6 +44,7 @@ import com.example.arcshiftwelding.utils.serializarComprobantes
 import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
@@ -92,21 +93,25 @@ fun placeholderDescripcionConcepto(tipo: String): String {
     }
 }
 
+@Composable
+
 fun colorConceptoCotizacion(tipo: String): Color {
     return when (tipo) {
-        "Materiales" -> Color(0xFF15803D)
-        "Mano de obra" -> Color(0xFF2563EB)
-        "Gastos adicionales" -> Color(0xFFF59E0B)
-        else -> Color(0xFF334155)
+        "Materiales" -> MaterialTheme.arcshiftColors.success
+        "Mano de obra" -> MaterialTheme.colorScheme.primary
+        "Gastos adicionales" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.colorScheme.onSurface
     }
 }
 
+@Composable
+
 fun fondoConceptoCotizacion(tipo: String): Color {
     return when (tipo) {
-        "Materiales" -> Color(0xFFEAF7EE)
-        "Mano de obra" -> Color(0xFFEFF6FF)
-        "Gastos adicionales" -> Color(0xFFFFF7E6)
-        else -> Color(0xFFF1F5F9)
+        "Materiales" -> MaterialTheme.arcshiftColors.successContainer
+        "Mano de obra" -> MaterialTheme.colorScheme.primaryContainer
+        "Gastos adicionales" -> MaterialTheme.arcshiftColors.warningContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -224,7 +229,7 @@ fun NuevaCotizacionScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -252,7 +257,7 @@ fun NuevaCotizacionScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) {paddingValues ->
         LazyColumn(
@@ -260,7 +265,7 @@ fun NuevaCotizacionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(
                     start = 8.dp,
                     top = 0.dp,
@@ -570,7 +575,7 @@ fun SelectorClienteCotizacion(
             text = "Cliente *",
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         ExposedDropdownMenuBox(
@@ -636,7 +641,7 @@ fun SelectorClienteCotizacion(
                                         Text(
                                             text = cliente.empresa,
                                             fontSize = 10.sp,
-                                            color = Color.Gray
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -655,7 +660,7 @@ fun SelectorClienteCotizacion(
             Text(
                 text = "Selecciona un cliente",
                 fontSize = 9.sp,
-                color = Color(0xFFDC2626),
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 3.dp)
             )
         }
@@ -689,7 +694,7 @@ fun TabConceptoCotizacion(
             text = texto,
             fontSize = 9.sp,
             fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
-            color = if (seleccionado) color else Color.Gray,
+            color = if (seleccionado) color else MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1
         )
     }
@@ -704,35 +709,35 @@ fun EncabezadoNuevaCotizacionConceptos() {
         Text(
             text = "Concepto",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1.3f)
         )
 
         Text(
             text = "Cant.",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.5f)
         )
 
         Text(
             text = "Unidad",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.7f)
         )
 
         Text(
             text = "Precio",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.8f)
         )
 
         Text(
             text = "Importe",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.8f)
         )
 
@@ -741,7 +746,7 @@ fun EncabezadoNuevaCotizacionConceptos() {
 
     Divider(
         modifier = Modifier.padding(vertical = 4.dp),
-        color = Color(0xFFE2E8F0)
+        color = MaterialTheme.colorScheme.outlineVariant
     )
 }
 
@@ -773,7 +778,7 @@ fun SeccionConceptosNuevaCotizacion(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -816,14 +821,14 @@ fun SeccionConceptosNuevaCotizacion(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFFBEB)
+                    containerColor = MaterialTheme.arcshiftColors.warningContainer
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Text(
                     text = "Aún no hay conceptos agregados en esta categoría.",
                     fontSize = 10.sp,
-                    color = Color(0xFF92400E),
+                    color = MaterialTheme.arcshiftColors.onWarningContainer,
                     modifier = Modifier.padding(10.dp)
                 )
             }
@@ -908,7 +913,7 @@ fun ConceptoNuevaCotizacionItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -926,7 +931,7 @@ fun ConceptoNuevaCotizacionItem(
                     text = "Concepto $numeroConcepto",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF334155),
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -954,7 +959,7 @@ fun ConceptoNuevaCotizacionItem(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Eliminar concepto",
                             modifier = Modifier.size(18.dp),
-                            tint = Color(0xFFDC2626)
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -1017,7 +1022,7 @@ fun ConceptoNuevaCotizacionItem(
                         text = "Importe",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Box(
@@ -1025,7 +1030,7 @@ fun ConceptoNuevaCotizacionItem(
                             .fillMaxWidth()
                             .height(48.dp)
                             .background(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(7.dp)
                             )
                             .padding(horizontal = 10.dp),
@@ -1060,7 +1065,7 @@ fun CampoConceptoCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1094,7 +1099,7 @@ fun CampoMiniCotizacion(
             .height(28.dp)
             .padding(horizontal = 2.dp)
             .background(
-                color = Color(0xFFF8FAFC),
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(5.dp)
             ),
         contentAlignment = Alignment.Center
@@ -1102,7 +1107,7 @@ fun CampoMiniCotizacion(
         Text(
             text = texto,
             fontSize = 8.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1
         )
     }
@@ -1176,14 +1181,14 @@ fun SeccionResumenNuevaCotizacion(
                 Text(
                     text = "Total",
                     fontSize = 10.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = total.formatoMonedaCotizacion(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16A34A)
+                    color = MaterialTheme.arcshiftColors.success
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1192,7 +1197,7 @@ fun SeccionResumenNuevaCotizacion(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFEAF7EE),
+                            color = MaterialTheme.arcshiftColors.successContainer,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(8.dp)
@@ -1201,14 +1206,14 @@ fun SeccionResumenNuevaCotizacion(
                         Text(
                             text = "Anticipo sugerido",
                             fontSize = 8.sp,
-                            color = Color(0xFF15803D)
+                            color = MaterialTheme.arcshiftColors.success
                         )
 
                         Text(
                             text = anticipoSugerido.formatoMonedaCotizacion(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF15803D)
+                            color = MaterialTheme.arcshiftColors.success
                         )
                     }
                 }
@@ -1218,14 +1223,14 @@ fun SeccionResumenNuevaCotizacion(
                 Text(
                     text = "Saldo restante",
                     fontSize = 8.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = saldoRestante.formatoMonedaCotizacion(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -1255,11 +1260,11 @@ fun SeccionArchivosNuevaCotizacion(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onAbrirArchivo(archivo) },
-                    color = Color(0xFFF8FAFC),
+                    color = MaterialTheme.colorScheme.background,
                     shape = RoundedCornerShape(10.dp),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        Color(0xFFE2E8F0)
+                        MaterialTheme.colorScheme.outlineVariant
                     )
                 ) {
                     Row(
@@ -1274,9 +1279,9 @@ fun SeccionArchivosNuevaCotizacion(
                             },
                             contentDescription = tipoReal,
                             tint = when (tipoReal) {
-                                "PDF" -> Color(0xFFDC2626)
-                                "Imagen" -> Color(0xFF2563EB)
-                                else -> Color(0xFF64748B)
+                                "PDF" -> MaterialTheme.colorScheme.error
+                                "Imagen" -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
 
@@ -1292,7 +1297,7 @@ fun SeccionArchivosNuevaCotizacion(
                             Text(
                                 text = "$tipoReal · ${formatearTamanoComprobante(archivo.tamanoBytes)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF64748B)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -1302,7 +1307,7 @@ fun SeccionArchivosNuevaCotizacion(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Quitar archivo",
-                                tint = Color(0xFFDC2626)
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -1318,7 +1323,7 @@ fun SeccionArchivosNuevaCotizacion(
             Text(
                 text = "No se han agregado archivos.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF64748B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(10.dp))
         }
@@ -1373,13 +1378,13 @@ fun BotonArchivoNuevaCotizacion(
                 imageVector = icono,
                 contentDescription = texto,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF334155)
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = texto,
                 fontSize = 8.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
 
@@ -1387,7 +1392,7 @@ fun BotonArchivoNuevaCotizacion(
                 Text(
                     text = subtitulo,
                     fontSize = 7.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
             }
@@ -1451,7 +1456,7 @@ fun BotonesNuevaCotizacion(
                 .height(46.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF15803D)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(
@@ -1480,7 +1485,7 @@ fun CardSeccionFormularioCotizacion(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -1495,7 +1500,7 @@ fun CardSeccionFormularioCotizacion(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF334155),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
 
@@ -1505,7 +1510,7 @@ fun CardSeccionFormularioCotizacion(
                     text = titulo,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -1534,7 +1539,7 @@ fun CampoFormularioCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1591,7 +1596,7 @@ fun CampoTextoLargoCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1633,7 +1638,7 @@ fun CampoFechaCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Box(
@@ -1670,11 +1675,11 @@ fun CampoFechaCotizacion(
                 ),
                 shape = RoundedCornerShape(7.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color.Black,
-                    disabledBorderColor = Color(0xFFE0E0E0),
-                    disabledContainerColor = Color.White,
-                    disabledPlaceholderColor = Color.Gray,
-                    disabledTrailingIconColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -1743,7 +1748,7 @@ fun CampoDropdownCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         ExposedDropdownMenuBox(
@@ -1817,7 +1822,7 @@ fun CampoFolioCotizacionSoloLectura(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1837,21 +1842,21 @@ fun CampoFolioCotizacionSoloLectura(
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = "Folio automático",
-                    tint = Color(0xFF64748B)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             singleLine = true,
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF334155)
+                color = MaterialTheme.colorScheme.onSurface
             ),
             shape = RoundedCornerShape(7.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF1F5F9),
-                unfocusedContainerColor = Color(0xFFF1F5F9),
-                focusedBorderColor = Color(0xFFCBD5E1),
-                unfocusedBorderColor = Color(0xFFCBD5E1)
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
             )
         )
     }
@@ -1937,7 +1942,7 @@ fun FilaConceptoNuevaCotizacion(
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Eliminar concepto",
-                tint = Color(0xFFDC2626),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(18.dp)
             )
         }

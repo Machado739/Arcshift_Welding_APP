@@ -18,13 +18,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material3.MaterialTheme
 
 private data class ElementoNavegacionInferior(
     val titulo: String,
@@ -78,12 +78,13 @@ fun BottomNavigationBar(
     )
 
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         shadowElevation = 8.dp
     ) {
         NavigationBar(
             modifier = Modifier.height(72.dp),
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp
         ) {
             elementos.forEach { elemento ->
@@ -119,11 +120,11 @@ fun BottomNavigationBar(
 @Composable
 fun bottomNavigationItemColors(): NavigationBarItemColors {
     return NavigationBarItemDefaults.colors(
-        selectedIconColor = Color(0xFF2563EB),
-        selectedTextColor = Color(0xFF1D4ED8),
-        unselectedIconColor = Color(0xFF64748B),
-        unselectedTextColor = Color(0xFF64748B),
-        indicatorColor = Color(0xFFDBEAFE)
+        selectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        indicatorColor = MaterialTheme.colorScheme.primaryContainer
     )
 }
 

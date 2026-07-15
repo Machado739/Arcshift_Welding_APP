@@ -66,6 +66,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +130,7 @@ fun ReponerStockScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -161,12 +162,12 @@ fun ReponerStockScreen(
                     Text(
                         text = "Entrada de inventario",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -177,13 +178,13 @@ fun ReponerStockScreen(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .background(Color(0xFFF5F5F5)),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Cargando producto...",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -260,7 +261,7 @@ fun ReponerStockScreen(
             if (mensajeError.isNotBlank()) {
                 Text(
                     text = mensajeError,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -400,9 +401,9 @@ fun CardProductoReponerStockMejorado(
     unidadMedida: String
 ) {
     val stockColor = when {
-        stockActual <= 0 -> Color(0xFFDC2626)
-        stockActual <= stockMinimo -> Color(0xFFF59E0B)
-        else -> Color(0xFF16A34A)
+        stockActual <= 0 -> MaterialTheme.colorScheme.error
+        stockActual <= stockMinimo -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.arcshiftColors.success
     }
 
     val stockTexto = when {
@@ -416,7 +417,7 @@ fun CardProductoReponerStockMejorado(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -429,7 +430,7 @@ fun CardProductoReponerStockMejorado(
                     modifier = Modifier
                         .size(54.dp)
                         .background(
-                            color = Color(0xFF2563EB).copy(alpha = 0.12f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -437,7 +438,7 @@ fun CardProductoReponerStockMejorado(
                     Icon(
                         imageVector = Icons.Default.Inventory2,
                         contentDescription = null,
-                        tint = Color(0xFF2563EB),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -456,13 +457,13 @@ fun CardProductoReponerStockMejorado(
                     Text(
                         text = "Código: $codigoProducto",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = categoria,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -487,7 +488,7 @@ fun CardProductoReponerStockMejorado(
                     Text(
                         text = unidadMedida,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -575,7 +576,7 @@ fun CardCantidadReponerMejorado(
                     valor = "+ ${cantidadAgregar.ifBlank { "0" }}",
                     subtitulo = unidadMedida,
                     modifier = Modifier.weight(1f),
-                    colorPrincipal = Color(0xFF2563EB)
+                    colorPrincipal = MaterialTheme.colorScheme.primary
                 )
 
                 CajaResumenStockReponer(
@@ -592,7 +593,7 @@ fun CardCantidadReponerMejorado(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFFFF7E6),
+                            color = MaterialTheme.arcshiftColors.warningContainer,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(10.dp),
@@ -601,7 +602,7 @@ fun CardCantidadReponerMejorado(
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = null,
-                        tint = Color(0xFFF59E0B),
+                        tint = MaterialTheme.arcshiftColors.warning,
                         modifier = Modifier.size(18.dp)
                     )
 
@@ -610,7 +611,7 @@ fun CardCantidadReponerMejorado(
                     Text(
                         text = "El nuevo stock supera el stock máximo registrado.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF92400E),
+                        color = MaterialTheme.arcshiftColors.onWarningContainer,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -654,7 +655,7 @@ fun CardCostoReponerStock(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFEFF6FF)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
                 Column(
@@ -667,7 +668,7 @@ fun CardCostoReponerStock(
                     ) {
                         Text(
                             text = "Cantidad",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall
                         )
 
@@ -683,13 +684,13 @@ fun CardCostoReponerStock(
                     ) {
                         Text(
                             text = "Costo total de entrada",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall
                         )
 
                         Text(
                             text = formatoDineroReponer(costoMovimiento),
-                            color = Color(0xFF2563EB),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -778,7 +779,7 @@ fun CajaDatoInventarioReponer(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         )
     ) {
         Column(
@@ -790,7 +791,7 @@ fun CajaDatoInventarioReponer(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -803,7 +804,7 @@ fun CajaDatoInventarioReponer(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -817,16 +818,16 @@ fun CajaResumenStockReponer(
     subtitulo: String,
     modifier: Modifier = Modifier,
     destacado: Boolean = false,
-    colorPrincipal: Color = Color(0xFF111827)
+    colorPrincipal: Color = MaterialTheme.colorScheme.onSurface
 ) {
     val fondo = if (destacado) {
-        Color(0xFFE9F8EF)
+        MaterialTheme.arcshiftColors.successContainer
     } else {
-        Color(0xFFF8FAFC)
+        MaterialTheme.colorScheme.background
     }
 
     val colorTexto = if (destacado) {
-        Color(0xFF16A34A)
+        MaterialTheme.arcshiftColors.success
     } else {
         colorPrincipal
     }
@@ -847,7 +848,7 @@ fun CajaResumenStockReponer(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -860,7 +861,7 @@ fun CajaResumenStockReponer(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

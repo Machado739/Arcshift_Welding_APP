@@ -70,6 +70,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class CotizacionUI(
     val id: Int,
@@ -128,7 +129,7 @@ fun CotizacionesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
         HeaderCotizaciones(
@@ -175,7 +176,7 @@ fun CotizacionesScreen(
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Nueva cotización")
             }
@@ -215,7 +216,7 @@ fun HeaderCotizaciones(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(start = if (mostrarRegresar) 0.dp else 20.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -266,7 +267,7 @@ private fun SelectorPeriodoCotizaciones(
                 Text(
                     text = periodo,
                     fontSize = 9.sp,
-                    color = if (activo) Color(0xFF2563EB) else Color(0xFF64748B),
+                    color = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -275,7 +276,7 @@ private fun SelectorPeriodoCotizaciones(
                         .width(20.dp)
                         .height(2.dp)
                         .background(
-                            if (activo) Color(0xFF2563EB) else Color.Transparent,
+                            if (activo) MaterialTheme.colorScheme.primary else Color.Transparent,
                             RoundedCornerShape(2.dp)
                         )
                 )
@@ -301,7 +302,7 @@ private fun ResumenCotizacionesCompacto(
             .animateContentSize()
             .clickable(onClick = onCambiar),
         shape = RoundedCornerShape(13.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
@@ -310,20 +311,20 @@ private fun ResumenCotizacionesCompacto(
                     titulo = "Total",
                     valor = total.toString(),
                     icono = Icons.Default.Description,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
                 ResumenCotizacionDato(
                     titulo = "Pendientes",
                     valor = pendientes.toString(),
                     icono = Icons.Default.Schedule,
-                    color = Color(0xFFF59E0B),
+                    color = MaterialTheme.arcshiftColors.warning,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = if (expandido) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (expandido) "Contraer" else "Desplegar",
-                    tint = Color(0xFF64748B),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -338,14 +339,14 @@ private fun ResumenCotizacionesCompacto(
                         titulo = "Aprobadas",
                         valor = aprobadas.toString(),
                         icono = Icons.Default.CheckCircle,
-                        color = Color(0xFF16A34A),
+                        color = MaterialTheme.arcshiftColors.success,
                         modifier = Modifier.weight(1f)
                     )
                     ResumenCotizacionDato(
                         titulo = "Rechazadas",
                         valor = rechazadas.toString(),
                         icono = Icons.Default.Cancel,
-                        color = Color(0xFFDC2626),
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f)
                     )
                     Spacer(modifier = Modifier.width(20.dp))
@@ -374,8 +375,8 @@ private fun ResumenCotizacionDato(
         }
         Spacer(modifier = Modifier.width(7.dp))
         Column {
-            Text(text = titulo, color = Color(0xFF64748B), fontSize = 8.sp)
-            Text(text = valor, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+            Text(text = titulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
+            Text(text = valor, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -385,15 +386,15 @@ fun FiltroClienteCotizaciones(nombreCliente: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFEFF6FF), RoundedCornerShape(9.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(9.dp))
             .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF2563EB), modifier = Modifier.size(17.dp))
+        Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
         Spacer(modifier = Modifier.width(7.dp))
         Text(
             text = "Cliente: $nombreCliente",
-            color = Color(0xFF1D4ED8),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
@@ -447,8 +448,8 @@ fun FiltrosCategoriaCotizaciones(
                     }
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (seleccionada == categoria) Color(0xFFE0ECFF) else Color.White,
-                    labelColor = if (seleccionada == categoria) Color(0xFF1D4ED8) else Color(0xFF334155)
+                    containerColor = if (seleccionada == categoria) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    labelColor = if (seleccionada == categoria) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -470,12 +471,12 @@ fun ListadoCotizaciones(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
                         text = mensajeVacio,
                         modifier = Modifier.padding(18.dp),
-                        color = Color(0xFF64748B),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
@@ -499,7 +500,7 @@ fun ItemCotizacion(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -532,7 +533,7 @@ fun ItemCotizacion(
                 }
                 Text(
                     text = cotizacion.trabajo,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 9.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -541,17 +542,17 @@ fun ItemCotizacion(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = cotizacion.folio,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
-                            .background(Color(0xFFEFF6FF), RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp))
                             .padding(horizontal = 5.dp, vertical = 2.dp)
                     )
                     Spacer(modifier = Modifier.width(7.dp))
                     Text(
                         text = "${cotizacion.fecha} · vence ${cotizacion.vence}",
-                        color = Color(0xFF94A3B8),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 7.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -562,7 +563,7 @@ fun ItemCotizacion(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = cotizacion.total,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = when {
                     cotizacion.total.length >= 13 -> 9.sp
@@ -594,18 +595,22 @@ fun IconoEstadoCotizacion(estado: String) {
     }
 }
 
+@Composable
+
 fun ColorEstadoCotizacion(estado: String): Color = when {
-    estado.equals("Pendiente", true) -> Color(0xFFF59E0B)
-    estado.equals("Aprobada", true) -> Color(0xFF16A34A)
-    estado.equals("Rechazada", true) -> Color(0xFFDC2626)
-    else -> Color(0xFF2563EB)
+    estado.equals("Pendiente", true) -> MaterialTheme.arcshiftColors.warning
+    estado.equals("Aprobada", true) -> MaterialTheme.arcshiftColors.success
+    estado.equals("Rechazada", true) -> MaterialTheme.colorScheme.error
+    else -> MaterialTheme.colorScheme.primary
 }
 
+@Composable
+
 fun FondoEstadoCotizacion(estado: String): Color = when {
-    estado.equals("Pendiente", true) -> Color(0xFFFEF3C7)
-    estado.equals("Aprobada", true) -> Color(0xFFDCFCE7)
-    estado.equals("Rechazada", true) -> Color(0xFFFEE2E2)
-    else -> Color(0xFFEFF6FF)
+    estado.equals("Pendiente", true) -> MaterialTheme.arcshiftColors.warningContainer
+    estado.equals("Aprobada", true) -> MaterialTheme.arcshiftColors.successContainer
+    estado.equals("Rechazada", true) -> MaterialTheme.colorScheme.errorContainer
+    else -> MaterialTheme.colorScheme.primaryContainer
 }
 
 private val formatosFechaCotizacion = listOf(

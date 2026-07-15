@@ -64,6 +64,7 @@ import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +113,7 @@ fun ReportarSalidaScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -140,7 +141,7 @@ fun ReportarSalidaScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -151,13 +152,13 @@ fun ReportarSalidaScreen(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .background(Color(0xFFF5F6FA)),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Cargando producto...",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -188,7 +189,7 @@ fun ReportarSalidaScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF5F6FA))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -237,7 +238,7 @@ fun ReportarSalidaScreen(
             if (mensajeError.isNotBlank()) {
                 Text(
                     text = mensajeError,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -378,7 +379,7 @@ fun CardProductoSalidaStock(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -392,7 +393,7 @@ fun CardProductoSalidaStock(
                 modifier = Modifier
                     .size(70.dp)
                     .background(
-                        color = Color(0xFFEDEDED),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -401,7 +402,7 @@ fun CardProductoSalidaStock(
                     imageVector = Icons.Default.Inventory2,
                     contentDescription = null,
                     modifier = Modifier.size(38.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -421,20 +422,20 @@ fun CardProductoSalidaStock(
                 Text(
                     text = "Código: $codigoProducto",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = "Stock actual: $stockActual $unidadMedida",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (stockBajo) Color(0xFFB42318) else Color(0xFF1B7F3A),
+                    color = if (stockBajo) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.arcshiftColors.success,
                     fontWeight = FontWeight.Medium
                 )
 
                 Text(
                     text = "Stock mínimo: $stockMinimo $unidadMedida",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -456,7 +457,7 @@ fun CardCantidadSalida(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -470,7 +471,7 @@ fun CardCantidadSalida(
                     imageVector = Icons.Default.RemoveCircleOutline,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color(0xFFB42318)
+                    tint = MaterialTheme.colorScheme.onErrorContainer
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -549,7 +550,7 @@ fun CardCantidadSalida(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFFFE8E6),
+                            color = MaterialTheme.colorScheme.errorContainer,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(10.dp),
@@ -558,7 +559,7 @@ fun CardCantidadSalida(
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = null,
-                        tint = Color(0xFFB42318),
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.size(18.dp)
                     )
 
@@ -567,7 +568,7 @@ fun CardCantidadSalida(
                     Text(
                         text = "La salida dejaría el inventario en negativo.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFFB42318),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -587,17 +588,17 @@ fun CajaResumenSalida(
     error: Boolean = false
 ) {
     val fondo = when {
-        error -> Color(0xFFFFE8E6)
-        destacado -> Color(0xFFE9F8EF)
-        salida -> Color(0xFFFFF1F0)
-        else -> Color(0xFFF7F7F7)
+        error -> MaterialTheme.colorScheme.errorContainer
+        destacado -> MaterialTheme.arcshiftColors.successContainer
+        salida -> MaterialTheme.colorScheme.errorContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val colorTexto = when {
-        error -> Color(0xFFB42318)
-        salida -> Color(0xFFB42318)
-        destacado -> Color(0xFF1B7F3A)
-        else -> Color(0xFF111827)
+        error -> MaterialTheme.colorScheme.onErrorContainer
+        salida -> MaterialTheme.colorScheme.onErrorContainer
+        destacado -> MaterialTheme.arcshiftColors.success
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     Card(
@@ -616,7 +617,7 @@ fun CajaResumenSalida(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -629,7 +630,7 @@ fun CajaResumenSalida(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -651,7 +652,7 @@ fun CardDatosSalida(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -666,7 +667,7 @@ fun CardDatosSalida(
                     imageVector = Icons.Default.Description,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -754,7 +755,7 @@ fun CardResumenCostoSalida(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -767,7 +768,7 @@ fun CardResumenCostoSalida(
                     imageVector = Icons.Default.AttachMoney,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -819,7 +820,7 @@ fun CardResumenCostoSalida(
                 Text(
                     text = "$ ${"%.2f".format(costoSalida)}",
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFB42318)
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }

@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.toEliminarUi
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +60,7 @@ fun EliminarEmpleadoScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Text("Empleado no encontrado")
@@ -74,7 +75,7 @@ fun EliminarEmpleadoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -103,14 +104,14 @@ fun EliminarEmpleadoScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,7 +164,7 @@ fun CardAdvertenciaEliminarEmpleado() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFEE2E2)
+            containerColor = MaterialTheme.colorScheme.errorContainer
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -177,13 +178,13 @@ fun CardAdvertenciaEliminarEmpleado() {
                 modifier = Modifier
                     .size(58.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFDC2626).copy(alpha = 0.15f)),
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFDC2626),
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(34.dp)
                 )
             }
@@ -194,7 +195,7 @@ fun CardAdvertenciaEliminarEmpleado() {
                 text = "¿Eliminar empleado?",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF991B1B),
+                color = MaterialTheme.colorScheme.onErrorContainer,
                 textAlign = TextAlign.Center
             )
 
@@ -203,7 +204,7 @@ fun CardAdvertenciaEliminarEmpleado() {
             Text(
                 text = "Esta acción eliminará el registro del empleado seleccionado.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF7F1D1D),
+                color = MaterialTheme.colorScheme.onErrorContainer,
                 textAlign = TextAlign.Center
             )
         }
@@ -218,7 +219,7 @@ fun CardEmpleadoEliminar(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -241,13 +242,13 @@ fun CardEmpleadoEliminar(
                     modifier = Modifier
                         .size(54.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE5E7EB)),
+                        .background(MaterialTheme.colorScheme.outlineVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color(0xFF9CA3AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -268,7 +269,7 @@ fun CardEmpleadoEliminar(
                     Text(
                         text = empleado.puesto,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -281,7 +282,7 @@ fun CardEmpleadoEliminar(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             InfoEliminarEmpleadoLinea(
                 icono = Icons.Default.Work,
@@ -289,7 +290,7 @@ fun CardEmpleadoEliminar(
                 valor = empleado.trabajoActual
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             InfoEliminarEmpleadoLinea(
                 icono = Icons.Default.Badge,
@@ -297,7 +298,7 @@ fun CardEmpleadoEliminar(
                 valor = empleado.contrato
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             InfoEliminarEmpleadoLinea(
                 icono = Icons.Default.Person,
@@ -314,7 +315,7 @@ fun CardConsecuenciasEliminarEmpleado() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -327,7 +328,7 @@ fun CardConsecuenciasEliminarEmpleado() {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = null,
-                    tint = Color(0xFFDC2626),
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp)
                 )
 
@@ -345,7 +346,7 @@ fun CardConsecuenciasEliminarEmpleado() {
             Text(
                 text = "Verifica que el empleado no tenga pagos pendientes o trabajos activos asignados. Si solo deseas ocultarlo del listado, puedes cambiar su estado a Inactivo desde la pantalla de edición.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -366,7 +367,7 @@ fun InfoEliminarEmpleadoLinea(
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = Color.Gray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(17.dp)
         )
 
@@ -375,7 +376,7 @@ fun InfoEliminarEmpleadoLinea(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -384,7 +385,7 @@ fun InfoEliminarEmpleadoLinea(
         Text(
             text = valor,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -397,10 +398,10 @@ fun EstadoEliminarEmpleadoBadge(
     estado: String
 ) {
     val color = when (estado) {
-        "Activo" -> Color(0xFF16A34A)
-        "Inactivo" -> Color(0xFF64748B)
-        "Pendiente" -> Color(0xFFEAB308)
-        else -> Color.Gray
+        "Activo" -> MaterialTheme.arcshiftColors.success
+        "Inactivo" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "Pendiente" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(
@@ -455,7 +456,7 @@ fun BotonesEliminarEmpleado(
                 .height(52.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFDC2626)
+                containerColor = MaterialTheme.colorScheme.error
             )
         ) {
             Icon(

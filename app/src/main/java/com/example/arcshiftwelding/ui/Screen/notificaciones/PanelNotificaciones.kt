@@ -48,6 +48,7 @@ import com.example.arcshiftwelding.notifications.NotificacionApp
 import com.example.arcshiftwelding.notifications.PrioridadNotificacion
 import com.example.arcshiftwelding.notifications.TipoNotificacion
 import kotlinx.coroutines.delay
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 private const val TIEMPO_VISIBLE_PANEL_MS = 10_000L
 
@@ -98,7 +99,7 @@ fun CampanaConPanelNotificaciones(
                 badge = {
                     if (notificaciones.isNotEmpty()) {
                         Badge(
-                            containerColor = Color(0xFFDC2626),
+                            containerColor = MaterialTheme.colorScheme.error,
                             contentColor = Color.White
                         ) {
                             Text(
@@ -126,9 +127,9 @@ fun CampanaConPanelNotificaciones(
                         "Sin notificaciones pendientes"
                     },
                     tint = if (notificaciones.isNotEmpty()) {
-                        Color(0xFF2563EB)
+                        MaterialTheme.colorScheme.primary
                     } else {
-                        Color(0xFF475569)
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
             }
@@ -140,7 +141,7 @@ fun CampanaConPanelNotificaciones(
             modifier = Modifier
                 .widthIn(min = 290.dp, max = 350.dp)
                 .heightIn(max = 460.dp)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             EncabezadoPanelNotificaciones(
                 cantidad = notificaciones.size,
@@ -150,7 +151,7 @@ fun CampanaConPanelNotificaciones(
                 }
             )
 
-            HorizontalDivider(color = Color(0xFFE2E8F0))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             if (notificaciones.isEmpty()) {
                 EstadoPanelSinNotificaciones()
@@ -167,7 +168,7 @@ fun CampanaConPanelNotificaciones(
                     if (indice < notificaciones.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            color = Color(0xFFF1F5F9)
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         )
                     }
                 }
@@ -193,7 +194,7 @@ private fun EncabezadoPanelNotificaciones(
                 text = "Notificaciones",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A)
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = when (cantidad) {
@@ -202,7 +203,7 @@ private fun EncabezadoPanelNotificaciones(
                     else -> "$cantidad alertas pendientes"
                 },
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF64748B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -259,7 +260,7 @@ private fun ElementoPanelNotificacion(
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF0F172A),
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -279,7 +280,7 @@ private fun ElementoPanelNotificacion(
                 Text(
                     text = notificacion.descripcion,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF475569),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -313,7 +314,7 @@ private fun EstadoPanelSinNotificaciones() {
             modifier = Modifier
                 .size(48.dp)
                 .background(
-                    color = Color(0xFFF1F5F9),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -321,7 +322,7 @@ private fun EstadoPanelSinNotificaciones() {
             Icon(
                 imageVector = Icons.Default.NotificationsNone,
                 contentDescription = null,
-                tint = Color(0xFF64748B)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -330,12 +331,12 @@ private fun EstadoPanelSinNotificaciones() {
         Text(
             text = "Todo está al día",
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF0F172A)
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = "Las nuevas alertas aparecerán aquí.",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -346,36 +347,40 @@ private data class EstiloNotificacion(
     val contenido: Color
 )
 
+@Composable
+
 private fun estiloNotificacion(
     notificacion: NotificacionApp
 ): EstiloNotificacion {
     return when (notificacion.tipo) {
         TipoNotificacion.PAGO -> EstiloNotificacion(
             icono = Icons.Default.Payments,
-            fondo = Color(0xFFFFF7ED),
-            contenido = Color(0xFFEA580C)
+            fondo = MaterialTheme.arcshiftColors.warningContainer,
+            contenido = MaterialTheme.arcshiftColors.warning
         )
 
         TipoNotificacion.COTIZACION -> EstiloNotificacion(
             icono = Icons.Default.Description,
-            fondo = Color(0xFFEFF6FF),
-            contenido = Color(0xFF2563EB)
+            fondo = MaterialTheme.colorScheme.primaryContainer,
+            contenido = MaterialTheme.colorScheme.primary
         )
 
         TipoNotificacion.STOCK -> EstiloNotificacion(
             icono = Icons.Default.Inventory2,
-            fondo = Color(0xFFFEF2F2),
-            contenido = Color(0xFFDC2626)
+            fondo = MaterialTheme.colorScheme.errorContainer,
+            contenido = MaterialTheme.colorScheme.error
         )
     }
 }
+
+@Composable
 
 private fun colorPrioridad(
     prioridad: PrioridadNotificacion
 ): Color {
     return when (prioridad) {
-        PrioridadNotificacion.CRITICA -> Color(0xFFDC2626)
-        PrioridadNotificacion.ALTA -> Color(0xFFF97316)
-        PrioridadNotificacion.MEDIA -> Color(0xFFF59E0B)
+        PrioridadNotificacion.CRITICA -> MaterialTheme.colorScheme.error
+        PrioridadNotificacion.ALTA -> MaterialTheme.arcshiftColors.warning
+        PrioridadNotificacion.MEDIA -> MaterialTheme.arcshiftColors.warning
     }
 }

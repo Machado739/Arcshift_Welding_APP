@@ -72,7 +72,7 @@ fun HistorialMovimientosProductoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -104,12 +104,12 @@ fun HistorialMovimientosProductoScreen(
                     Text(
                         text = "Lista completa del producto",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -125,7 +125,7 @@ fun HistorialMovimientosProductoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -138,7 +138,7 @@ fun HistorialMovimientosProductoScreen(
                         Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = null,
-                            tint = Color(0xFF2563EB)
+                            tint = MaterialTheme.colorScheme.primary
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -158,7 +158,7 @@ fun HistorialMovimientosProductoScreen(
                         Text(
                             text = "Sin movimientos registrados.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         EncabezadoTablaMovimientos()

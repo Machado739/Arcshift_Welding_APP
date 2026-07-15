@@ -77,6 +77,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 private data class ArchivoExportacionDetallePendiente(
     val archivo: File,
@@ -111,7 +112,7 @@ fun DetalleReporteScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
         HeaderDetalleReporte(
@@ -124,7 +125,7 @@ fun DetalleReporteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Text(
                     text = if (uiState.cargando) {
@@ -133,7 +134,7 @@ fun DetalleReporteScreen(
                         "No se encontró información para este reporte."
                     },
                     modifier = Modifier.padding(20.dp),
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else LazyColumn(
@@ -182,7 +183,7 @@ fun DetalleReporteScreen(
                         } else {
                             "Mostrando ${registrosVisibles.size} de ${reporte.registros.size}"
                         },
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp
                     )
@@ -193,12 +194,12 @@ fun DetalleReporteScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Text(
                             text = "No hay registros en el periodo seleccionado.",
                             modifier = Modifier.padding(18.dp),
-                            color = Color(0xFF64748B),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -336,7 +337,7 @@ private fun HeaderDetalleReporte(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -375,7 +376,7 @@ private fun SelectorPeriodoDetalle(
             ) {
                 Text(
                     text = opcion.etiqueta,
-                    color = if (seleccionado) Color(0xFF2563EB) else Color(0xFF64748B),
+                    color = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 11.sp
                 )
@@ -385,7 +386,7 @@ private fun SelectorPeriodoDetalle(
                         .width(24.dp)
                         .height(2.dp)
                         .background(
-                            if (seleccionado) Color(0xFF2563EB) else Color.Transparent,
+                            if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent,
                             RoundedCornerShape(2.dp)
                         )
                 )
@@ -403,7 +404,7 @@ private fun CabeceraReporteDetalle(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -434,7 +435,7 @@ private fun CabeceraReporteDetalle(
                 )
                 Text(
                     text = reporte.descripcion,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -476,7 +477,7 @@ private fun ResumenReporteDetalle(reporte: ReporteDetalleUi) {
         DatoPrincipalReporte(
             titulo = reporte.etiquetaSecundaria,
             valor = reporte.valorSecundario,
-            color = Color(0xFF2563EB),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
     }
@@ -492,7 +493,7 @@ private fun DatoPrincipalReporte(
     Card(
         modifier = modifier.height(72.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
@@ -503,7 +504,7 @@ private fun DatoPrincipalReporte(
         ) {
             Text(
                 text = titulo,
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 9.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -529,7 +530,7 @@ private fun MetricasReporteDetalle(reporte: ReporteDetalleUi) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
@@ -542,13 +543,13 @@ private fun MetricasReporteDetalle(reporte: ReporteDetalleUi) {
                 ) {
                     Text(
                         text = metrica.titulo,
-                        color = Color(0xFF64748B),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
                         text = metrica.valor,
-                        color = Color(0xFF0F172A),
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
                         maxLines = 1,
@@ -556,7 +557,7 @@ private fun MetricasReporteDetalle(reporte: ReporteDetalleUi) {
                     )
                 }
                 if (index < reporte.metricas.lastIndex) {
-                    Divider(color = Color(0xFFE2E8F0))
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -574,7 +575,7 @@ private fun RegistroReporteCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(
@@ -607,7 +608,7 @@ private fun RegistroReporteCard(
                 )
                 Text(
                     text = registro.descripcion,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 9.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -616,7 +617,7 @@ private fun RegistroReporteCard(
                     text = listOf(registro.fecha, registro.estado)
                         .filter { it.isNotBlank() }
                         .joinToString(" · "),
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 8.sp,
                     maxLines = 1
                 )
@@ -637,7 +638,7 @@ private fun RegistroReporteCard(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Abrir registro",
-                tint = Color(0xFF94A3B8),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -652,7 +653,7 @@ private fun AccionesDetalleReporte(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -666,7 +667,7 @@ private fun AccionesDetalleReporte(
                     onClick = onPdf,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(17.dp))
                     Spacer(modifier = Modifier.width(5.dp))
@@ -699,16 +700,18 @@ private fun iconoReporteDetalle(tipo: String): ImageVector {
     }
 }
 
+@Composable
+
 private fun colorReporteDetalle(tipo: String): Color {
     return when (tipo.lowercase()) {
-        "ingresos" -> Color(0xFF16A34A)
-        "gastos" -> Color(0xFFDC2626)
-        "inventario" -> Color(0xFF2563EB)
-        "cotizaciones" -> Color(0xFFF59E0B)
-        "clientes" -> Color(0xFF7C3AED)
-        "proyectos" -> Color(0xFF0891B2)
-        "empleados" -> Color(0xFF4F46E5)
-        else -> Color(0xFF2563EB)
+        "ingresos" -> MaterialTheme.arcshiftColors.success
+        "gastos" -> MaterialTheme.colorScheme.error
+        "inventario" -> MaterialTheme.colorScheme.primary
+        "cotizaciones" -> MaterialTheme.arcshiftColors.warning
+        "clientes" -> MaterialTheme.colorScheme.secondary
+        "proyectos" -> MaterialTheme.arcshiftColors.info
+        "empleados" -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.primary
     }
 }
 

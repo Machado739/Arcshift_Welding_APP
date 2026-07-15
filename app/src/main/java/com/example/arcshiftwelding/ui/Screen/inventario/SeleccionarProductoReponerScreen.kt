@@ -53,6 +53,7 @@ import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 import com.example.arcshiftwelding.data.repository.ProductoRepository
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @Composable
 fun SeleccionarProductoReponerScreen(
@@ -86,7 +87,7 @@ fun SeleccionarProductoReponerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp)
     ) {
         HeaderSeleccionarProductoReponer(
@@ -130,7 +131,7 @@ fun SeleccionarProductoReponerScreen(
                 Text(
                     text = "No se encontraron productos",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -160,7 +161,7 @@ fun HeaderSeleccionarProductoReponer(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -185,7 +186,7 @@ fun HeaderSeleccionarProductoReponer(
             Text(
                 text = "Seleccionar producto",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -198,7 +199,7 @@ fun TarjetaInfoReponerStock(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE0ECFF)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -211,13 +212,13 @@ fun TarjetaInfoReponerStock(
             Box(
                 modifier = Modifier
                     .size(42.dp)
-                    .background(Color(0xFF1D4ED8).copy(alpha = 0.15f), CircleShape),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.AddBox,
                     contentDescription = null,
-                    tint = Color(0xFF1D4ED8),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -234,14 +235,14 @@ fun TarjetaInfoReponerStock(
 
                 Text(
                     text = "Elige el producto al que deseas agregar stock",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
             Text(
                 text = "$totalProductos productos",
-                color = Color(0xFF1D4ED8),
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium
             )
@@ -270,10 +271,10 @@ fun BarraBusquedaProductoReponer(
         singleLine = true,
         shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
-            focusedBorderColor = Color(0xFF2563EB),
-            unfocusedBorderColor = Color(0xFFE2E8F0)
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
         )
     )
 }
@@ -284,9 +285,9 @@ fun ItemProductoReponer(
     onClick: () -> Unit
 ) {
     val stockColor = when {
-        producto.stock == 0 -> Color(0xFFDC2626)
-        producto.stock <= producto.stockMinimo -> Color(0xFFF59E0B)
-        else -> Color(0xFF16A34A)
+        producto.stock == 0 -> MaterialTheme.colorScheme.error
+        producto.stock <= producto.stockMinimo -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.arcshiftColors.success
     }
 
     val stockTexto = when {
@@ -303,7 +304,7 @@ fun ItemProductoReponer(
             },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -315,7 +316,7 @@ fun ItemProductoReponer(
         ) {
             IconoProductoReponer(
                 icono = Icons.Default.Inventory,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -331,19 +332,19 @@ fun ItemProductoReponer(
 
                 Text(
                     text = "Código: ${producto.codigo}",
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelMedium
                 )
 
                 Text(
                     text = producto.categoria,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelSmall
                 )
 
                 Text(
                     text = "Ubicación: ${producto.ubicacion}",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -360,7 +361,7 @@ fun ItemProductoReponer(
 
                 Text(
                     text = "Stock actual",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
 
@@ -372,7 +373,7 @@ fun ItemProductoReponer(
 
                 Text(
                     text = producto.unidad,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -382,7 +383,7 @@ fun ItemProductoReponer(
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

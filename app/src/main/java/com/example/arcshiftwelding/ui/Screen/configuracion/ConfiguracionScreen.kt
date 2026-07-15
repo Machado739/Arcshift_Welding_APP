@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
@@ -61,11 +63,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConfiguracionScreen(navController: NavController) {
+fun ConfiguracionScreen(navController: NavController,
+                        onBack: () -> Unit = {},
+) {
     val context = LocalContext.current
+
     val database = remember {
         ArcshiftWeldingDatabase.getDatabase(context.applicationContext)
     }
@@ -91,25 +97,41 @@ fun ConfiguracionScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Configuración", fontWeight = FontWeight.Bold)
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(
+                        start = 17.dp,
+                        top = 8.dp,
+                        end = 14.dp,
+                        bottom = 8.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = {
+                        onBack()
+                        navController.popBackStack()
                     }
-                },
-                actions = {
-                    CampanaNotificacionesPrincipal(navController)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
+                    )
                 }
-            )
-        }
+                Text(
+                    text = "Configuración",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                    CampanaNotificacionesPrincipal(navController)
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -128,9 +150,9 @@ fun ConfiguracionScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = if (estado.esError) {
-                            Color(0xFFFEF2F2)
+                            MaterialTheme.colorScheme.errorContainer
                         } else {
-                            Color(0xFFF0FDF4)
+                            MaterialTheme.arcshiftColors.successContainer
                         }
                     ),
                     shape = RoundedCornerShape(12.dp)
@@ -144,9 +166,9 @@ fun ConfiguracionScreen(navController: NavController) {
                         Text(
                             text = mensaje,
                             color = if (estado.esError) {
-                                Color(0xFFB91C1C)
+                                MaterialTheme.colorScheme.onErrorContainer
                             } else {
-                                Color(0xFF15803D)
+                                MaterialTheme.arcshiftColors.success
                             },
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(1f)
@@ -174,7 +196,7 @@ fun ConfiguracionScreen(navController: NavController) {
                 Text(
                     text = "Usa al menos ocho caracteres, una letra y un número.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 CampoPasswordConfiguracion(
@@ -237,7 +259,7 @@ fun ConfiguracionScreen(navController: NavController) {
                 Text(
                     text = "Permiten recuperar el acceso sin conocer la contraseña. Cada código funciona una sola vez. Al generar nuevos, los anteriores quedan invalidados.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 CampoPasswordConfiguracion(
@@ -282,7 +304,7 @@ private fun CardSeccionConfiguracion(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
@@ -298,7 +320,7 @@ private fun CardSeccionConfiguracion(
                 icono()
                 Text(titulo, fontWeight = FontWeight.Bold)
             }
-            HorizontalDivider(color = Color(0xFFE2E8F0))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             contenido()
         }
     }
@@ -309,7 +331,7 @@ private fun DatoCuenta(titulo: String, valor: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = titulo,
-            color = Color(0xFF64748B),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
         Text(text = valor, fontWeight = FontWeight.SemiBold)
@@ -376,10 +398,10 @@ private fun DialogoCodigosRespaldo(
                 Text(
                     text = "Esta es la única ocasión en que se mostrarán completos. Guárdalos fuera del teléfono.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFB45309)
+                    color = MaterialTheme.arcshiftColors.onWarningContainer
                 )
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(

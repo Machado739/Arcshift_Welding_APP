@@ -49,6 +49,7 @@ import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModel
 import com.example.arcshiftwelding.ui.viewmodel.MovimientoInventarioViewModelFactory
 import com.example.arcshiftwelding.data.local.entity.MovimientoInventarioEntity
 import java.io.File
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +97,7 @@ fun DetalleProductoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -135,7 +136,7 @@ fun DetalleProductoScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -145,13 +146,13 @@ fun DetalleProductoScreen(
                     modifier = Modifier
                         .padding(padding)
                         .fillMaxSize()
-                        .background(Color(0xFFF5F6FA)),
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Cargando producto...",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -164,7 +165,7 @@ fun DetalleProductoScreen(
                         .padding(padding)
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .background(Color(0xFFF5F6FA))
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(10.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -226,9 +227,9 @@ fun EncabezadoProductoDetalle(
     }
 
     val estadoColor = when (producto.estado) {
-        "Agotado" -> Color(0xFFDC2626)
-        "Bajo Stock" -> Color(0xFFF59E0B)
-        else -> Color(0xFF16A34A)
+        "Agotado" -> MaterialTheme.colorScheme.error
+        "Bajo Stock" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.arcshiftColors.success
     }
 
     Card(
@@ -236,7 +237,7 @@ fun EncabezadoProductoDetalle(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -250,7 +251,7 @@ fun EncabezadoProductoDetalle(
                 modifier = Modifier
                     .size(80.dp)
                     .background(
-                        color = Color(0xFFEDEDED),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -267,7 +268,7 @@ fun EncabezadoProductoDetalle(
                         imageVector = Icons.Default.Inventory2,
                         contentDescription = null,
                         modifier = Modifier.size(42.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -362,7 +363,7 @@ fun DetalleCard(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -376,7 +377,7 @@ fun DetalleCard(
                     imageVector = icono,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -392,7 +393,7 @@ fun DetalleCard(
                     imageVector = Icons.Default.KeyboardArrowUp,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -474,14 +475,14 @@ fun CampoDetalle(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF111827)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -497,9 +498,9 @@ fun SeccionDetalleInventario(
     }
 
     val estadoColor = when (producto.estado) {
-        "Agotado" -> Color(0xFFDC2626)
-        "Bajo Stock" -> Color(0xFFF59E0B)
-        else -> Color(0xFF16A34A)
+        "Agotado" -> MaterialTheme.colorScheme.error
+        "Bajo Stock" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.arcshiftColors.success
     }
 
     DetalleCard(
@@ -564,7 +565,7 @@ fun ItemInventarioDetalle(
     subtitulo: String,
     modifier: Modifier = Modifier,
     mostrarIconoEstado: Boolean = false,
-    colorEstado: Color = Color(0xFF16A34A)
+    colorEstado: Color = MaterialTheme.arcshiftColors.success
 ) {
     Column(
         modifier = modifier,
@@ -573,7 +574,7 @@ fun ItemInventarioDetalle(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -596,7 +597,7 @@ fun ItemInventarioDetalle(
                 text = valor,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                color = if (mostrarIconoEstado) colorEstado else Color(0xFF111827)
+                color = if (mostrarIconoEstado) colorEstado else MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -604,7 +605,7 @@ fun ItemInventarioDetalle(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -616,7 +617,7 @@ fun SeparadorVertical() {
         modifier = Modifier
             .height(48.dp)
             .width(1.dp)
-            .background(Color(0xFFE5E7EB))
+            .background(MaterialTheme.colorScheme.outlineVariant)
     )
 }
 
@@ -661,7 +662,7 @@ fun SeccionMovimientosRecientes(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -675,7 +676,7 @@ fun SeccionMovimientosRecientes(
                     imageVector = Icons.Default.History,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -700,7 +701,7 @@ fun SeccionMovimientosRecientes(
                     imageVector = Icons.Default.KeyboardArrowUp,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -712,7 +713,7 @@ fun SeccionMovimientosRecientes(
                 Text(
                     text = "Sin movimientos registrados",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
             } else {
@@ -785,13 +786,13 @@ fun MovimientoItem(
             Text(
                 text = fecha,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = hora,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -799,7 +800,7 @@ fun MovimientoItem(
             text = tipo,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.labelSmall,
-            color = if (esEntrada) Color(0xFF1B7F3A) else Color(0xFFB42318),
+            color = if (esEntrada) MaterialTheme.arcshiftColors.success else MaterialTheme.colorScheme.onErrorContainer,
             fontWeight = FontWeight.Medium
         )
 
@@ -807,7 +808,7 @@ fun MovimientoItem(
         TextoTabla(referencia, Modifier.weight(1.2f))
     }
 
-    Divider(color = Color(0xFFF1F1F1))
+    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
 }
 
 @Composable
@@ -820,7 +821,7 @@ fun TextoTabla(
         text = texto,
         modifier = modifier,
         style = MaterialTheme.typography.labelSmall,
-        color = if (esHeader) Color.Gray else Color(0xFF111827),
+        color = if (esHeader) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
         fontWeight = if (esHeader) FontWeight.Bold else FontWeight.Normal
     )
 }
@@ -838,7 +839,7 @@ fun SeccionAccionesRapidas(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -851,7 +852,7 @@ fun SeccionAccionesRapidas(
                     imageVector = Icons.Default.Settings,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -881,7 +882,7 @@ fun SeccionAccionesRapidas(
                     icono = Icons.Default.AddCircleOutline,
                     onClick = onAgregarStock,
                     modifier = Modifier.weight(1f),
-                    iconTint = Color(0xFF1B7F3A)
+                    iconTint = MaterialTheme.arcshiftColors.success
                 )
 
                 BotonAccionRapida(
@@ -889,7 +890,7 @@ fun SeccionAccionesRapidas(
                     icono = Icons.Default.RemoveCircleOutline,
                     onClick = onReportarSalida,
                     modifier = Modifier.weight(1f),
-                    iconTint = Color(0xFFB42318)
+                    iconTint = MaterialTheme.colorScheme.onErrorContainer
                 )
 
                 BotonAccionRapida(
@@ -897,7 +898,7 @@ fun SeccionAccionesRapidas(
                     icono = Icons.Default.Delete,
                     onClick = onEliminar,
                     modifier = Modifier.weight(1f),
-                    iconTint = Color(0xFF111827)
+                    iconTint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -910,7 +911,7 @@ fun BotonAccionRapida(
     icono: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconTint: Color = Color(0xFF111827)
+    iconTint: Color = MaterialTheme.colorScheme.onSurface
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -918,7 +919,7 @@ fun BotonAccionRapida(
         shape = RoundedCornerShape(6.dp),
         contentPadding = PaddingValues(4.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = Color(0xFF111827)
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(

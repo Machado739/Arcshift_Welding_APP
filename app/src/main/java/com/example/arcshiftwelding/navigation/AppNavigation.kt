@@ -88,6 +88,7 @@ import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ReportesViewModelFactory
 import com.example.arcshiftwelding.ui.Screen.notificaciones.LocalNotificacionesUiController
 import com.example.arcshiftwelding.ui.Screen.notificaciones.NotificacionesUiController
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun AppNavigation(
@@ -211,7 +212,7 @@ fun AppNavigation(
     )
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (mostrarBottomBar) {
                 BottomNavigationBar(navController = navController)
@@ -226,7 +227,7 @@ fun AppNavigation(
             startDestination = destinoInicial,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
             composable(AppRoutes.LOGIN) {

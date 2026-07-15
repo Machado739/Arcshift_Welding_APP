@@ -41,6 +41,7 @@ import com.example.arcshiftwelding.utils.prepararCapturaFotoGasto
 import com.example.arcshiftwelding.utils.prepararComprobanteGastoDesdeDocumento
 import com.example.arcshiftwelding.utils.deserializarComprobantes
 import com.example.arcshiftwelding.utils.serializarComprobantes
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -234,7 +235,7 @@ fun EditarGastoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -268,7 +269,7 @@ fun EditarGastoScreen(
 
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         Column(
@@ -365,7 +366,7 @@ fun EditarGastoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFE8F5E9)
+                        containerColor = MaterialTheme.arcshiftColors.successContainer
                     )
                 ) {
                     Column(
@@ -373,13 +374,13 @@ fun EditarGastoScreen(
                     ) {
                         Text(
                             text = "Total",
-                            color = Color(0xFF2E7D32),
+                            color = MaterialTheme.arcshiftColors.success,
                             style = MaterialTheme.typography.labelMedium
                         )
 
                         Text(
                             text = "$ ${"%.2f".format(totalCalculado)}",
-                            color = Color(0xFF2E7D32),
+                            color = MaterialTheme.arcshiftColors.success,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.headlineSmall
                         )
@@ -482,7 +483,7 @@ fun EditarGastoScreen(
                 Text(
                     text = "Puedes conservar hasta $MAX_COMPROBANTES_POR_REGISTRO comprobantes.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 6.dp)
                 )
 
@@ -500,7 +501,7 @@ fun EditarGastoScreen(
                     Text(
                         text = "Sin comprobantes adjuntos.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -509,7 +510,7 @@ fun EditarGastoScreen(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                         elevation = CardDefaults.cardElevation(1.dp)
                     ) {
                         Row(
@@ -523,7 +524,7 @@ fun EditarGastoScreen(
                                     else -> Icons.Default.InsertDriveFile
                                 },
                                 contentDescription = null,
-                                tint = if (comprobante.tipo == "PDF") Color(0xFFDC2626) else Color(0xFF2563EB),
+                                tint = if (comprobante.tipo == "PDF") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(32.dp)
                             )
 
@@ -538,7 +539,7 @@ fun EditarGastoScreen(
                                 )
                                 Text(
                                     text = "${comprobante.tipo} · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.labelSmall
                                 )
                             }
@@ -563,7 +564,7 @@ fun EditarGastoScreen(
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = "Eliminar archivo",
-                                    tint = Color(0xFFDC2626)
+                                    tint = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
@@ -597,7 +598,7 @@ fun EditarGastoScreen(
                 Text(
                     text = "${observaciones.length}/300",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -719,7 +720,7 @@ fun EditarGastoScreen(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E7D32)
+                        containerColor = MaterialTheme.arcshiftColors.success
                     )
                 ) {
                     Icon(Icons.Default.Save, contentDescription = null)
@@ -802,7 +803,7 @@ fun CampoSelectorClienteGasto(
                                 Text(
                                     text = cliente.empresa,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -886,14 +887,14 @@ fun CampoSelectorCotizacionGasto(
                             Text(
                                 text = cotizacion.descripcionTrabajo,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1
                             )
 
                             Text(
                                 text = "$ ${"%.2f".format(cotizacion.total)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF2E7D32)
+                                color = MaterialTheme.arcshiftColors.success
                             )
                         }
                     },
@@ -1111,7 +1112,7 @@ fun SeccionAccionesRapidasGasto(
             BotonAccionDetalleGasto(
                 texto = "Editar",
                 icono = Icons.Default.Edit,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
                 onClick = onEditarClick
             )
@@ -1120,7 +1121,7 @@ fun SeccionAccionesRapidasGasto(
             BotonAccionDetalleGasto(
                 texto = "Eliminar",
                 icono = Icons.Default.Delete,
-                color = Color(0xFFDC2626),
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f),
                 onClick = { }
             )

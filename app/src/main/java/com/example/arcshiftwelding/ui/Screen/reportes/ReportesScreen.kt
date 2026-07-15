@@ -76,6 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 private data class ArchivoExportacionGeneralPendiente(
     val archivo: File,
@@ -99,7 +100,7 @@ fun ReportesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
         HeaderReportes(navController)
@@ -135,13 +136,13 @@ fun ReportesScreen(
                         )
                         Text(
                             text = uiState.textoPeriodo,
-                            color = Color(0xFF64748B),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 10.sp
                         )
                     }
                     Text(
                         text = "${uiState.reportes.size} módulos",
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -249,7 +250,7 @@ fun HeaderReportes(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(start = 20.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -294,7 +295,7 @@ private fun SelectorPeriodoReportes(
             ) {
                 Text(
                     text = opcion.etiqueta,
-                    color = if (seleccionado) Color(0xFF2563EB) else Color(0xFF64748B),
+                    color = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 11.sp
                 )
@@ -304,7 +305,7 @@ private fun SelectorPeriodoReportes(
                         .width(24.dp)
                         .height(2.dp)
                         .background(
-                            if (seleccionado) Color(0xFF2563EB) else Color.Transparent,
+                            if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent,
                             RoundedCornerShape(2.dp)
                         )
                 )
@@ -318,7 +319,7 @@ private fun ResumenGeneralReportes(uiState: ReportesUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -329,19 +330,19 @@ private fun ResumenGeneralReportes(uiState: ReportesUiState) {
                 ResumenReporteDato(
                     titulo = "Ingresos",
                     valor = uiState.resumen.ingresos.formatoMonedaReporte(),
-                    color = Color(0xFF16A34A),
+                    color = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.weight(1f)
                 )
                 ResumenReporteDato(
                     titulo = "Gastos",
                     valor = uiState.resumen.gastos.formatoMonedaReporte(),
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
                 ResumenReporteDato(
                     titulo = "Utilidad",
                     valor = uiState.resumen.utilidad.formatoMonedaReporte(),
-                    color = if (uiState.resumen.utilidad >= 0) Color(0xFF2563EB) else Color(0xFFDC2626),
+                    color = if (uiState.resumen.utilidad >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -354,17 +355,17 @@ private fun ResumenGeneralReportes(uiState: ReportesUiState) {
             ) {
                 AlertaReporteCompacta(
                     texto = "Por cobrar ${uiState.resumen.porCobrar.formatoMonedaReporte()}",
-                    color = Color(0xFF7C3AED),
+                    color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
                 )
                 AlertaReporteCompacta(
                     texto = "${uiState.resumen.cotizacionesPendientes} cotizaciones pendientes",
-                    color = Color(0xFFF59E0B),
+                    color = MaterialTheme.arcshiftColors.warning,
                     modifier = Modifier.weight(1f)
                 )
                 AlertaReporteCompacta(
                     texto = "${uiState.resumen.productosBajoStock} bajo stock",
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -380,7 +381,7 @@ private fun ResumenReporteDato(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(text = titulo, color = Color(0xFF64748B), fontSize = 9.sp)
+        Text(text = titulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp)
         Text(
             text = valor,
             color = color,
@@ -413,7 +414,7 @@ private fun AlertaReporteCompacta(
         Text(
             text = texto,
             fontSize = 8.sp,
-            color = Color(0xFF334155),
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -431,7 +432,7 @@ private fun TarjetaModuloReporte(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -462,7 +463,7 @@ private fun TarjetaModuloReporte(
                 )
                 Text(
                     text = reporte.descripcion,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 9.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -479,7 +480,7 @@ private fun TarjetaModuloReporte(
                 )
                 Text(
                     text = "${reporte.valorSecundario} ${reporte.etiquetaSecundaria.lowercase()}",
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 8.sp
                 )
             }
@@ -487,7 +488,7 @@ private fun TarjetaModuloReporte(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Ver reporte",
-                tint = Color(0xFF94A3B8),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -503,14 +504,14 @@ private fun AccionesExportacionReportes(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text("Exportar resumen general", fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Text(
                 "Genera un PDF o un archivo CSV compatible con Excel.",
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 9.sp
             )
             Spacer(modifier = Modifier.height(9.dp))
@@ -523,7 +524,7 @@ private fun AccionesExportacionReportes(
                     enabled = habilitado,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(17.dp))
                     Spacer(modifier = Modifier.width(5.dp))
@@ -548,12 +549,12 @@ private fun AccionesExportacionReportes(
 private fun TarjetaSinDatos(texto: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Text(
             text = texto,
             modifier = Modifier.padding(18.dp),
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -563,16 +564,18 @@ private data class AparienciaReporte(
     val color: Color
 )
 
+@Composable
+
 private fun aparienciaReporte(tipo: String): AparienciaReporte {
     return when (tipo.lowercase()) {
-        "ingresos" -> AparienciaReporte(Icons.Default.AttachMoney, Color(0xFF16A34A))
-        "gastos" -> AparienciaReporte(Icons.Default.ShoppingBag, Color(0xFFDC2626))
-        "inventario" -> AparienciaReporte(Icons.Default.Inventory, Color(0xFF2563EB))
-        "cotizaciones" -> AparienciaReporte(Icons.Default.RequestQuote, Color(0xFFF59E0B))
-        "clientes" -> AparienciaReporte(Icons.Default.People, Color(0xFF7C3AED))
-        "proyectos" -> AparienciaReporte(Icons.Default.Work, Color(0xFF0891B2))
-        "empleados" -> AparienciaReporte(Icons.Default.Groups, Color(0xFF4F46E5))
-        else -> AparienciaReporte(Icons.Default.Assessment, Color(0xFF2563EB))
+        "ingresos" -> AparienciaReporte(Icons.Default.AttachMoney, MaterialTheme.arcshiftColors.success)
+        "gastos" -> AparienciaReporte(Icons.Default.ShoppingBag, MaterialTheme.colorScheme.error)
+        "inventario" -> AparienciaReporte(Icons.Default.Inventory, MaterialTheme.colorScheme.primary)
+        "cotizaciones" -> AparienciaReporte(Icons.Default.RequestQuote, MaterialTheme.arcshiftColors.warning)
+        "clientes" -> AparienciaReporte(Icons.Default.People, MaterialTheme.colorScheme.secondary)
+        "proyectos" -> AparienciaReporte(Icons.Default.Work, MaterialTheme.arcshiftColors.info)
+        "empleados" -> AparienciaReporte(Icons.Default.Groups, MaterialTheme.colorScheme.secondary)
+        else -> AparienciaReporte(Icons.Default.Assessment, MaterialTheme.colorScheme.primary)
     }
 }
 

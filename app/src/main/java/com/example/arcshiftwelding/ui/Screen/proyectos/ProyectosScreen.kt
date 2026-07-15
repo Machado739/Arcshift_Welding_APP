@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @Composable
 fun ProyectosScreen(
@@ -105,7 +106,7 @@ fun ProyectosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 start = 8.dp,
                 top = 0.dp,
@@ -137,7 +138,7 @@ fun ProyectosScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D4ED8)
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Icon(
@@ -178,7 +179,7 @@ fun HeaderProyectos(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(
                 start = 20.dp,
                 top = 8.dp,
@@ -224,35 +225,35 @@ fun ResumenProyectosCompleto(
             valor = resumen.total.toString(),
             subtitulo = "Registrados",
             icono = Icons.Default.Work,
-            color = Color(0xFF2563EB)
+            color = MaterialTheme.colorScheme.primary
         ),
         ResumenProyectoCardData(
             titulo = "En trabajo",
             valor = resumen.enTrabajo.toString(),
             subtitulo = "Activos",
             icono = Icons.Default.Build,
-            color = Color(0xFF16A34A)
+            color = MaterialTheme.arcshiftColors.success
         ),
         ResumenProyectoCardData(
             titulo = "Pendientes",
             valor = resumen.pendientes.toString(),
             subtitulo = "Por iniciar",
             icono = Icons.Default.AccessTime,
-            color = Color(0xFFF59E0B)
+            color = MaterialTheme.arcshiftColors.warning
         ),
         ResumenProyectoCardData(
             titulo = "Terminados",
             valor = resumen.terminados.toString(),
             subtitulo = "Finalizados",
             icono = Icons.Default.Check,
-            color = Color(0xFF7C3AED)
+            color = MaterialTheme.colorScheme.secondary
         ),
         ResumenProyectoCardData(
             titulo = "Cancelados",
             valor = resumen.cancelados.toString(),
             subtitulo = "Detenidos",
             icono = Icons.Default.Close,
-            color = Color(0xFFDC2626)
+            color = MaterialTheme.colorScheme.error
         )
     )
 
@@ -286,7 +287,7 @@ fun TarjetaResumenProyecto(
             .height(105.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -318,7 +319,7 @@ fun TarjetaResumenProyecto(
             Text(
                 text = tarjeta.titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -332,7 +333,7 @@ fun TarjetaResumenProyecto(
             Text(
                 text = tarjeta.subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -445,8 +446,8 @@ fun ChipEstadoProyecto(
             }
         },
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF1D4ED8) else Color.DarkGray
+            containerColor = if (seleccionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            labelColor = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -483,7 +484,7 @@ fun ItemProyectoCompleto(
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -655,7 +656,7 @@ fun InfoProyectoLinea(
             imageVector = icono,
             contentDescription = null,
             modifier = Modifier.size(13.dp),
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(4.dp))
@@ -663,7 +664,7 @@ fun InfoProyectoLinea(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -680,7 +681,7 @@ fun InfoProyectoCaja(
     Row(
         modifier = modifier
             .background(
-                color = Color(0xFFF1F5F9),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(10.dp)
             )
             .padding(horizontal = 8.dp, vertical = 7.dp),
@@ -689,7 +690,7 @@ fun InfoProyectoCaja(
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = Color(0xFF64748B),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(15.dp)
         )
 
@@ -701,7 +702,7 @@ fun InfoProyectoCaja(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -709,7 +710,7 @@ fun InfoProyectoCaja(
             Text(
                 text = valor,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -735,7 +736,7 @@ fun AvanceProyecto(
             Text(
                 text = "Avance del proyecto",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -755,7 +756,7 @@ fun AvanceProyecto(
                 .height(7.dp)
                 .clip(RoundedCornerShape(50)),
             color = color,
-            trackColor = Color(0xFFE2E8F0)
+            trackColor = MaterialTheme.colorScheme.outlineVariant
         )
     }
 }
@@ -774,7 +775,7 @@ fun EmptyProyectos() {
             Icon(
                 imageVector = Icons.Default.Work,
                 contentDescription = null,
-                tint = Color(0xFFCBD5E1),
+                tint = MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier.size(54.dp)
             )
 
@@ -782,26 +783,28 @@ fun EmptyProyectos() {
 
             Text(
                 text = "No hay proyectos registrados",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
 
             Text(
                 text = "Agrega un proyecto para comenzar a controlar avances, empleados y materiales.",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelSmall
             )
         }
     }
 }
 
+@Composable
+
 fun colorEstadoProyecto(estado: String): Color {
     return when (estado) {
-        "Pendiente" -> Color(0xFFF59E0B)
-        "En trabajo" -> Color(0xFF2563EB)
-        "Terminado" -> Color(0xFF16A34A)
-        "Cancelado" -> Color(0xFFDC2626)
-        else -> Color(0xFF64748B)
+        "Pendiente" -> MaterialTheme.arcshiftColors.warning
+        "En trabajo" -> MaterialTheme.colorScheme.primary
+        "Terminado" -> MaterialTheme.arcshiftColors.success
+        "Cancelado" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 

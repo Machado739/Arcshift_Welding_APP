@@ -76,6 +76,7 @@ import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -131,7 +132,7 @@ fun NuevoEmpleadoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -160,14 +161,14 @@ fun NuevoEmpleadoScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(12.dp),
@@ -305,7 +306,7 @@ fun SeccionInformacionPersonalNuevoEmpleado(
     CardFormularioEmpleado(
         titulo = "Información personal",
         icono = Icons.Default.Person,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -403,7 +404,7 @@ fun AgregarFotoEmpleado(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Quitar foto",
-                        tint = Color(0xFFDC2626),
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -416,7 +417,7 @@ fun AgregarFotoEmpleado(
             text = if (fotoUri.isBlank()) "Seleccionar foto" else "Cambiar foto",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.clickable { launcher.launch(arrayOf("image/*")) }
         )
     }
@@ -434,7 +435,7 @@ fun SeccionInformacionContactoEmpleado(
     CardFormularioEmpleado(
         titulo = "Información de contacto",
         icono = Icons.Default.Phone,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         CampoTextoEmpleado(
             valor = telefono,
@@ -500,7 +501,7 @@ fun SeccionInformacionLaboralNuevoEmpleado(
     CardFormularioEmpleado(
         titulo = "Información laboral",
         icono = Icons.Default.Work,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -573,7 +574,7 @@ fun SeccionNotasNuevoEmpleado(
     CardFormularioEmpleado(
         titulo = "Notas",
         icono = Icons.Default.Payments,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         CampoTextoEmpleado(
             valor = notas,
@@ -590,7 +591,7 @@ fun SeccionNotasNuevoEmpleado(
         Text(
             text = "${notas.length}/200",
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.End)
         )
     }
@@ -608,7 +609,7 @@ fun SeccionConfiguracionNuevoEmpleado(
     CardFormularioEmpleado(
         titulo = "Configuración",
         icono = Icons.Default.Settings,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         OpcionCheckEmpleado(
             titulo = "Empleado activo",
@@ -673,7 +674,7 @@ fun BotonesFormularioEmpleado(
                 .height(52.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF16A34A)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(
@@ -704,7 +705,7 @@ fun CardFormularioEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -799,7 +800,7 @@ fun CampoFechaEmpleado(
                         imageVector = Icons.Default.CalendarMonth,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
@@ -813,13 +814,13 @@ fun CampoFechaEmpleado(
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color.Black,
-                    disabledBorderColor = Color(0xFFE5E7EB),
-                    disabledLabelColor = Color.DarkGray,
-                    disabledTrailingIconColor = Color.DarkGray,
-                    disabledPlaceholderColor = Color.Gray,
-                    disabledContainerColor = Color.White,
-                    disabledLeadingIconColor = Color.Gray
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -922,7 +923,7 @@ fun CampoTextoEmpleado(
                         imageVector = leadingIcon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else null,
@@ -931,10 +932,10 @@ fun CampoTextoEmpleado(
             maxLines = maxLines,
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2563EB),
-                unfocusedBorderColor = Color(0xFFE5E7EB),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
     }
@@ -1005,10 +1006,10 @@ fun SelectorSimpleEmpleado(
                 shape = RoundedCornerShape(10.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color(0xFFE5E7EB),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
 
@@ -1063,7 +1064,7 @@ fun OpcionCheckEmpleado(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

@@ -169,7 +169,7 @@ fun EditarProductoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -197,7 +197,7 @@ fun EditarProductoScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -206,13 +206,13 @@ fun EditarProductoScreen(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .background(Color(0xFFF5F5F5)),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Cargando producto...",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -269,7 +269,7 @@ fun EditarProductoScreen(
             if (mensajeError.isNotBlank()) {
                 Text(
                     text = mensajeError,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -606,7 +606,7 @@ fun SelectorImagenProductoEditar(
             .fillMaxWidth()
             .height(180.dp)
             .background(
-                color = Color(0xFFF2F2F2),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(10.dp)
             )
             .clickable {
@@ -629,7 +629,7 @@ fun SelectorImagenProductoEditar(
                     imageVector = Icons.Default.Inventory2,
                     contentDescription = null,
                     modifier = Modifier.size(52.dp),
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -642,7 +642,7 @@ fun SelectorImagenProductoEditar(
                 Text(
                     text = "JPG, PNG",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

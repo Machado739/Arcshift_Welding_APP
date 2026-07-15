@@ -39,6 +39,7 @@ import com.example.arcshiftwelding.ui.viewmodel.aDouble
 import com.example.arcshiftwelding.ui.viewmodel.fechaActual
 import com.example.arcshiftwelding.ui.viewmodel.formatoDinero
 import com.example.arcshiftwelding.ui.viewmodel.sinDecimalesSiAplica
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +76,7 @@ fun DetalleIngresoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -115,7 +116,7 @@ fun DetalleIngresoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         Column(
@@ -198,26 +199,26 @@ fun TarjetaPrincipalIngreso(
     }
 
     val colorEstado = if (estaPagado) {
-        Color(0xFF16A34A)
+        MaterialTheme.arcshiftColors.success
     } else if (ingreso.formaPago == "Anticipo") {
-        Color(0xFFF59E0B)
+        MaterialTheme.arcshiftColors.warning
     } else {
-        Color(0xFF16A34A)
+        MaterialTheme.arcshiftColors.success
     }
 
     val fondoEstado = if (estaPagado) {
-        Color(0xFFEAF7EE)
+        MaterialTheme.arcshiftColors.successContainer
     } else if (ingreso.formaPago == "Anticipo") {
-        Color(0xFFFFF7E6)
+        MaterialTheme.arcshiftColors.warningContainer
     } else {
-        Color(0xFFEAF7EE)
+        MaterialTheme.arcshiftColors.successContainer
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -266,7 +267,7 @@ fun TarjetaPrincipalIngreso(
                 Text(
                     text = "Cliente: ${ingreso.cliente}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -494,7 +495,7 @@ fun SeccionPlanPagosIngreso(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -508,7 +509,7 @@ fun SeccionPlanPagosIngreso(
                 Icon(
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
 
@@ -526,9 +527,9 @@ fun SeccionPlanPagosIngreso(
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (resumen.estadoCobro == "Pagado") {
-                        Color(0xFFEAF7EE)
+                        MaterialTheme.arcshiftColors.successContainer
                     } else {
-                        Color(0xFFFFF7E6)
+                        MaterialTheme.arcshiftColors.warningContainer
                     }
                 )
             ) {
@@ -572,7 +573,7 @@ fun SeccionPlanPagosIngreso(
                 Text(
                     text = "No hay pagos programados.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
                 pagos.forEach { pago ->
@@ -624,7 +625,7 @@ fun SeccionDetalleComprobanteIngreso(
             Text(
                 text = "Sin comprobantes registrados.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
             ingreso.comprobantes.forEachIndexed { indice, comprobante ->
@@ -642,7 +643,7 @@ fun SeccionDetalleComprobanteIngreso(
                         },
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Row(
@@ -659,9 +660,9 @@ fun SeccionDetalleComprobanteIngreso(
                             },
                             contentDescription = null,
                             tint = when (tipoReal) {
-                                "PDF" -> Color(0xFFDC2626)
-                                "Imagen" -> Color(0xFF2563EB)
-                                else -> Color(0xFF475569)
+                                "PDF" -> MaterialTheme.colorScheme.error
+                                "Imagen" -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             },
                             modifier = Modifier.size(28.dp)
                         )
@@ -681,7 +682,7 @@ fun SeccionDetalleComprobanteIngreso(
                             Text(
                                 text = "$tipoReal · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1
                             )
                         }
@@ -689,7 +690,7 @@ fun SeccionDetalleComprobanteIngreso(
                         Icon(
                             imageVector = Icons.Default.RemoveRedEye,
                             contentDescription = "Ver comprobante",
-                            tint = Color(0xFF2563EB),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -724,14 +725,14 @@ fun FilaResumenPlanPago(
         Text(
             text = titulo,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF111827)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -747,7 +748,7 @@ fun SeccionDetalleObservacionesIngreso(
         Text(
             text = ingreso.observaciones.ifBlank { "Sin observaciones registradas." },
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -765,9 +766,9 @@ fun ItemPagoProgramadoDetalle(
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (pagado) {
-                Color(0xFFF0FDF4)
+                MaterialTheme.arcshiftColors.successContainer
             } else {
-                Color(0xFFF8FAFC)
+                MaterialTheme.colorScheme.background
             }
         )
     ) {
@@ -786,9 +787,9 @@ fun ItemPagoProgramadoDetalle(
                     },
                     contentDescription = null,
                     tint = if (pagado) {
-                        Color(0xFF16A34A)
+                        MaterialTheme.arcshiftColors.success
                     } else {
-                        Color(0xFFF59E0B)
+                        MaterialTheme.arcshiftColors.warning
                     },
                     modifier = Modifier.size(18.dp)
                 )
@@ -807,7 +808,7 @@ fun ItemPagoProgramadoDetalle(
                     Text(
                         text = "Programado: ${pago.fechaProgramada}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -815,9 +816,9 @@ fun ItemPagoProgramadoDetalle(
                     text = pago.montoProgramado,
                     fontWeight = FontWeight.Bold,
                     color = if (pagado) {
-                        Color(0xFF16A34A)
+                        MaterialTheme.arcshiftColors.success
                     } else {
-                        Color(0xFFF59E0B)
+                        MaterialTheme.arcshiftColors.warning
                     },
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -827,7 +828,7 @@ fun ItemPagoProgramadoDetalle(
                 Text(
                     text = "Pagado el ${pago.fechaPago} · ${pago.metodoPago}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 if (pago.comprobanteUri.isNotBlank()) {
@@ -842,7 +843,7 @@ fun ItemPagoProgramadoDetalle(
                                 )
                             }
                             .background(
-                                color = Color(0xFFEFF6FF),
+                                color = MaterialTheme.colorScheme.primaryContainer,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(8.dp),
@@ -855,7 +856,7 @@ fun ItemPagoProgramadoDetalle(
                                 Icons.Default.Image
                             },
                             contentDescription = null,
-                            tint = Color(0xFF2563EB),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
 
@@ -864,7 +865,7 @@ fun ItemPagoProgramadoDetalle(
                         Text(
                             text = "Ver comprobante del pago",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF2563EB),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
                         )
@@ -872,7 +873,7 @@ fun ItemPagoProgramadoDetalle(
                         Icon(
                             imageVector = Icons.Default.RemoveRedEye,
                             contentDescription = null,
-                            tint = Color(0xFF2563EB),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -883,7 +884,7 @@ fun ItemPagoProgramadoDetalle(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF16A34A)
+                        containerColor = MaterialTheme.arcshiftColors.success
                     )
                 ) {
                     Icon(
@@ -1029,7 +1030,7 @@ fun DialogMarcarPagoProgramado(
                     Text(
                         text = "Comprobante seleccionado: $tipoComprobante",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -1110,7 +1111,7 @@ fun SeccionAccionesRapidasIngreso(
                 icono = Icons.Default.Send,
           /*      onClick = onEnviarFactura,*/
                 modifier = Modifier.weight(1f),
-                iconTint = Color(0xFF2563EB)
+                iconTint = MaterialTheme.colorScheme.primary
             )
 
             BotonAccionRapida(
@@ -1118,7 +1119,7 @@ fun SeccionAccionesRapidasIngreso(
                 icono = Icons.Default.AddCircleOutline,
           /*      onClick = onDescargarPDF,*/
                 modifier = Modifier.weight(1f),
-                iconTint = Color(0xFF1B7F3A)
+                iconTint = MaterialTheme.arcshiftColors.success
             )
 */
             BotonAccionRapida(
@@ -1126,7 +1127,7 @@ fun SeccionAccionesRapidasIngreso(
                 icono = Icons.Default.RemoveCircleOutline,
                 onClick = onEliminar,
                 modifier = Modifier.weight(1f),
-                iconTint = Color(0xFFB42318)
+                iconTint = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
@@ -1143,7 +1144,7 @@ fun TarjetaDetalleIngreso(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -1157,7 +1158,7 @@ fun TarjetaDetalleIngreso(
                     imageVector = icono,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = Color(0xFF333333)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1185,7 +1186,7 @@ fun ItemDatoDetalleIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -1193,7 +1194,7 @@ fun ItemDatoDetalleIngreso(
             Text(
                 text = valor,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -1211,7 +1212,7 @@ fun DatoIconoPequenoIngreso(
             imageVector = icono,
             contentDescription = null,
             modifier = Modifier.size(14.dp),
-            tint = Color.DarkGray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(4.dp))
@@ -1219,7 +1220,7 @@ fun DatoIconoPequenoIngreso(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -1236,7 +1237,7 @@ fun FilaMontoDetalleIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
 
@@ -1244,7 +1245,7 @@ fun FilaMontoDetalleIngreso(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
-            color = if (destacar) Color(0xFF2E7D32) else Color.Black
+            color = if (destacar) MaterialTheme.arcshiftColors.success else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -1266,7 +1267,7 @@ fun ItemDatoConLinkIngreso(
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF2563EB),
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -1285,7 +1286,7 @@ fun ArchivoComprobanteIngresoCard(
             .height(95.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -1299,7 +1300,7 @@ fun ArchivoComprobanteIngresoCard(
                 imageVector = icono,
                 contentDescription = null,
                 modifier = Modifier.size(34.dp),
-                tint = Color(0xFFE53935)
+                tint = MaterialTheme.colorScheme.error
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -1317,7 +1318,7 @@ fun ArchivoComprobanteIngresoCard(
                 Text(
                     text = "PDF · $peso",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -1325,7 +1326,7 @@ fun ArchivoComprobanteIngresoCard(
                 imageVector = Icons.Default.RemoveRedEye,
                 contentDescription = "Ver archivo",
                 modifier = Modifier.size(18.dp),
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1336,7 +1337,7 @@ fun BotonAccionRapida(
     icono: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconTint: Color = Color(0xFF2563EB)
+    iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -1344,7 +1345,7 @@ fun BotonAccionRapida(
         shape = RoundedCornerShape(10.dp),
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             contentColor = iconTint
         )
     ) {

@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +43,7 @@ fun EliminarClienteScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
@@ -60,7 +61,7 @@ fun EliminarClienteScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(start = 17.dp, top = 8.dp, end = 14.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -80,7 +81,7 @@ fun EliminarClienteScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF8FAFC)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -94,7 +95,7 @@ fun EliminarClienteScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFE4E1))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -103,7 +104,7 @@ fun EliminarClienteScreen(
                         Icon(
                             imageVector = Icons.Default.Warning,
                             contentDescription = null,
-                            tint = Color(0xFFB91C1C),
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(32.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -111,12 +112,12 @@ fun EliminarClienteScreen(
                             Text(
                                 text = "Advertencia",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFB91C1C)
+                                color = MaterialTheme.colorScheme.onErrorContainer
                             )
                             Text(
                                 text = "Revisa los datos y las relaciones del cliente antes de continuar.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF7F1D1D)
+                                color = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
                     }
@@ -127,7 +128,7 @@ fun EliminarClienteScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -135,13 +136,13 @@ fun EliminarClienteScreen(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = Color(0xFF111827)
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Cliente seleccionado",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
 
@@ -155,8 +156,8 @@ fun EliminarClienteScreen(
                                 fotoUri = cliente.fotoUri,
                                 iniciales = obtenerIniciales(cliente.nombre),
                                 modifier = Modifier.size(78.dp),
-                                colorFondo = Color(0xFFEAF2FF),
-                                colorContenido = Color(0xFF2563EB)
+                                colorFondo = MaterialTheme.colorScheme.primaryContainer,
+                                colorContenido = MaterialTheme.colorScheme.primary
                             )
 
                             Spacer(modifier = Modifier.width(14.dp))
@@ -166,14 +167,14 @@ fun EliminarClienteScreen(
                                     text = cliente.nombre,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF111827),
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = cliente.empresa.ifBlank { "Sin empresa" },
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -207,7 +208,7 @@ fun EliminarClienteScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -215,13 +216,13 @@ fun EliminarClienteScreen(
                             Icon(
                                 imageVector = Icons.Default.Badge,
                                 contentDescription = null,
-                                tint = Color(0xFF2563EB)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Información completa",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
 
@@ -247,7 +248,7 @@ fun EliminarClienteScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -255,13 +256,13 @@ fun EliminarClienteScreen(
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = null,
-                                tint = Color(0xFF1F2937)
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = "Impacto de eliminación",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
 
@@ -269,15 +270,15 @@ fun EliminarClienteScreen(
 
                         ImpactoEliminarCliente(
                             texto = "El cliente dejará de aparecer en el listado activo.",
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         ImpactoEliminarCliente(
                             texto = "Sus cotizaciones existentes conservarán su historial y relación.",
-                            color = Color(0xFF92400E)
+                            color = MaterialTheme.arcshiftColors.onWarningContainer
                         )
                         ImpactoEliminarCliente(
                             texto = "Esta acción no se puede deshacer desde la aplicación.",
-                            color = Color(0xFFB91C1C)
+                            color = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
                 }
@@ -287,7 +288,7 @@ fun EliminarClienteScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Row(
@@ -303,12 +304,12 @@ fun EliminarClienteScreen(
                             Text(
                                 text = "Confirmar eliminación",
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF111827)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Confirmo que revisé los datos y las ${cantidadCotizaciones ?: 0} cotizaciones relacionadas.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -342,9 +343,9 @@ fun EliminarClienteScreen(
                             .height(54.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFB91C1C),
-                            disabledContainerColor = Color(0xFFE5E7EB),
-                            disabledContentColor = Color.Gray
+                            containerColor = MaterialTheme.colorScheme.onErrorContainer,
+                            disabledContainerColor = MaterialTheme.colorScheme.outlineVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Icon(
@@ -369,7 +370,7 @@ fun InfoClienteEliminarCard(
     Card(
         modifier = modifier.heightIn(min = 78.dp),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
             modifier = Modifier
@@ -381,13 +382,13 @@ fun InfoClienteEliminarCard(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = valor,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -409,13 +410,13 @@ private fun DatoEliminarCliente(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = valor.ifBlank { "No registrado" },
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF111827),
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis
         )

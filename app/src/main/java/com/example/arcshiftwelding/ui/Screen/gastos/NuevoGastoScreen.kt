@@ -53,6 +53,7 @@ import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 import kotlinx.coroutines.CoroutineScope
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NuevoGastoScreen(
@@ -221,7 +222,7 @@ fun NuevoGastoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -250,7 +251,7 @@ fun NuevoGastoScreen(
                 )
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
@@ -382,7 +383,7 @@ fun NuevoGastoScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFEFF7EF)
+                        containerColor = MaterialTheme.arcshiftColors.successContainer
                     ),
                     shape = RoundedCornerShape(10.dp)
                 ) {
@@ -392,13 +393,13 @@ fun NuevoGastoScreen(
                         Text(
                             text = "Total *",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFF2E7D32)
+                            color = MaterialTheme.arcshiftColors.success
                         )
                         Text(
                             text = "$ ${"%.2f".format(totalCalculado)}",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2E7D32)
+                            color = MaterialTheme.arcshiftColors.success
                         )
                     }
                 }
@@ -469,7 +470,7 @@ fun NuevoGastoScreen(
                 Text(
                     text = "Puedes agregar hasta $MAX_COMPROBANTES_POR_REGISTRO archivos.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
@@ -486,7 +487,7 @@ fun NuevoGastoScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Row(
@@ -500,7 +501,7 @@ fun NuevoGastoScreen(
                                     else -> Icons.Default.InsertDriveFile
                                 },
                                 contentDescription = null,
-                                tint = if (comprobante.tipo == "PDF") Color(0xFFDC2626) else Color(0xFF2563EB)
+                                tint = if (comprobante.tipo == "PDF") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             )
 
                             Spacer(modifier = Modifier.width(10.dp))
@@ -515,7 +516,7 @@ fun NuevoGastoScreen(
                                 Text(
                                     text = "${comprobante.tipo} · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
@@ -573,7 +574,7 @@ fun NuevoGastoScreen(
                 Text(
                     text = "${observaciones.length}/300",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.End)
                 )
             }
@@ -590,7 +591,7 @@ fun NuevoGastoScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFEFF6FF)
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
                             ),
                             shape = RoundedCornerShape(10.dp)
                         ) {
@@ -600,7 +601,7 @@ fun NuevoGastoScreen(
                                 Text(
                                     text = "Gasto relacionado al proyecto",
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1D4ED8)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
 
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -608,7 +609,7 @@ fun NuevoGastoScreen(
                                 Text(
                                     text = proyectoNombreRelacionado ?: "Proyecto #$proyectoIdRelacionado",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1E40AF)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
@@ -751,7 +752,7 @@ fun NuevoGastoScreen(
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E7D32)
+                        containerColor = MaterialTheme.arcshiftColors.success
                     )
                 ) {
                     Icon(Icons.Default.Save, contentDescription = null)
@@ -818,7 +819,7 @@ fun CampoSelectorClienteNuevoGasto(
                                 Text(
                                     cliente.empresa,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -888,7 +889,7 @@ fun CampoSelectorCotizacionNuevoGasto(
                             Text(
                                 cotizacion.descripcionTrabajo,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1
                             )
                         }
@@ -947,7 +948,7 @@ fun TarjetaSeccion(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -959,7 +960,7 @@ fun TarjetaSeccion(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF424242),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
 
@@ -1052,7 +1053,7 @@ fun BotonAdjunto(
                 Text(
                     text = subtitulo,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1242,11 +1243,11 @@ fun CampoFechaCompacto(
             textStyle = MaterialTheme.typography.bodyMedium,
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = Color.Black,
-                disabledBorderColor = Color.Gray,
-                disabledLabelColor = Color.DarkGray,
-                disabledTrailingIconColor = Color.DarkGray,
-                disabledPlaceholderColor = Color.Gray
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             modifier = Modifier.fillMaxSize()
         )
@@ -1409,7 +1410,7 @@ fun CampoSelectorProyectoNuevoGasto(
                                 Text(
                                     text = proyecto.estado,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

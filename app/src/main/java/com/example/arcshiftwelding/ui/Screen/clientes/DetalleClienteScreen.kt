@@ -36,6 +36,7 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import java.text.NumberFormat
 import java.util.Locale
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class ClienteDetalleUI(
     val id: Int,
@@ -100,7 +101,7 @@ fun DetalleClienteScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
@@ -138,7 +139,7 @@ fun DetalleClienteScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -177,7 +178,7 @@ fun DetalleClienteScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
@@ -243,7 +244,7 @@ fun SeccionNotasCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -253,7 +254,7 @@ fun SeccionNotasCliente(
             TituloSeccionCliente(
                 titulo = "Notas del cliente",
                 icono = Icons.Default.Notes,
-                color = Color(0xFFF59E0B)
+                color = MaterialTheme.arcshiftColors.warning
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -261,7 +262,7 @@ fun SeccionNotasCliente(
             Text(
                 text = cliente.notas,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -283,7 +284,7 @@ fun CardPrincipalCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -327,7 +328,7 @@ fun CardPrincipalCliente(
                 Text(
                     text = cliente.empresa,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -342,7 +343,7 @@ fun CardPrincipalCliente(
 
                     BadgeEstadoCliente(
                         texto = cliente.tipoCliente,
-                        color = Color(0xFF2563EB)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -357,12 +358,13 @@ fun obtenerIniciales(nombre: String): String {
         .take(2)
         .joinToString("") { it.first().uppercase() }
 }
+@Composable
 fun obtenerColorEstadoCliente(estado: String): Color {
     return when (estado) {
-        "Activo" -> Color(0xFF16A34A)
-        "Inactivo" -> Color(0xFF64748B)
-        "Pendiente" -> Color(0xFFF59E0B)
-        else -> Color.Gray
+        "Activo" -> MaterialTheme.arcshiftColors.success
+        "Inactivo" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "Pendiente" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 @Composable
@@ -405,7 +407,7 @@ fun CardsContactoCliente(
                 titulo = "Teléfono",
                 valor = cliente.telefono,
                 icono = Icons.Default.Phone,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 maxLines = 2,
                 onLongClick = {
                     copiarInformacionCliente(
@@ -422,7 +424,7 @@ fun CardsContactoCliente(
                 titulo = "Correo",
                 valor = cliente.correo,
                 icono = Icons.Default.Email,
-                color = Color(0xFF7C3AED),
+                color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
                 onLongClick = {
                     copiarInformacionCliente(
@@ -440,7 +442,7 @@ fun CardsContactoCliente(
             titulo = "Dirección",
             valor = cliente.direccion,
             icono = Icons.Default.LocationOn,
-            color = Color(0xFF16A34A),
+            color = MaterialTheme.arcshiftColors.success,
             maxLines = 3,
             onLongClick = {
                 copiarInformacionCliente(
@@ -456,7 +458,7 @@ fun CardsContactoCliente(
         Text(
             text = "Mantén presionada una tarjeta para copiar la información.",
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF64748B),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
@@ -484,7 +486,7 @@ fun CardContactoCliente(
             ),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -518,7 +520,7 @@ fun CardContactoCliente(
             Text(
                 text = valorVisible,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (valor.isBlank()) Color.Gray else Color(0xFF334155),
+                color = if (valor.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 maxLines = maxLines,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth()
@@ -535,7 +537,7 @@ fun SeccionInformacionGeneralCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -545,7 +547,7 @@ fun SeccionInformacionGeneralCliente(
             TituloSeccionCliente(
                 titulo = "Información general",
                 icono = Icons.Default.Info,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -583,14 +585,14 @@ fun ItemInfoCliente(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -603,7 +605,7 @@ fun SeccionHistorialCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -613,7 +615,7 @@ fun SeccionHistorialCliente(
             TituloSeccionCliente(
                 titulo = "Historial / Actividad",
                 icono = Icons.Default.History,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -627,7 +629,7 @@ fun SeccionHistorialCliente(
                     valor = cliente.totalCotizaciones.toString(),
                     subtitulo = "Registradas",
                     icono = Icons.Default.Description,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -636,7 +638,7 @@ fun SeccionHistorialCliente(
                     valor = cliente.totalProyectos.toString(),
                     subtitulo = "Relacionados",
                     icono = Icons.Default.Work,
-                    color = Color(0xFF7C3AED),
+                    color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -648,7 +650,7 @@ fun SeccionHistorialCliente(
                 valor = cliente.totalFacturado.formatoMonedaCliente(),
                 subtitulo = "${cliente.totalIngresos} ingreso${if (cliente.totalIngresos == 1) "" else "s"} registrado${if (cliente.totalIngresos == 1) "" else "s"}",
                 icono = Icons.Default.AttachMoney,
-                color = Color(0xFF16A34A),
+                color = MaterialTheme.arcshiftColors.success,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -668,7 +670,7 @@ fun CardResumenActividad(
         modifier = modifier.heightIn(min = 84.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         )
     ) {
         Row(
@@ -700,7 +702,7 @@ fun CardResumenActividad(
                 Text(
                     text = titulo,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -709,7 +711,7 @@ fun CardResumenActividad(
                     text = valor,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -718,7 +720,7 @@ fun CardResumenActividad(
                     Text(
                         text = subtitulo,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -738,7 +740,7 @@ fun SeccionCotizacionesCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -752,14 +754,14 @@ fun SeccionCotizacionesCliente(
                 TituloSeccionCliente(
                     titulo = "Cotizaciones recientes",
                     icono = Icons.Default.RequestQuote,
-                    color = Color(0xFF2563EB)
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Text(
                     text = "Ver todas",
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
@@ -799,7 +801,7 @@ fun ItemCotizacionCliente(
         ) {
             Text(
                 text = cotizacion.folio,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -807,7 +809,7 @@ fun ItemCotizacionCliente(
             Text(
                 text = cotizacion.descripcion,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -817,7 +819,7 @@ fun ItemCotizacionCliente(
             Text(
                 text = cotizacion.fecha,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             BadgeCotizacionEstado(estado = cotizacion.estado)
@@ -826,14 +828,14 @@ fun ItemCotizacionCliente(
                 text = "$ ${String.format("%,.2f", cotizacion.monto)}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
         Icon(
             imageVector = Icons.Default.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -843,10 +845,10 @@ fun BadgeCotizacionEstado(
     estado: String
 ) {
     val color = when (estado) {
-        "Aprobado" -> Color(0xFF16A34A)
-        "Pendiente" -> Color(0xFFF59E0B)
-        "Rechazado" -> Color(0xFFDC2626)
-        else -> Color.Gray
+        "Aprobado" -> MaterialTheme.arcshiftColors.success
+        "Pendiente" -> MaterialTheme.arcshiftColors.warning
+        "Rechazado" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(
@@ -875,7 +877,7 @@ fun SeccionAccionesRapidasCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -885,7 +887,7 @@ fun SeccionAccionesRapidasCliente(
             TituloSeccionCliente(
                 titulo = "Acciones rápidas",
                 icono = Icons.Default.Bolt,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -897,7 +899,7 @@ fun SeccionAccionesRapidasCliente(
                 BotonAccionCliente(
                     texto = "Editar",
                     icono = Icons.Default.Edit,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     onClick = onEditarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -906,7 +908,7 @@ fun SeccionAccionesRapidasCliente(
                 BotonAccionCliente(
                     texto = "Llamar",
                     icono = Icons.Default.Phone,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     onClick = onLlamarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -914,7 +916,7 @@ fun SeccionAccionesRapidasCliente(
                 BotonAccionCliente(
                     texto = "Nueva",
                     icono = Icons.Default.Description,
-                    color = Color(0xFF7C3AED),
+                    color = MaterialTheme.colorScheme.secondary,
                     onClick = onNuevaCotizacionClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -922,7 +924,7 @@ fun SeccionAccionesRapidasCliente(
                 BotonAccionCliente(
                     texto = "Eliminar",
                     icono = Icons.Default.Delete,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     onClick = onEliminarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -944,7 +946,7 @@ fun BotonAccionCliente(
         modifier = modifier.height(68.dp),
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(4.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally

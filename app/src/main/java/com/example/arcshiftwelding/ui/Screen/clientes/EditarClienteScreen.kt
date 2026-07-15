@@ -73,7 +73,7 @@ fun EditarClienteScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
@@ -131,7 +131,7 @@ fun EditarClienteScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -160,13 +160,13 @@ fun EditarClienteScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(
                     start = 8.dp,
@@ -291,7 +291,7 @@ fun AvisoEditandoCliente(
             ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFEFF6FF)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         elevation = CardDefaults.cardElevation(1.dp)
 
@@ -305,7 +305,7 @@ fun AvisoEditandoCliente(
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = null,
-                tint = Color(0xFF2563EB),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -316,13 +316,13 @@ fun AvisoEditandoCliente(
                     text = "Editando cliente",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1D4ED8)
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Text(
                     text = nombreCliente,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -365,7 +365,7 @@ fun BotonesEditarCliente(
                 .height(52.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2563EB)
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Icon(

@@ -55,19 +55,9 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
-private val ArcPrimary = Color(0xFF2563EB)
-private val ArcPrimaryLight = Color(0xFFDBEAFE)
-private val ArcBackground = Color(0xFFF8FAFC)
-private val ArcSurface = Color(0xFFFFFFFF)
-private val ArcTextPrimary = Color(0xFF0F172A)
-private val ArcTextSecondary = Color(0xFF64748B)
-private val ArcBorder = Color(0xFFE2E8F0)
-private val ArcError = Color(0xFFDC2626)
-private val ArcErrorLight = Color(0xFFFEE2E2)
-private val ArcSuccess = Color(0xFF16A34A)
-private val ArcWarning = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -275,7 +265,7 @@ fun NuevoProductoScreen(
                 }
             )
         },
-        containerColor = ArcBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -364,7 +354,7 @@ fun HeaderNuevoProducto(
     onBack: () -> Unit
 ) {
     Surface(
-        color = ArcSurface,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 3.dp
     ) {
         Row(
@@ -379,20 +369,20 @@ fun HeaderNuevoProducto(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Regresar",
-                    tint = ArcTextPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Inventory2,
                     contentDescription = null,
-                    tint = ArcPrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -406,13 +396,13 @@ fun HeaderNuevoProducto(
                     text = "Nuevo producto",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = ArcTextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "Registra un artículo para inventario",
                     style = MaterialTheme.typography.bodySmall,
-                    color = ArcTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -430,7 +420,7 @@ fun ResumenNuevoProducto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = ArcPrimary
+            containerColor = MaterialTheme.colorScheme.primary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -514,7 +504,7 @@ fun FormularioCard(
         shape = RoundedCornerShape(18.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = ArcSurface
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -526,13 +516,13 @@ fun FormularioCard(
                 Box(
                     modifier = Modifier
                         .size(38.dp)
-                        .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icono,
                         contentDescription = null,
-                        tint = ArcPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(21.dp)
                     )
                 }
@@ -546,14 +536,14 @@ fun FormularioCard(
                         text = titulo,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = ArcTextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (!descripcion.isNullOrBlank()) {
                         Text(
                             text = descripcion,
                             style = MaterialTheme.typography.bodySmall,
-                            color = ArcTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -561,7 +551,7 @@ fun FormularioCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            HorizontalDivider(color = ArcBorder)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -712,10 +702,10 @@ fun SeccionInventario(
     }
 
     val colorEstado = when (estadoCalculado) {
-        "En Stock" -> ArcSuccess
-        "Bajo Stock" -> ArcWarning
-        "Agotado" -> ArcError
-        else -> ArcTextSecondary
+        "En Stock" -> MaterialTheme.arcshiftColors.success
+        "Bajo Stock" -> MaterialTheme.arcshiftColors.warning
+        "Agotado" -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     FormularioCard(
@@ -786,7 +776,7 @@ fun SeccionInventario(
                         Text(
                             text = "Estado calculado",
                             style = MaterialTheme.typography.labelMedium,
-                            color = ArcTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
@@ -834,9 +824,9 @@ fun SeccionCostos(
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFFF1F5F9),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.dp, ArcBorder)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
@@ -845,13 +835,13 @@ fun SeccionCostos(
                     Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .background(ArcPrimaryLight, RoundedCornerShape(12.dp)),
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Calculate,
                             contentDescription = null,
-                            tint = ArcPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(21.dp)
                         )
                     }
@@ -864,14 +854,14 @@ fun SeccionCostos(
                         Text(
                             text = "Costo total inicial",
                             style = MaterialTheme.typography.labelMedium,
-                            color = ArcTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
                             text = "$${formato.format(costoTotal)}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = ArcTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -948,7 +938,7 @@ fun CampoTextoProducto(
                 text = titulo,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = ArcTextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             if (requerido) {
@@ -956,7 +946,7 @@ fun CampoTextoProducto(
                     text = " *",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ArcError
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -974,7 +964,7 @@ fun CampoTextoProducto(
                 Text(
                     text = placeholder,
                     style = MaterialTheme.typography.bodySmall,
-                    color = ArcTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             leadingIcon = if (icono != null) {
@@ -982,7 +972,7 @@ fun CampoTextoProducto(
                     Icon(
                         imageVector = icono,
                         contentDescription = null,
-                        tint = ArcTextSecondary
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else null,
@@ -991,7 +981,7 @@ fun CampoTextoProducto(
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = null,
-                        tint = ArcTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -1001,11 +991,11 @@ fun CampoTextoProducto(
             keyboardOptions = keyboardOptions,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = ArcPrimary,
-                unfocusedBorderColor = ArcBorder,
-                focusedContainerColor = ArcSurface,
-                unfocusedContainerColor = ArcSurface,
-                cursorColor = ArcPrimary
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                cursorColor = MaterialTheme.colorScheme.primary
             )
         )
 
@@ -1015,7 +1005,7 @@ fun CampoTextoProducto(
             Text(
                 text = "${valor.length}/$limite",
                 style = MaterialTheme.typography.labelSmall,
-                color = ArcTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.End)
             )
         }
@@ -1048,7 +1038,7 @@ fun MenuDesplegable(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = ArcTextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             if (requerido) {
@@ -1056,7 +1046,7 @@ fun MenuDesplegable(
                     text = " *",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ArcError
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -1077,14 +1067,14 @@ fun MenuDesplegable(
                     Text(
                         text = placeholder,
                         style = MaterialTheme.typography.bodySmall,
-                        color = ArcTextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = ArcTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.rotate(rotacionFlecha)
                     )
                 },
@@ -1093,11 +1083,11 @@ fun MenuDesplegable(
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = ArcPrimary,
-                    unfocusedBorderColor = ArcBorder,
-                    focusedContainerColor = ArcSurface,
-                    unfocusedContainerColor = ArcSurface,
-                    cursorColor = ArcPrimary
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -1136,10 +1126,10 @@ fun SelectorImagenProductoNuevo(
             .fillMaxWidth()
             .height(170.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFF1F5F9))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = ArcBorder,
+                color = MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(18.dp)
             )
             .clickable {
@@ -1159,7 +1149,7 @@ fun SelectorImagenProductoNuevo(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(12.dp),
-                color = ArcPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
@@ -1190,14 +1180,14 @@ fun SelectorImagenProductoNuevo(
                 Box(
                     modifier = Modifier
                         .size(58.dp)
-                        .background(ArcPrimaryLight, RoundedCornerShape(18.dp)),
+                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(18.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AddPhotoAlternate,
                         contentDescription = null,
                         modifier = Modifier.size(30.dp),
-                        tint = ArcPrimary
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -1207,13 +1197,13 @@ fun SelectorImagenProductoNuevo(
                     text = "Agregar foto del producto",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = ArcTextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "JPG o PNG",
                     style = MaterialTheme.typography.bodySmall,
-                    color = ArcTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1228,7 +1218,7 @@ fun MensajeErrorProducto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = ArcErrorLight
+            containerColor = MaterialTheme.colorScheme.errorContainer
         )
     ) {
         Row(
@@ -1238,7 +1228,7 @@ fun MensajeErrorProducto(
             Icon(
                 imageVector = Icons.Default.ErrorOutline,
                 contentDescription = null,
-                tint = ArcError
+                tint = MaterialTheme.colorScheme.error
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -1247,7 +1237,7 @@ fun MensajeErrorProducto(
                 text = mensaje,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
-                color = ArcError
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -1259,7 +1249,7 @@ fun BotonesFormulario(
     onGuardar: () -> Unit
 ) {
     Surface(
-        color = ArcSurface,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
         Row(
@@ -1275,9 +1265,9 @@ fun BotonesFormulario(
                     .weight(1f)
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.dp, ArcBorder),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = ArcTextPrimary
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Text(
@@ -1293,7 +1283,7 @@ fun BotonesFormulario(
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ArcPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             ) {

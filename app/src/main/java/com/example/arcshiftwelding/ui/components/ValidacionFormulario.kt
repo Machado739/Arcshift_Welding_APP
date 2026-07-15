@@ -101,18 +101,18 @@ fun AvisoValidacionFormulario(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFFEE2E2), MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.errorContainer, MaterialTheme.shapes.medium)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.ErrorOutline,
             contentDescription = null,
-            tint = Color(0xFFDC2626)
+            tint = MaterialTheme.colorScheme.error
         )
         Text(
             text = mensaje,
-            color = Color(0xFFB91C1C),
+            color = MaterialTheme.colorScheme.onErrorContainer,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp)
         )

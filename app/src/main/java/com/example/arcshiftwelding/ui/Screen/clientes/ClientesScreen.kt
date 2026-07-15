@@ -28,6 +28,7 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.navigation.BottomNavigationBar
 import okhttp3.internal.http2.Header
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class ClienteUI(
     val id: Int,
@@ -75,7 +76,7 @@ fun ClientesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 start = 8.dp,
                 top = 0.dp,
@@ -108,7 +109,7 @@ fun ClientesScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D4ED8)
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
@@ -143,7 +144,7 @@ fun HeaderClientes(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(
                 start = 20.dp,
                 top = 8.dp,
@@ -198,7 +199,7 @@ fun ResumenClientes(
             valor = total.toString(),
             subtitulo = "Registrados",
             icono = Icons.Default.Groups,
-            colorIcono = Color(0xFF2563EB),
+            colorIcono = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
 
@@ -207,7 +208,7 @@ fun ResumenClientes(
             valor = activos.toString(),
             subtitulo = "Disponibles",
             icono = Icons.Default.PersonAdd,
-            colorIcono = Color(0xFF16A34A),
+            colorIcono = MaterialTheme.arcshiftColors.success,
             modifier = Modifier.weight(1f)
         )
 
@@ -216,7 +217,7 @@ fun ResumenClientes(
             valor = pendientes.toString(),
             subtitulo = "Por revisar",
             icono = Icons.Default.AccessTime,
-            colorIcono = Color(0xFFF59E0B),
+            colorIcono = MaterialTheme.arcshiftColors.warning,
             modifier = Modifier.weight(1f)
         )
 
@@ -225,7 +226,7 @@ fun ResumenClientes(
             valor = inactivos.toString(),
             subtitulo = "Desactivados",
             icono = Icons.Default.Work,
-            colorIcono = Color(0xFF7C3AED),
+            colorIcono = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.weight(1f)
         )
     }
@@ -244,7 +245,7 @@ fun ResumenClienteCard(
         modifier = modifier.height(105.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -274,7 +275,7 @@ fun ResumenClienteCard(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -286,7 +287,7 @@ fun ResumenClienteCard(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -354,7 +355,7 @@ fun BotonNuevoCliente(
             .height(48.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF2563EB)
+            containerColor = MaterialTheme.colorScheme.primary
         )
     ) {
         Icon(
@@ -426,8 +427,8 @@ fun CategoriaChip(
             }
         },
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF2563EB) else Color.DarkGray
+            containerColor = if (seleccionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            labelColor = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -442,7 +443,7 @@ fun ItemCliente(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -548,7 +549,7 @@ fun InfoClienteLinea(
             imageVector = icono,
             contentDescription = null,
             modifier = Modifier.size(13.dp),
-            tint = Color.Gray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(4.dp))
@@ -556,7 +557,7 @@ fun InfoClienteLinea(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -567,10 +568,10 @@ fun EstadoClienteBadge(
     estado: String
 ) {
     val color = when (estado) {
-        "Activo" -> Color(0xFF16A34A)
-        "Inactivo" -> Color(0xFF64748B)
-        "Pendiente" -> Color(0xFFEAB308)
-        else -> Color.Gray
+        "Activo" -> MaterialTheme.arcshiftColors.success
+        "Inactivo" -> MaterialTheme.colorScheme.onSurfaceVariant
+        "Pendiente" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(

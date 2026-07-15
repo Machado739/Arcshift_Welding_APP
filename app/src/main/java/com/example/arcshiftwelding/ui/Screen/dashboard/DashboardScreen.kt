@@ -79,6 +79,7 @@ import java.text.NumberFormat
 import java.time.LocalTime
 import java.util.Locale
 import kotlin.math.absoluteValue
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @Composable
 fun DashboardScreen(
@@ -95,14 +96,14 @@ fun DashboardScreen(
 
     Scaffold(
         contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
-        containerColor = Color(0xFFF8FAFC)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
         ) {
             HeaderDashboard(
                 navController = navController
@@ -111,7 +112,7 @@ fun DashboardScreen(
             if (estado.cargando) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFF2563EB)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -210,7 +211,7 @@ fun HeaderDashboard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -308,7 +309,7 @@ private fun ResumenGeneral(estado: DashboardUiState) {
                 valor = moneda(estado.ingresos),
                 detalle = textoVariacion(estado.variacionIngresos),
                 icono = Icons.Default.AttachMoney,
-                color = Color(0xFF16A34A),
+                color = MaterialTheme.arcshiftColors.success,
                 modifier = Modifier.weight(1f)
             )
             TarjetaResumen(
@@ -316,7 +317,7 @@ private fun ResumenGeneral(estado: DashboardUiState) {
                 valor = moneda(estado.gastos),
                 detalle = textoVariacion(estado.variacionGastos),
                 icono = Icons.Default.ShoppingBag,
-                color = Color(0xFFDC2626),
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -330,7 +331,7 @@ private fun ResumenGeneral(estado: DashboardUiState) {
                 valor = moneda(estado.utilidad),
                 detalle = if (estado.utilidad >= 0) "Resultado positivo" else "Resultado negativo",
                 icono = Icons.Default.BarChart,
-                color = if (estado.utilidad >= 0) Color(0xFF2563EB) else Color(0xFFDC2626),
+                color = if (estado.utilidad >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f)
             )
             TarjetaResumen(
@@ -338,7 +339,7 @@ private fun ResumenGeneral(estado: DashboardUiState) {
                 valor = estado.cotizaciones.toString(),
                 detalle = "${estado.cotizacionesPendientes} pendientes",
                 icono = Icons.Default.Description,
-                color = Color(0xFF7C3AED),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -357,7 +358,7 @@ private fun TarjetaResumen(
     Card(
         modifier = modifier.height(88.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(
@@ -383,13 +384,13 @@ private fun TarjetaResumen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = titulo,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     maxLines = 1
                 )
                 Text(
                     text = valor,
-                    color = Color(0xFF0F172A),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = tamanoMonto(valor),
                     maxLines = 1,
@@ -416,11 +417,11 @@ private fun AccionesRapidas(
     onVerInventario: () -> Unit
 ) {
     val acciones = listOf(
-        AccionRapida("Ingreso", Icons.Default.AttachMoney, Color(0xFF16A34A), onNuevoIngreso),
-        AccionRapida("Gasto", Icons.Default.ShoppingBag, Color(0xFFDC2626), onNuevoGasto),
-        AccionRapida("Cotizar", Icons.Default.Description, Color(0xFF2563EB), onNuevaCotizacion),
-        AccionRapida("Cliente", Icons.Default.PersonAdd, Color(0xFF7C3AED), onNuevoCliente),
-        AccionRapida("Inventario", Icons.Default.Inventory, Color(0xFFF59E0B), onVerInventario)
+        AccionRapida("Ingreso", Icons.Default.AttachMoney, MaterialTheme.arcshiftColors.success, onNuevoIngreso),
+        AccionRapida("Gasto", Icons.Default.ShoppingBag, MaterialTheme.colorScheme.error, onNuevoGasto),
+        AccionRapida("Cotizar", Icons.Default.Description, MaterialTheme.colorScheme.primary, onNuevaCotizacion),
+        AccionRapida("Cliente", Icons.Default.PersonAdd, MaterialTheme.colorScheme.secondary, onNuevoCliente),
+        AccionRapida("Inventario", Icons.Default.Inventory, MaterialTheme.arcshiftColors.warning, onVerInventario)
     )
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
@@ -463,7 +464,7 @@ private fun TarjetaAccionRapidaCompacta(
             .height(58.dp)
             .clickable { accion.onClick() },
         shape = RoundedCornerShape(11.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
@@ -522,7 +523,7 @@ private fun GraficaIngresosGastos(
             .fillMaxWidth()
             .height(196.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -534,7 +535,7 @@ private fun GraficaIngresosGastos(
                 )
                 Text(
                     text = "Últimos 7 días",
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp
                 )
             }
@@ -554,7 +555,7 @@ private fun GraficaIngresosGastos(
                     etiquetas.forEach { etiqueta ->
                         Text(
                             text = etiqueta,
-                            color = Color(0xFF94A3B8),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 8.sp,
                             modifier = Modifier.weight(1f),
                             maxLines = 1
@@ -569,13 +570,13 @@ private fun GraficaIngresosGastos(
                 IndicadorGrafica(
                     titulo = "Ingresos del mes",
                     valor = moneda(totalIngresos),
-                    color = Color(0xFF16A34A),
+                    color = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.weight(1f)
                 )
                 IndicadorGrafica(
                     titulo = "Gastos del mes",
                     valor = moneda(totalGastos),
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -591,7 +592,7 @@ private fun IndicadorGrafica(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        Text(text = titulo, color = Color(0xFF64748B), fontSize = 9.sp)
+        Text(text = titulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp)
         Text(
             text = valor,
             color = color,
@@ -609,9 +610,12 @@ private fun GraficaLinealIngresosGastos(
     gastos: List<Float>,
     modifier: Modifier = Modifier
 ) {
+    val colorIngresos = MaterialTheme.arcshiftColors.success
+    val colorGastos = MaterialTheme.colorScheme.error
+
     Canvas(
         modifier = modifier
-            .background(Color(0xFFF8FAFC), RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
             .padding(10.dp)
     ) {
         val cantidad = minOf(ingresos.size, gastos.size)
@@ -633,12 +637,12 @@ private fun GraficaLinealIngresosGastos(
 
         drawPath(
             path = path(ingresos),
-            color = Color(0xFF16A34A),
+            color = colorIngresos,
             style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
         )
         drawPath(
             path = path(gastos),
-            color = Color(0xFFDC2626),
+            color = colorGastos,
             style = Stroke(width = 2.5.dp.toPx(), cap = StrokeCap.Round)
         )
     }
@@ -656,7 +660,7 @@ private fun CotizacionesEstado(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(
@@ -683,9 +687,9 @@ private fun CotizacionesEstado(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        EstadoCotizacion("Pendientes", pendientes, Color(0xFFF59E0B))
-                        EstadoCotizacion("Aprobadas", aprobadas, Color(0xFF16A34A))
-                        EstadoCotizacion("Rechazadas", rechazadas, Color(0xFFDC2626))
+                        EstadoCotizacion("Pendientes", pendientes, MaterialTheme.arcshiftColors.warning)
+                        EstadoCotizacion("Aprobadas", aprobadas, MaterialTheme.arcshiftColors.success)
+                        EstadoCotizacion("Rechazadas", rechazadas, MaterialTheme.colorScheme.error)
                     }
 
                     GraficaDonaCotizaciones(
@@ -708,6 +712,10 @@ private fun GraficaDonaCotizaciones(
     modifier: Modifier = Modifier
 ) {
     val total = pendientes + aprobadas + rechazadas
+    val colorPendiente = MaterialTheme.arcshiftColors.warning
+    val colorAprobada = MaterialTheme.arcshiftColors.success
+    val colorRechazada = MaterialTheme.colorScheme.error
+    val colorVacio = MaterialTheme.colorScheme.outlineVariant
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -721,7 +729,7 @@ private fun GraficaDonaCotizaciones(
 
             if (total <= 0) {
                 drawArc(
-                    color = Color(0xFFE2E8F0),
+                    color = colorVacio,
                     startAngle = -90f,
                     sweepAngle = 360f,
                     useCenter = false,
@@ -734,9 +742,9 @@ private fun GraficaDonaCotizaciones(
 
             var inicio = -90f
             listOf(
-                pendientes to Color(0xFFF59E0B),
-                aprobadas to Color(0xFF16A34A),
-                rechazadas to Color(0xFFDC2626)
+                pendientes to colorPendiente,
+                aprobadas to colorAprobada,
+                rechazadas to colorRechazada
             ).forEach { (cantidad, color) ->
                 val angulo = 360f * cantidad / total
                 if (angulo > 0f) {
@@ -760,7 +768,7 @@ private fun GraficaDonaCotizaciones(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
-            Text(text = "Mes", color = Color(0xFF64748B), fontSize = 9.sp)
+            Text(text = "Mes", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp)
         }
     }
 }
@@ -830,7 +838,7 @@ private fun ClientesRecientes(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
@@ -853,13 +861,13 @@ private fun ClientesRecientes(
                         Box(
                             modifier = Modifier
                                 .size(27.dp)
-                                .background(Color(0xFFDBEAFE), CircleShape),
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                tint = Color(0xFF2563EB),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -874,7 +882,7 @@ private fun ClientesRecientes(
                             )
                             Text(
                                 text = cliente.detalle,
-                                color = Color(0xFF64748B),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 8.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -897,7 +905,7 @@ private fun InventarioBajoStock(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
@@ -921,7 +929,7 @@ private fun InventarioBajoStock(
                             modifier = Modifier
                                 .size(27.dp)
                                 .background(
-                                    if (producto.agotado) Color(0xFFFEE2E2) else Color(0xFFFEF3C7),
+                                    if (producto.agotado) MaterialTheme.colorScheme.errorContainer else MaterialTheme.arcshiftColors.warningContainer,
                                     RoundedCornerShape(8.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -929,7 +937,7 @@ private fun InventarioBajoStock(
                             Icon(
                                 imageVector = if (producto.agotado) Icons.Default.Warning else Icons.Default.Inventory,
                                 contentDescription = null,
-                                tint = if (producto.agotado) Color(0xFFDC2626) else Color(0xFFF59E0B),
+                                tint = if (producto.agotado) MaterialTheme.colorScheme.error else MaterialTheme.arcshiftColors.warning,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -944,7 +952,7 @@ private fun InventarioBajoStock(
                             )
                             Text(
                                 text = "${producto.stock} ${producto.unidad} · mín. ${producto.stockMinimo}",
-                                color = if (producto.agotado) Color(0xFFDC2626) else Color(0xFFF59E0B),
+                                color = if (producto.agotado) MaterialTheme.colorScheme.error else MaterialTheme.arcshiftColors.warning,
                                 fontSize = 8.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -973,7 +981,7 @@ private fun EncabezadoTarjetaLista(
         )
         Text(
             text = "Ver",
-            color = Color(0xFF2563EB),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 9.sp,
             modifier = Modifier.clickable(onClick = onVerTodos)
         )
@@ -985,7 +993,7 @@ private fun MensajeSinDatos(texto: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
             text = texto,
-            color = Color(0xFF94A3B8),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 9.sp
         )
     }
@@ -997,8 +1005,8 @@ private fun ProximosCobros(
     onClick: () -> Unit
 ) {
     val proximo = estado.proximoCobro
-    val fondo = if (proximo?.vencido == true) Color(0xFFFFF1F2) else Color(0xFFEAF2FF)
-    val color = if (proximo?.vencido == true) Color(0xFFDC2626) else Color(0xFF2563EB)
+    val fondo = if (proximo?.vencido == true) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+    val color = if (proximo?.vencido == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
     Card(
         modifier = Modifier
@@ -1031,7 +1039,7 @@ private fun ProximosCobros(
                 Text(
                     text = if (proximo?.vencido == true) "Cobros vencidos" else "Próximos cobros",
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = when {
@@ -1039,7 +1047,7 @@ private fun ProximosCobros(
                         proximo == null -> "${estado.cantidadPagosPendientes} pagos por cobrar."
                         else -> "${proximo.descripcion} · ${proximo.fecha} · ${moneda(proximo.monto)}"
                     },
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -1077,7 +1085,7 @@ private fun TituloSeccion(titulo: String, accion: String) {
         )
         Surface(
             shape = RoundedCornerShape(10.dp),
-            color = Color(0xFFEFF6FF)
+            color = MaterialTheme.colorScheme.primaryContainer
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
@@ -1086,13 +1094,13 @@ private fun TituloSeccion(titulo: String, accion: String) {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = accion,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold
                 )

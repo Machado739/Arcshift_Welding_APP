@@ -29,7 +29,7 @@ fun SeccionCostosProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
@@ -56,7 +56,7 @@ fun SeccionCostosProyecto(
                 Text(
                     text = "No hay costos adicionales.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
                 costos.forEach { costo ->
@@ -73,7 +73,7 @@ fun SeccionCostosProyecto(
                         Text(
                             text = costo.tipo,
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(

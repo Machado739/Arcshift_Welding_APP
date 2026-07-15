@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class CotizacionEliminarUI(
     val id: Int,
@@ -69,7 +70,7 @@ fun EliminarCotizacionScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Text("Cotización no encontrada")
@@ -100,7 +101,7 @@ fun EliminarCotizacionScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 start = 8.dp,
                 top = 0.dp,
@@ -156,7 +157,7 @@ fun HeaderEliminarCotizacion(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -211,7 +212,7 @@ fun CardAdvertenciaEliminarCotizacion() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFEF2F2)
+            containerColor = MaterialTheme.colorScheme.errorContainer
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -225,7 +226,7 @@ fun CardAdvertenciaEliminarCotizacion() {
                 modifier = Modifier
                     .size(52.dp)
                     .background(
-                        color = Color(0xFFFEE2E2),
+                        color = MaterialTheme.colorScheme.errorContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -233,7 +234,7 @@ fun CardAdvertenciaEliminarCotizacion() {
                 Icon(
                     imageVector = Icons.Default.DeleteForever,
                     contentDescription = null,
-                    tint = Color(0xFFDC2626),
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -244,7 +245,7 @@ fun CardAdvertenciaEliminarCotizacion() {
                 text = "¿Eliminar esta cotización?",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF991B1B)
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -252,7 +253,7 @@ fun CardAdvertenciaEliminarCotizacion() {
             Text(
                 text = "Esta acción no se puede deshacer. Revisa la información antes de confirmar.",
                 fontSize = 11.sp,
-                color = Color(0xFF7F1D1D),
+                color = MaterialTheme.colorScheme.onErrorContainer,
                 lineHeight = 15.sp
             )
         }
@@ -267,7 +268,7 @@ fun CardResumenEliminarCotizacion(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -281,7 +282,7 @@ fun CardResumenEliminarCotizacion(
                 modifier = Modifier
                     .size(50.dp)
                     .background(
-                        color = Color(0xFFEFF6FF),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(10.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -289,7 +290,7 @@ fun CardResumenEliminarCotizacion(
                 Icon(
                     imageVector = Icons.Default.Description,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(30.dp)
                 )
             }
@@ -306,7 +307,7 @@ fun CardResumenEliminarCotizacion(
                         text = cotizacion.folio,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
@@ -315,10 +316,10 @@ fun CardResumenEliminarCotizacion(
                         text = cotizacion.estado,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFF59E0B),
+                        color = MaterialTheme.arcshiftColors.warning,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFFFF7E6),
+                                color = MaterialTheme.arcshiftColors.warningContainer,
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -328,7 +329,7 @@ fun CardResumenEliminarCotizacion(
                 Text(
                     text = cotizacion.trabajo,
                     fontSize = 11.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
 
@@ -338,13 +339,13 @@ fun CardResumenEliminarCotizacion(
                     text = cotizacion.total,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16A34A)
+                    color = MaterialTheme.arcshiftColors.success
                 )
 
                 Text(
                     text = cotizacion.cliente,
                     fontSize = 9.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
             }
@@ -376,7 +377,7 @@ fun SeccionDatosEliminarCotizacion(
             icono = Icons.Default.AttachMoney,
             titulo = "Total",
             valor = cotizacion.total,
-            colorValor = Color(0xFF16A34A)
+            colorValor = MaterialTheme.arcshiftColors.success
         )
 
         FilaDatoEliminarCotizacion(
@@ -404,7 +405,7 @@ fun FilaDatoEliminarCotizacion(
     icono: ImageVector,
     titulo: String,
     valor: String,
-    colorValor: Color = Color.Black
+    colorValor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = Modifier
@@ -415,7 +416,7 @@ fun FilaDatoEliminarCotizacion(
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = Color(0xFF64748B),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(17.dp)
         )
 
@@ -424,7 +425,7 @@ fun FilaDatoEliminarCotizacion(
         Text(
             text = titulo,
             fontSize = 10.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.width(70.dp)
         )
 
@@ -466,12 +467,12 @@ fun SeccionConsecuenciasEliminarCotizacion() {
         Text(
             text = "Si esta cotización ya fue aprobada o convertida a ingreso, se recomienda revisar primero la información relacionada antes de eliminarla.",
             fontSize = 10.sp,
-            color = Color(0xFF92400E),
+            color = MaterialTheme.arcshiftColors.onWarningContainer,
             lineHeight = 14.sp,
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = Color(0xFFFFFBEB),
+                    color = MaterialTheme.arcshiftColors.warningContainer,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(8.dp)
@@ -492,7 +493,7 @@ fun ItemConsecuenciaEliminarCotizacion(
         Icon(
             imageVector = Icons.Default.Cancel,
             contentDescription = null,
-            tint = Color(0xFFDC2626),
+            tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(15.dp)
         )
 
@@ -501,7 +502,7 @@ fun ItemConsecuenciaEliminarCotizacion(
         Text(
             text = texto,
             fontSize = 10.sp,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 14.sp
         )
     }
@@ -544,7 +545,7 @@ fun BotonesEliminarCotizacion(
                 .height(46.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFDC2626)
+                containerColor = MaterialTheme.colorScheme.error
             )
         ) {
             Icon(
@@ -573,7 +574,7 @@ fun CardSeccionEliminarCotizacion(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -589,9 +590,9 @@ fun CardSeccionEliminarCotizacion(
                     imageVector = icono,
                     contentDescription = null,
                     tint = if (icono == Icons.Default.Warning) {
-                        Color(0xFFDC2626)
+                        MaterialTheme.colorScheme.error
                     } else {
-                        Color(0xFF334155)
+                        MaterialTheme.colorScheme.onSurface
                     },
                     modifier = Modifier.size(16.dp)
                 )
@@ -602,13 +603,13 @@ fun CardSeccionEliminarCotizacion(
                     text = titulo,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Divider(color = Color(0xFFE2E8F0))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Spacer(modifier = Modifier.height(6.dp))
 

@@ -19,6 +19,7 @@ import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.PagoProgramadoForm
 import com.example.arcshiftwelding.ui.viewmodel.aDouble
 import kotlin.collections.emptyList
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +68,7 @@ fun EditarIngresoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -96,7 +97,7 @@ fun EditarIngresoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         Column(
@@ -195,7 +196,7 @@ fun SeccionEditarIngresoInformacionGeneral() {
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        color = Color(0xFFF1F1F1),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(8.dp)
                     )
             ) {
@@ -276,7 +277,7 @@ fun SeccionEditarIngresoInformacionFinanciera() {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFE3F3E6)
+                containerColor = MaterialTheme.arcshiftColors.successContainer
             )
         ) {
             Column(
@@ -285,7 +286,7 @@ fun SeccionEditarIngresoInformacionFinanciera() {
                 Text(
                     text = "Total *",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2E7D32),
+                    color = MaterialTheme.arcshiftColors.success,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -293,7 +294,7 @@ fun SeccionEditarIngresoInformacionFinanciera() {
                     text = "$ 15,080.00",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
+                    color = MaterialTheme.arcshiftColors.success
                 )
             }
         }
@@ -429,7 +430,7 @@ fun ArchivoActualIngresoCard(
             .height(68.dp),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFAFAFA)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -442,7 +443,7 @@ fun ArchivoActualIngresoCard(
             Icon(
                 imageVector = Icons.Default.PictureAsPdf,
                 contentDescription = null,
-                tint = Color(0xFFE53935),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(32.dp)
             )
 
@@ -461,7 +462,7 @@ fun ArchivoActualIngresoCard(
                 Text(
                     text = "PDF · $peso",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -469,7 +470,7 @@ fun ArchivoActualIngresoCard(
                 Icon(
                     imageVector = Icons.Default.RemoveRedEye,
                     contentDescription = "Ver archivo",
-                    tint = Color.DarkGray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -477,7 +478,7 @@ fun ArchivoActualIngresoCard(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Eliminar archivo",
-                    tint = Color(0xFFB42318)
+                    tint = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }
@@ -502,8 +503,8 @@ fun BotonesEditarIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         ) {
             Icon(
@@ -527,7 +528,7 @@ fun BotonesEditarIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1B8F3A)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(

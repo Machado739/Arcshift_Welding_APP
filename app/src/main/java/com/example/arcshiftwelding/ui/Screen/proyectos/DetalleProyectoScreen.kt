@@ -87,6 +87,7 @@ import com.example.arcshiftwelding.data.local.entity.ProyectoAvanceEntity
 import com.example.arcshiftwelding.ui.Screen.clientes.TituloSeccionCliente
 import kotlin.collections.emptyList
 import androidx.compose.material3.Slider
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleProyectoScreen(
@@ -112,7 +113,7 @@ fun DetalleProyectoScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(
                             start = 17.dp,
                             top = 8.dp,
@@ -138,7 +139,7 @@ fun DetalleProyectoScreen(
                     )
                 }
             },
-            containerColor = Color(0xFFF5F5F5),
+            containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0)
         ) { paddingValues ->
             Box(
@@ -192,7 +193,7 @@ fun DetalleProyectoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -230,7 +231,7 @@ fun DetalleProyectoScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
@@ -294,7 +295,7 @@ fun DetalleProyectoScreen(
                         Text(
                             text = "Avance actual",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF64748B)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Text(
@@ -314,7 +315,7 @@ fun DetalleProyectoScreen(
                             .height(8.dp)
                             .clip(RoundedCornerShape(50)),
                         color = colorEstadoProyecto(proyecto.estado),
-                        trackColor = Color(0xFFE2E8F0)
+                        trackColor = MaterialTheme.colorScheme.outlineVariant
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -405,7 +406,7 @@ fun DetalleProyectoScreen(
                 Text(
                     text = proyecto.observaciones.ifBlank { "Sin observaciones registradas." },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF334155)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -436,14 +437,14 @@ fun DetalleProyectoScreen(
                             Text(
                                 text = "Guarda el porcentaje, una nota y fotografías como evidencia del avance.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF64748B)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
                             Text(
                                 text = "$avanceTemporal%",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2563EB)
+                                color = MaterialTheme.colorScheme.primary
                             )
 
                             Slider(
@@ -529,7 +530,7 @@ fun DetalleProyectoScreen(
                         mostrarDialogoTerminar = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF16A34A)
+                        containerColor = MaterialTheme.arcshiftColors.success
                     )
                 ) {
                     Text("Terminar")
@@ -562,7 +563,7 @@ fun DetalleProyectoScreen(
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFDC2626)
+                        containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
                     Text("Eliminar")
@@ -587,7 +588,7 @@ fun SeccionResumenCostosProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
@@ -682,7 +683,7 @@ fun EncabezadoSeccionContraibleProyecto(
                 modifier = Modifier
                     .size(38.dp)
                     .background(
-                        color = Color(0xFFEFF6FF),
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(11.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -690,7 +691,7 @@ fun EncabezadoSeccionContraibleProyecto(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -702,7 +703,7 @@ fun EncabezadoSeccionContraibleProyecto(
                     text = titulo,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -710,7 +711,7 @@ fun EncabezadoSeccionContraibleProyecto(
                 Text(
                     text = resumen,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -735,7 +736,7 @@ fun EncabezadoSeccionContraibleProyecto(
                 } else {
                     "Desplegar sección"
                 },
-                tint = Color(0xFF475569)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -755,7 +756,7 @@ fun SeccionHistorialAvancesProyecto(
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -773,14 +774,14 @@ fun SeccionHistorialAvancesProyecto(
 
             if (expandido) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFE2E8F0))
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(10.dp))
 
                 if (avances.isEmpty()) {
                     Text(
                         text = "Todavía no hay actualizaciones registradas.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     avancesVisibles.forEachIndexed { index, avance ->
@@ -788,9 +789,9 @@ fun SeccionHistorialAvancesProyecto(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFF8FAFC)
+                                containerColor = MaterialTheme.colorScheme.background
                             ),
-                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -805,13 +806,13 @@ fun SeccionHistorialAvancesProyecto(
                                         text = "Avance ${avance.porcentaje}%",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF2563EB)
+                                        color = MaterialTheme.colorScheme.primary
                                     )
 
                                     Text(
                                         text = avance.fecha,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF64748B)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
 
@@ -823,15 +824,15 @@ fun SeccionHistorialAvancesProyecto(
                                         .fillMaxWidth()
                                         .height(6.dp)
                                         .clip(RoundedCornerShape(50)),
-                                    color = Color(0xFF2563EB),
-                                    trackColor = Color(0xFFE2E8F0)
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.outlineVariant
                                 )
 
                                 if (avance.comentario.isNotBlank()) {
                                     Text(
                                         text = avance.comentario,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF334155)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
@@ -889,7 +890,7 @@ fun SeccionEmpleadosProyecto(
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -909,14 +910,14 @@ fun SeccionEmpleadosProyecto(
 
             if (expandido) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFE2E8F0))
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (empleados.isEmpty()) {
                     Text(
                         text = "No hay empleados asignados.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     empleadosVisibles.forEach { empleado ->
@@ -926,9 +927,9 @@ fun SeccionEmpleadosProyecto(
                                 .padding(vertical = 6.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFF8FAFC)
+                                containerColor = MaterialTheme.colorScheme.background
                             ),
-                            border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Row(
@@ -941,13 +942,13 @@ fun SeccionEmpleadosProyecto(
                                             text = empleado.nombreEmpleado,
                                             style = MaterialTheme.typography.bodyLarge,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF0F172A)
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
 
                                         Text(
                                             text = empleado.puesto.ifBlank { "Sin puesto" },
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = Color(0xFF64748B)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
 
@@ -964,7 +965,7 @@ fun SeccionEmpleadosProyecto(
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
                                                 contentDescription = "Eliminar empleado",
-                                                tint = Color(0xFFDC2626)
+                                                tint = MaterialTheme.colorScheme.error
                                             )
                                         }
                                     }
@@ -1006,7 +1007,7 @@ fun SeccionEmpleadosProyecto(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(
-                                            color = Color(0xFFEFF6FF),
+                                            color = MaterialTheme.colorScheme.primaryContainer,
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                         .padding(10.dp),
@@ -1015,7 +1016,7 @@ fun SeccionEmpleadosProyecto(
                                     Text(
                                         text = "Costo calculado",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF1E40AF),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         fontWeight = FontWeight.SemiBold
                                     )
 
@@ -1024,7 +1025,7 @@ fun SeccionEmpleadosProyecto(
                                             empleado.costoCalculado
                                         ),
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color(0xFF1E40AF),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1061,7 +1062,7 @@ fun ChipDatoProyecto(
     Column(
         modifier = modifier
             .background(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(10.dp)
             )
             .padding(8.dp)
@@ -1069,13 +1070,13 @@ fun ChipDatoProyecto(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF0F172A),
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
         )
     }
@@ -1095,7 +1096,7 @@ fun SeccionMaterialesProyecto(
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -1115,14 +1116,14 @@ fun SeccionMaterialesProyecto(
 
             if (expandido) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFE2E8F0))
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (materiales.isEmpty()) {
                     Text(
                         text = "No hay material registrado.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     materialesVisibles.forEach { material ->
@@ -1132,9 +1133,9 @@ fun SeccionMaterialesProyecto(
                                 .padding(vertical = 6.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFF9FAFB)
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
-                            border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
@@ -1144,7 +1145,7 @@ fun SeccionMaterialesProyecto(
                                     modifier = Modifier
                                         .size(42.dp)
                                         .background(
-                                            color = Color(0xFFECFDF5),
+                                            color = MaterialTheme.arcshiftColors.successContainer,
                                             shape = RoundedCornerShape(12.dp)
                                         ),
                                     contentAlignment = Alignment.Center
@@ -1152,7 +1153,7 @@ fun SeccionMaterialesProyecto(
                                     Icon(
                                         imageVector = Icons.Default.Inventory,
                                         contentDescription = null,
-                                        tint = Color(0xFF16A34A)
+                                        tint = MaterialTheme.arcshiftColors.success
                                     )
                                 }
 
@@ -1163,19 +1164,19 @@ fun SeccionMaterialesProyecto(
                                         text = material.nombreProducto,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0F172A)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Text(
                                         text = "${material.cantidadUsada} ${material.unidad} x ${formatoMonedaProyecto(material.costoUnitario)}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF64748B)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
 
                                     Text(
                                         text = "Subtotal: ${formatoMonedaProyecto(material.subtotal)}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF166534),
+                                        color = MaterialTheme.arcshiftColors.onSuccessContainer,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1186,7 +1187,7 @@ fun SeccionMaterialesProyecto(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Eliminar material",
-                                        tint = Color(0xFF991B1B)
+                                        tint = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                 }
                             }
@@ -1223,7 +1224,7 @@ fun HeaderDetalleProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -1257,7 +1258,7 @@ fun HeaderDetalleProyecto(
                         text = proyecto.nombre,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F172A),
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1265,7 +1266,7 @@ fun HeaderDetalleProyecto(
                     Text(
                         text = proyecto.cliente,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -1284,7 +1285,7 @@ fun HeaderDetalleProyecto(
                 Text(
                     text = "Avance",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
@@ -1304,7 +1305,7 @@ fun HeaderDetalleProyecto(
                     .height(8.dp)
                     .clip(RoundedCornerShape(50)),
                 color = color,
-                trackColor = Color(0xFFE2E8F0)
+                trackColor = MaterialTheme.colorScheme.outlineVariant
             )
         }
     }
@@ -1320,7 +1321,7 @@ fun CardSeccionDetalleProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -1333,7 +1334,7 @@ fun CardSeccionDetalleProyecto(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
 
@@ -1343,13 +1344,13 @@ fun CardSeccionDetalleProyecto(
                     text = titulo,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Divider(color = Color(0xFFE2E8F0))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -1373,7 +1374,7 @@ fun ItemDetalleProyecto(
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = Color(0xFF64748B),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(18.dp)
         )
 
@@ -1383,13 +1384,13 @@ fun ItemDetalleProyecto(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF64748B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
                 text = valor,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -1405,7 +1406,7 @@ fun CajaDetalleProyecto(
     Column(
         modifier = modifier
             .background(
-                color = Color(0xFFF1F5F9),
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(10.dp)
@@ -1413,14 +1414,14 @@ fun CajaDetalleProyecto(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF64748B),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF0F172A),
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -1462,7 +1463,7 @@ fun BotonAccionProyecto(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         ),
         onClick = onClick
     ) {
@@ -1472,7 +1473,7 @@ fun BotonAccionProyecto(
             Icon(
                 imageVector = icono,
                 contentDescription = null,
-                tint = Color(0xFF2563EB),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(26.dp)
             )
 
@@ -1482,13 +1483,13 @@ fun BotonAccionProyecto(
                 text = titulo,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF64748B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1505,7 +1506,7 @@ fun BotonesInferioresDetalleProyecto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -1515,7 +1516,7 @@ fun BotonesInferioresDetalleProyecto(
             TituloSeccionCliente(
                 titulo = "Acciones rápidas",
                 icono = Icons.Default.Bolt,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -1526,7 +1527,7 @@ fun BotonesInferioresDetalleProyecto(
                 BotonRapidoInferiorProyecto(
                     titulo = "Editar",
                     icono = Icons.Default.Edit,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     onClick = onEditar
                 )
@@ -1534,7 +1535,7 @@ fun BotonesInferioresDetalleProyecto(
                 BotonRapidoInferiorProyecto(
                     titulo = "Terminar",
                     icono = Icons.Default.Check,
-                    color = Color(0xFF16A34A),
+                    color = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.weight(1f),
                     onClick = onTerminar
                 )
@@ -1542,7 +1543,7 @@ fun BotonesInferioresDetalleProyecto(
                 BotonRapidoInferiorProyecto(
                     titulo = "Eliminar",
                     icono = Icons.Default.Delete,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f),
                     onClick = onEliminar
                 )
@@ -1563,7 +1564,7 @@ fun BotonRapidoInferiorProyecto(
         modifier = modifier.height(68.dp),
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(4.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -1582,7 +1583,7 @@ fun BotonRapidoInferiorProyecto(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -1605,7 +1606,7 @@ fun SeccionGastosProyecto(
             .fillMaxWidth()
             .animateContentSize(),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -1625,14 +1626,14 @@ fun SeccionGastosProyecto(
 
             if (expandido) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFE2E8F0))
+                Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (gastos.isEmpty()) {
                     Text(
                         text = "No hay gastos relacionados con este proyecto.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     gastosVisibles.forEach { gasto ->
@@ -1642,9 +1643,9 @@ fun SeccionGastosProyecto(
                                 .padding(vertical = 6.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFFFFBEB)
+                                containerColor = MaterialTheme.arcshiftColors.warningContainer
                             ),
-                            border = BorderStroke(1.dp, Color(0xFFFDE68A))
+                            border = BorderStroke(1.dp, MaterialTheme.arcshiftColors.warningContainer)
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
@@ -1655,13 +1656,13 @@ fun SeccionGastosProyecto(
                                         text = gasto.concepto,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF0F172A)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Text(
                                         text = "${gasto.categoria} | ${gasto.fecha}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF92400E)
+                                        color = MaterialTheme.arcshiftColors.onWarningContainer
                                     )
 
                                     if (!gasto.proveedor.isNullOrBlank()) {
@@ -1669,7 +1670,7 @@ fun SeccionGastosProyecto(
                                         Text(
                                             text = "Proveedor: ${gasto.proveedor}",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = Color(0xFF64748B)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
 
@@ -1679,7 +1680,7 @@ fun SeccionGastosProyecto(
                                         text = formatoMonedaProyecto(gasto.total),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF92400E)
+                                        color = MaterialTheme.arcshiftColors.onWarningContainer
                                     )
                                 }
 
@@ -1689,7 +1690,7 @@ fun SeccionGastosProyecto(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Eliminar gasto",
-                                        tint = Color(0xFFDC2626)
+                                        tint = MaterialTheme.colorScheme.error
                                     )
                                 }
                             }

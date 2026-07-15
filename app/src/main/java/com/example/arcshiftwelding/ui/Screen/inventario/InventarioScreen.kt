@@ -64,6 +64,7 @@ import com.example.arcshiftwelding.data.local.entity.ProductoEntity
 import com.example.arcshiftwelding.data.repository.ProductoRepository
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModel
 import com.example.arcshiftwelding.ui.viewmodel.ProductoViewModelFactory
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 data class ProductoUI(
@@ -146,7 +147,7 @@ fun InventarioScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(
                     start = 8.dp,
                     top = 0.dp,
@@ -186,7 +187,7 @@ fun InventarioScreen(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1D4ED8)
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
@@ -232,7 +233,7 @@ fun HeaderInventario(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(
                 start = 20.dp,
                 top = 8.dp,
@@ -283,7 +284,7 @@ fun TarjetasResumenInventario(
             valor = total.toString(),
             subtitulo = "Productos",
             icono = Icons.Default.Inventory,
-            colorIcono = Color(0xFF2563EB),
+            colorIcono = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
 
@@ -292,7 +293,7 @@ fun TarjetasResumenInventario(
             valor = enStock.toString(),
             subtitulo = "Disponibles",
             icono = Icons.Default.CheckCircle,
-            colorIcono = Color(0xFF16A34A),
+            colorIcono = MaterialTheme.arcshiftColors.success,
             modifier = Modifier.weight(1f)
         )
 
@@ -301,7 +302,7 @@ fun TarjetasResumenInventario(
             valor = stockBajo.toString(),
             subtitulo = "Revisar",
             icono = Icons.Default.Warning,
-            colorIcono = Color(0xFFF59E0B),
+            colorIcono = MaterialTheme.arcshiftColors.warning,
             modifier = Modifier.weight(1f)
         )
 
@@ -310,7 +311,7 @@ fun TarjetasResumenInventario(
             valor = sinStock.toString(),
             subtitulo = "Agotados",
             icono = Icons.Default.Cancel,
-            colorIcono = Color(0xFFDC2626),
+            colorIcono = MaterialTheme.colorScheme.error,
             modifier = Modifier.weight(1f)
         )
     }
@@ -329,7 +330,7 @@ fun TarjetaResumenInventario(
         modifier = modifier.height(105.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -359,7 +360,7 @@ fun TarjetaResumenInventario(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
@@ -371,7 +372,7 @@ fun TarjetaResumenInventario(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -479,8 +480,8 @@ fun CategoriaChipInventario(
             }
         },
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
-            labelColor = if (seleccionado) Color(0xFF1D4ED8) else Color.DarkGray
+            containerColor = if (seleccionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            labelColor = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
 }
@@ -522,9 +523,9 @@ fun ItemProductoInventario(
     }
 
     val estadoColor = when (producto.estado) {
-        "Agotado" -> Color(0xFFDC2626)
-        "Bajo Stock" -> Color(0xFFF59E0B)
-        else -> Color(0xFF16A34A)
+        "Agotado" -> MaterialTheme.colorScheme.error
+        "Bajo Stock" -> MaterialTheme.arcshiftColors.warning
+        else -> MaterialTheme.arcshiftColors.success
     }
 
     Card(
@@ -533,7 +534,7 @@ fun ItemProductoInventario(
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -559,19 +560,19 @@ fun ItemProductoInventario(
                 Text(
                     text = "Código: ${producto.codigo}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = "Ubicación: ${producto.ubicacion}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = producto.categoria,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2563EB)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -588,7 +589,7 @@ fun ItemProductoInventario(
                 Text(
                     text = "Stock actual",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
@@ -600,7 +601,7 @@ fun ItemProductoInventario(
                 Text(
                     text = producto.unidad,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -624,11 +625,11 @@ fun IconoCategoriaProducto(
     }
 
     val color = when (categoria) {
-        "Materiales" -> Color(0xFF2563EB)
-        "Consumibles" -> Color(0xFF7C3AED)
-        "Herramientas" -> Color(0xFFF59E0B)
-        "Seguridad" -> Color(0xFF16A34A)
-        else -> Color.Gray
+        "Materiales" -> MaterialTheme.colorScheme.primary
+        "Consumibles" -> MaterialTheme.colorScheme.secondary
+        "Herramientas" -> MaterialTheme.arcshiftColors.warning
+        "Seguridad" -> MaterialTheme.arcshiftColors.success
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(

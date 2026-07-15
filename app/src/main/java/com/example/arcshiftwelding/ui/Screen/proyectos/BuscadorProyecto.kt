@@ -113,7 +113,7 @@ fun <T> BuscadorListaProyecto(
                         Text(
                             text = "No se encontraron resultados",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = { }
@@ -127,7 +127,7 @@ fun <T> BuscadorListaProyecto(
                                     text = textoPrincipal(elemento),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFF0F172A)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
 
                                 val secundario = textoSecundario(elemento)
@@ -136,7 +136,7 @@ fun <T> BuscadorListaProyecto(
                                     Text(
                                         text = secundario,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF64748B)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -147,7 +147,7 @@ fun <T> BuscadorListaProyecto(
                     )
 
                     if (index < elementosFiltrados.lastIndex) {
-                        Divider(color = Color(0xFFE5E7EB))
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }

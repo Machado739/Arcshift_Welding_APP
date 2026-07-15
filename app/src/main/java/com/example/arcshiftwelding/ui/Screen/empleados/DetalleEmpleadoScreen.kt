@@ -73,6 +73,7 @@ import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.toDetalleUi
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class EmpleadoDetalleUI(
     val id: Int,
@@ -121,7 +122,7 @@ fun DetalleEmpleadoScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC)),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Text("Empleado no encontrado")
@@ -141,7 +142,7 @@ fun DetalleEmpleadoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -180,7 +181,7 @@ fun DetalleEmpleadoScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
 
@@ -234,7 +235,7 @@ fun CardPrincipalEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -252,8 +253,8 @@ fun CardPrincipalEmpleado(
                     fotoUri = empleado.fotoUri,
                     iniciales = obtenerInicialesEmpleado(empleado.nombre),
                     modifier = Modifier.fillMaxSize(),
-                    colorFondo = Color(0xFFE0ECFF),
-                    colorContenido = Color(0xFF2563EB)
+                    colorFondo = MaterialTheme.colorScheme.primaryContainer,
+                    colorContenido = MaterialTheme.colorScheme.primary
                 )
 
                 Box(
@@ -261,7 +262,7 @@ fun CardPrincipalEmpleado(
                         .align(Alignment.BottomEnd)
                         .size(16.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF22C55E))
+                        .background(MaterialTheme.arcshiftColors.success)
                 )
             }
 
@@ -281,7 +282,7 @@ fun CardPrincipalEmpleado(
                 Text(
                     text = empleado.puesto,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -293,13 +294,13 @@ fun CardPrincipalEmpleado(
                 ) {
                     BadgeEstadoEmpleado(
                         texto = empleado.estado,
-                        color = Color(0xFF16A34A)
+                        color = MaterialTheme.arcshiftColors.success
                     )
 
                     if (empleado.porcentajeContrato.isNotBlank()) {
                         BadgeEstadoEmpleado(
                             texto = empleado.porcentajeContrato,
-                            color = Color(0xFF2563EB)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -356,7 +357,7 @@ fun CardsContactoEmpleado(
                 titulo = "Teléfono",
                 valor = empleado.telefono,
                 icono = Icons.Default.Phone,
-                color = Color(0xFF2563EB),
+                color = MaterialTheme.colorScheme.primary,
                 maxLines = 2,
                 onLongClick = {
                     copiarInformacionEmpleado(
@@ -373,7 +374,7 @@ fun CardsContactoEmpleado(
                 titulo = "Correo",
                 valor = empleado.correo,
                 icono = Icons.Default.Email,
-                color = Color(0xFF7C3AED),
+                color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2,
                 onLongClick = {
                     copiarInformacionEmpleado(
@@ -391,7 +392,7 @@ fun CardsContactoEmpleado(
             titulo = "Dirección",
             valor = empleado.direccion,
             icono = Icons.Default.LocationOn,
-            color = Color(0xFF16A34A),
+            color = MaterialTheme.arcshiftColors.success,
             maxLines = 3,
             onLongClick = {
                 copiarInformacionEmpleado(
@@ -407,7 +408,7 @@ fun CardsContactoEmpleado(
         Text(
             text = "Mantén presionada una tarjeta para copiar la información.",
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF64748B),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
     }
@@ -434,7 +435,7 @@ fun CardContactoEmpleado(
                 onLongClick = onLongClick
             ),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
@@ -465,7 +466,7 @@ fun CardContactoEmpleado(
             Text(
                 text = valorVisible,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (valor.isBlank()) Color.Gray else Color(0xFF334155),
+                color = if (valor.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 maxLines = maxLines,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth()
@@ -508,7 +509,7 @@ fun SeccionInformacionPersonalEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -518,7 +519,7 @@ fun SeccionInformacionPersonalEmpleado(
             TituloSeccionEmpleado(
                 titulo = "Información personal",
                 icono = Icons.Default.Info,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -529,7 +530,7 @@ fun SeccionInformacionPersonalEmpleado(
                 valor = empleado.telefono
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             ItemInfoEmpleado(
                 icono = Icons.Default.CalendarMonth,
@@ -537,7 +538,7 @@ fun SeccionInformacionPersonalEmpleado(
                 valor = empleado.fechaIngreso
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             ItemInfoEmpleado(
                 icono = Icons.Default.Email,
@@ -545,7 +546,7 @@ fun SeccionInformacionPersonalEmpleado(
                 valor = empleado.correo
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             ItemInfoEmpleado(
                 icono = Icons.Default.LocationOn,
@@ -564,7 +565,7 @@ fun SeccionInformacionLaboralEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -574,7 +575,7 @@ fun SeccionInformacionLaboralEmpleado(
             TituloSeccionEmpleado(
                 titulo = "Información laboral",
                 icono = Icons.Default.Work,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -585,7 +586,7 @@ fun SeccionInformacionLaboralEmpleado(
                 valor = empleado.puesto
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             val tipoPagoEmpleado = obtenerTipoContratoEmpleado(empleado.porcentajeContrato)
 
@@ -595,7 +596,7 @@ fun SeccionInformacionLaboralEmpleado(
                 valor = obtenerTextoPagoEmpleado(empleado.porcentajeContrato)
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             ItemInfoEmpleado(
                 icono = Icons.Default.Assignment,
@@ -603,7 +604,7 @@ fun SeccionInformacionLaboralEmpleado(
                 valor = empleado.trabajoActual
             )
 
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
             /*
                         ItemInfoEmpleado(
                             icono = Icons.Default.AttachMoney,
@@ -611,13 +612,13 @@ fun SeccionInformacionLaboralEmpleado(
                             valor = empleado.pagoTotalSemana
                         )
             */
-            Divider(color = Color(0xFFE5E7EB))
+            Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
             ItemInfoEmpleado(
                 icono = Icons.Default.CheckCircle,
                 titulo = "Estado",
                 valor = empleado.estado,
-                valorColor = Color(0xFF16A34A)
+                valorColor = MaterialTheme.arcshiftColors.success
             )
         }
     }
@@ -671,7 +672,7 @@ fun SeccionNotasDetalleEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -681,7 +682,7 @@ fun SeccionNotasDetalleEmpleado(
             TituloSeccionEmpleado(
                 titulo = "Notas del empleado",
                 icono = Icons.Default.Message,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -689,7 +690,7 @@ fun SeccionNotasDetalleEmpleado(
             Text(
                 text = empleado.notas,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF0F172A)
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -700,7 +701,7 @@ fun ItemInfoEmpleado(
     icono: ImageVector,
     titulo: String,
     valor: String,
-    valorColor: Color = Color.Black
+    valorColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = Modifier
@@ -711,7 +712,7 @@ fun ItemInfoEmpleado(
         Icon(
             imageVector = icono,
             contentDescription = null,
-            tint = Color.Gray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(17.dp)
         )
 
@@ -720,7 +721,7 @@ fun ItemInfoEmpleado(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -745,7 +746,7 @@ fun SeccionTrabajosAsignadosEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -755,7 +756,7 @@ fun SeccionTrabajosAsignadosEmpleado(
             TituloSeccionEmpleado(
                 titulo = "Trabajos asignados",
                 icono = Icons.Default.Assignment,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -781,7 +782,7 @@ fun ItemTrabajoAsignadoEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         ),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -795,13 +796,13 @@ fun ItemTrabajoAsignadoEmpleado(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE5E7EB)),
+                    .background(MaterialTheme.colorScheme.outlineVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Image,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -822,7 +823,7 @@ fun ItemTrabajoAsignadoEmpleado(
                 Text(
                     text = trabajo.inicio,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
 
@@ -841,7 +842,7 @@ fun ItemTrabajoAsignadoEmpleado(
                 Text(
                     text = "Pago total",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
 
@@ -856,12 +857,14 @@ fun ItemTrabajoAsignadoEmpleado(
     }
 }
 
+@Composable
+
 fun obtenerColorEstadoTrabajo(estado: String): Color {
     return when (estado) {
-        "En proceso" -> Color(0xFFF59E0B)
-        "Terminado" -> Color(0xFF16A34A)
-        "Pendiente" -> Color(0xFF64748B)
-        else -> Color.Gray
+        "En proceso" -> MaterialTheme.arcshiftColors.warning
+        "Terminado" -> MaterialTheme.arcshiftColors.success
+        "Pendiente" -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 
@@ -875,7 +878,7 @@ fun SeccionAccionesRapidasEmpleado(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -885,7 +888,7 @@ fun SeccionAccionesRapidasEmpleado(
             TituloSeccionEmpleado(
                 titulo = "Acciones rápidas",
                 icono = Icons.Default.Bolt,
-                color = Color(0xFF2563EB)
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -897,7 +900,7 @@ fun SeccionAccionesRapidasEmpleado(
                 BotonAccionEmpleado(
                     texto = "Llamar",
                     icono = Icons.Default.Phone,
-                    color = Color(0xFF16A34A),
+                    color = MaterialTheme.arcshiftColors.success,
                     onClick = onLlamarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -905,7 +908,7 @@ fun SeccionAccionesRapidasEmpleado(
                 BotonAccionEmpleado(
                     texto = "Editar",
                     icono = Icons.Default.Edit,
-                    color = Color(0xFFF59E0B),
+                    color = MaterialTheme.arcshiftColors.warning,
                     onClick = onEditarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -913,7 +916,7 @@ fun SeccionAccionesRapidasEmpleado(
                 BotonAccionEmpleado(
                     texto = "Eliminar",
                     icono = Icons.Default.Delete,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     onClick = onEliminarClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -935,7 +938,7 @@ fun BotonAccionEmpleado(
         modifier = modifier.height(68.dp),
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(4.dp),
-        border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally

@@ -32,6 +32,7 @@ import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -91,7 +92,7 @@ fun NuevoClienteScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -119,7 +120,7 @@ fun NuevoClienteScreen(
 
             }
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
 
     ) { paddingValues ->
@@ -127,7 +128,7 @@ fun NuevoClienteScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
                 .padding(12.dp),
@@ -261,7 +262,7 @@ fun SeccionInformacionPersonalCliente(
     CardFormularioCliente(
         titulo = "Información personal",
         icono = Icons.Default.Person,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -354,7 +355,7 @@ fun AgregarFotoCliente(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(28.dp),
-                    containerColor = Color(0xFFDC2626),
+                    containerColor = MaterialTheme.colorScheme.error,
                     contentColor = Color.White
                 ) {
                     Icon(
@@ -399,7 +400,7 @@ fun SeccionInformacionContactoCliente(
     CardFormularioCliente(
         titulo = "Información de contacto",
         icono = Icons.Default.Phone,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -453,7 +454,7 @@ fun SeccionInformacionAdicionalNuevoCliente(
     CardFormularioCliente(
         titulo = "Información adicional",
         icono = Icons.Default.Description,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -505,7 +506,7 @@ fun SeccionInformacionAdicionalNuevoCliente(
         Text(
             text = "${notas.length}/200",
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.End)
         )
     }
@@ -527,7 +528,7 @@ fun SeccionConfiguracionNuevoCliente(
     CardFormularioCliente(
         titulo = "Configuración",
         icono = Icons.Default.Settings,
-        color = Color(0xFF2563EB)
+        color = MaterialTheme.colorScheme.primary
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -621,7 +622,7 @@ fun BotonesFormularioCliente(
                 .height(52.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF16A34A)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(
@@ -652,7 +653,7 @@ fun CardFormularioCliente(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -737,7 +738,7 @@ fun CampoTextoCliente(
                         imageVector = leadingIcon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else null,
@@ -746,10 +747,10 @@ fun CampoTextoCliente(
             maxLines = maxLines,
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2563EB),
-                unfocusedBorderColor = Color(0xFFE5E7EB),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
     }
@@ -816,10 +817,10 @@ fun SelectorSimpleCliente(
                 shape = RoundedCornerShape(10.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color(0xFFE5E7EB),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
 
@@ -870,7 +871,7 @@ fun OpcionCheckCliente(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

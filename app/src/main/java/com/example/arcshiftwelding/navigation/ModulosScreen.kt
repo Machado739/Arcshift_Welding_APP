@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 private data class ModuloAplicacion(
     val titulo: String,
@@ -61,24 +62,24 @@ fun ModulosScreen(
             descripcion = "Pagos, anticipos y cuentas por cobrar",
             ruta = AppRoutes.INGRESOS,
             icono = Icons.Default.Payments,
-            color = Color(0xFF15803D),
-            colorFondo = Color(0xFFDCFCE7)
+            color = MaterialTheme.arcshiftColors.success,
+            colorFondo = MaterialTheme.arcshiftColors.successContainer
         ),
         ModuloAplicacion(
             titulo = "Gastos",
             descripcion = "Egresos, proveedores y comprobantes",
             ruta = AppRoutes.GASTOS,
             icono = Icons.Default.AttachMoney,
-            color = Color(0xFFDC2626),
-            colorFondo = Color(0xFFFEE2E2)
+            color = MaterialTheme.colorScheme.error,
+            colorFondo = MaterialTheme.colorScheme.errorContainer
         ),
         ModuloAplicacion(
             titulo = "Cotizaciones",
             descripcion = "Propuestas, conceptos y seguimiento",
             ruta = AppRoutes.COTIZACIONES,
             icono = Icons.Default.Description,
-            color = Color(0xFF2563EB),
-            colorFondo = Color(0xFFDBEAFE)
+            color = MaterialTheme.colorScheme.primary,
+            colorFondo = MaterialTheme.colorScheme.primaryContainer
         )
     )
 
@@ -88,31 +89,31 @@ fun ModulosScreen(
             descripcion = "Personal, pagos y asignaciones",
             ruta = AppRoutes.EMPLEADOS,
             icono = Icons.Default.Work,
-            color = Color(0xFF7C3AED),
-            colorFondo = Color(0xFFEDE9FE)
+            color = MaterialTheme.colorScheme.secondary,
+            colorFondo = MaterialTheme.colorScheme.secondaryContainer
         ),
         ModuloAplicacion(
             titulo = "Reportes",
             descripcion = "Resumen financiero y operativo",
             ruta = AppRoutes.REPORTES,
             icono = Icons.Default.Assessment,
-            color = Color(0xFFD97706),
-            colorFondo = Color(0xFFFEF3C7)
+            color = MaterialTheme.arcshiftColors.warning,
+            colorFondo = MaterialTheme.arcshiftColors.warningContainer
         ),
         ModuloAplicacion(
             titulo = "Configuración",
             descripcion = "Cuenta, contraseña y códigos de respaldo",
             ruta = AppRoutes.CONFIGURACION,
             icono = Icons.Default.Settings,
-            color = Color(0xFF475569),
-            colorFondo = Color(0xFFF1F5F9)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            colorFondo = MaterialTheme.colorScheme.surfaceVariant
         )
     )
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC)),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
             start = 16.dp,
             top = 18.dp,
@@ -177,7 +178,7 @@ private fun EncabezadoModulos(
                 text = "Módulos",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
 
@@ -201,7 +202,7 @@ private fun EncabezadoModulos(
         Text(
             text = "Accede a las herramientas administrativas de Arcshift Welding.",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -220,12 +221,12 @@ private fun TituloGrupoModulos(
             text = titulo,
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF0F172A)
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = descripcion,
             fontSize = 12.sp,
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -240,7 +241,7 @@ private fun TarjetaModuloNavegacion(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 1.dp,
@@ -279,7 +280,7 @@ private fun TarjetaModuloNavegacion(
                     text = modulo.titulo,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF0F172A),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -290,7 +291,7 @@ private fun TarjetaModuloNavegacion(
                     text = modulo.descripcion,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -299,7 +300,7 @@ private fun TarjetaModuloNavegacion(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Abrir ${modulo.titulo}",
-                tint = Color(0xFF94A3B8),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp)
             )
         }

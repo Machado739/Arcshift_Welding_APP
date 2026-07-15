@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.viewmodel.IngresoUI
 import com.example.arcshiftwelding.ui.viewmodel.IngresosViewModel
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +49,7 @@ fun EliminarIngresoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -77,7 +78,7 @@ fun EliminarIngresoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         Column(
@@ -117,7 +118,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -131,7 +132,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                 modifier = Modifier
                     .size(78.dp)
                     .background(
-                        color = Color(0xFFFFE4E6),
+                        color = MaterialTheme.colorScheme.errorContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -139,7 +140,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = null,
-                    tint = Color(0xFFB42318),
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.size(42.dp)
                 )
             }
@@ -150,7 +151,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                 text = "¿Eliminar ingreso?",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -158,7 +159,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
             Text(
                 text = "Esta acción eliminará el registro del ingreso seleccionado. Verifica la información antes de continuar.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.DarkGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -167,7 +168,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFF1F2)
+                    containerColor = MaterialTheme.colorScheme.errorContainer
                 )
             ) {
                 Row(
@@ -177,7 +178,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = null,
-                        tint = Color(0xFFB42318),
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.size(18.dp)
                     )
 
@@ -186,7 +187,7 @@ fun TarjetaAdvertenciaEliminarIngreso() {
                     Text(
                         text = "Una vez eliminado, este ingreso no aparecerá en reportes, historial de pagos ni registros financieros.",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFB42318),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -204,7 +205,7 @@ fun TarjetaResumenEliminarIngreso(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -218,7 +219,7 @@ fun TarjetaResumenEliminarIngreso(
                 modifier = Modifier
                     .size(62.dp)
                     .background(
-                        color = Color(0xFFE8F5E9),
+                        color = MaterialTheme.arcshiftColors.successContainer,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -226,7 +227,7 @@ fun TarjetaResumenEliminarIngreso(
                 Icon(
                     imageVector = Icons.Default.AttachMoney,
                     contentDescription = null,
-                    tint = Color(0xFF2E7D32),
+                    tint = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.size(34.dp)
                 )
             }
@@ -246,13 +247,13 @@ fun TarjetaResumenEliminarIngreso(
                     text = ingreso.total,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
+                    color = MaterialTheme.arcshiftColors.success
                 )
 
                 Text(
                     text = "Cliente: ${ingreso.cliente}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -278,8 +279,8 @@ fun TarjetaResumenEliminarIngreso(
                     Text(ingreso.categoria)
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = Color(0xFFDFF3E3),
-                    labelColor = Color(0xFF2E7D32)
+                    containerColor = MaterialTheme.arcshiftColors.successContainer,
+                    labelColor = MaterialTheme.arcshiftColors.success
                 )
             )
         }
@@ -304,8 +305,8 @@ fun BotonesEliminarIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         ) {
             Icon(
@@ -329,7 +330,7 @@ fun BotonesEliminarIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFB42318)
+                containerColor = MaterialTheme.colorScheme.onErrorContainer
             )
         ) {
             Icon(
@@ -359,7 +360,7 @@ fun TarjetaEliminarIngreso(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -373,7 +374,7 @@ fun TarjetaEliminarIngreso(
                     imageVector = icono,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = Color(0xFF333333)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -401,14 +402,14 @@ fun ItemDatoEliminarIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -425,7 +426,7 @@ fun DatoIconoPequenoEliminarIngreso(
             imageVector = icono,
             contentDescription = null,
             modifier = Modifier.size(14.dp),
-            tint = Color.DarkGray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(4.dp))
@@ -433,7 +434,7 @@ fun DatoIconoPequenoEliminarIngreso(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

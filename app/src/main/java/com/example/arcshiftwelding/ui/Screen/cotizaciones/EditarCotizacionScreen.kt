@@ -41,6 +41,7 @@ import com.example.arcshiftwelding.utils.formatearTamanoComprobante
 import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
 import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
 import com.example.arcshiftwelding.utils.serializarComprobantes
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 @Composable
@@ -143,7 +144,7 @@ fun EditarCotizacionScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -174,12 +175,12 @@ fun EditarCotizacionScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FAFC))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(
                     start = 8.dp,
@@ -351,7 +352,7 @@ fun CardAvisoEditarCotizacion() {
             ),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFFBEB)
+            containerColor = MaterialTheme.arcshiftColors.warningContainer
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -364,7 +365,7 @@ fun CardAvisoEditarCotizacion() {
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
-                tint = Color(0xFFF59E0B),
+                tint = MaterialTheme.arcshiftColors.warning,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -375,13 +376,13 @@ fun CardAvisoEditarCotizacion() {
                     text = "Modificación de cotización",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF92400E)
+                    color = MaterialTheme.arcshiftColors.onWarningContainer
                 )
 
                 Text(
                     text = "Revisa los datos antes de guardar los cambios.",
                     fontSize = 10.sp,
-                    color = Color(0xFF92400E)
+                    color = MaterialTheme.arcshiftColors.onWarningContainer
                 )
             }
         }
@@ -484,7 +485,7 @@ fun TabEditarCotizacion(
             text = texto,
             fontSize = 9.sp,
             fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
-            color = if (seleccionado) Color(0xFF15803D) else Color.Gray,
+            color = if (seleccionado) MaterialTheme.arcshiftColors.success else MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1
         )
     }
@@ -499,35 +500,35 @@ fun EncabezadoConceptosEditarCotizacion() {
         Text(
             text = "Concepto",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1.3f)
         )
 
         Text(
             text = "Cant.",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.5f)
         )
 
         Text(
             text = "Unidad",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.7f)
         )
 
         Text(
             text = "Precio",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.8f)
         )
 
         Text(
             text = "Importe",
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(0.8f)
         )
 
@@ -536,7 +537,7 @@ fun EncabezadoConceptosEditarCotizacion() {
 
     Divider(
         modifier = Modifier.padding(vertical = 4.dp),
-        color = Color(0xFFE2E8F0)
+        color = MaterialTheme.colorScheme.outlineVariant
     )
 }
 
@@ -565,7 +566,7 @@ fun SeccionConceptosEditarCotizacion(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -587,7 +588,7 @@ fun SeccionConceptosEditarCotizacion(
             Text(
                 text = "No hay conceptos en ${categoriaSeleccionada.lowercase()}.",
                 fontSize = 10.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }
@@ -638,7 +639,7 @@ fun SeccionConceptosEditarCotizacion(
                 imageVector = Icons.Default.AddCircleOutline,
                 contentDescription = null,
                 modifier = Modifier.size(17.dp),
-                tint = Color(0xFF16A34A)
+                tint = MaterialTheme.arcshiftColors.success
             )
 
             Spacer(modifier = Modifier.width(6.dp))
@@ -646,7 +647,7 @@ fun SeccionConceptosEditarCotizacion(
             Text(
                 text = "Agregar concepto",
                 fontSize = 12.sp,
-                color = Color(0xFF16A34A)
+                color = MaterialTheme.arcshiftColors.success
             )
         }
     }
@@ -664,7 +665,7 @@ fun ConceptoEditarCotizacionItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8FAFC)
+            containerColor = MaterialTheme.colorScheme.background
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -682,7 +683,7 @@ fun ConceptoEditarCotizacionItem(
                     text = "Concepto $numeroConcepto",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF334155),
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -695,7 +696,7 @@ fun ConceptoEditarCotizacionItem(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Eliminar concepto",
                             modifier = Modifier.size(18.dp),
-                            tint = Color(0xFFDC2626)
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -758,7 +759,7 @@ fun ConceptoEditarCotizacionItem(
                         text = "Importe",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Box(
@@ -766,7 +767,7 @@ fun ConceptoEditarCotizacionItem(
                             .fillMaxWidth()
                             .height(48.dp)
                             .background(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(7.dp)
                             )
                             .padding(horizontal = 10.dp),
@@ -776,7 +777,7 @@ fun ConceptoEditarCotizacionItem(
                             text = concepto.total.formatoMonedaEditarCotizacion(),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF15803D),
+                            color = MaterialTheme.arcshiftColors.success,
                             maxLines = 1
                         )
                     }
@@ -801,7 +802,7 @@ fun CampoConceptoEditarCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -891,14 +892,14 @@ fun SeccionResumenEditarCotizacion(
                 Text(
                     text = "Total",
                     fontSize = 10.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = total.formatoMonedaEditarCotizacion(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16A34A)
+                    color = MaterialTheme.arcshiftColors.success
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -907,7 +908,7 @@ fun SeccionResumenEditarCotizacion(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFEAF7EE),
+                            color = MaterialTheme.arcshiftColors.successContainer,
                             shape = RoundedCornerShape(8.dp)
                         )
                         .padding(8.dp)
@@ -916,14 +917,14 @@ fun SeccionResumenEditarCotizacion(
                         Text(
                             text = "Anticipo sugerido",
                             fontSize = 8.sp,
-                            color = Color(0xFF15803D)
+                            color = MaterialTheme.arcshiftColors.success
                         )
 
                         Text(
                             text = anticipoSugerido.formatoMonedaEditarCotizacion(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF15803D)
+                            color = MaterialTheme.arcshiftColors.success
                         )
                     }
                 }
@@ -933,14 +934,14 @@ fun SeccionResumenEditarCotizacion(
                 Text(
                     text = "Saldo restante",
                     fontSize = 8.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = saldoRestante.formatoMonedaEditarCotizacion(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -1043,7 +1044,7 @@ fun SeccionArchivosEditarCotizacion(
             Text(
                 text = "No hay archivos adjuntos.",
                 fontSize = 10.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -1150,22 +1151,22 @@ fun ArchivoEditarCotizacionItem(
     }
 
     val color = when (tipoReal) {
-        "PDF" -> Color(0xFFDC2626)
-        "Imagen" -> Color(0xFF2563EB)
-        else -> Color(0xFF334155)
+        "PDF" -> MaterialTheme.colorScheme.error
+        "Imagen" -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     val fondo = when (tipoReal) {
-        "PDF" -> Color(0xFFFEE2E2)
-        "Imagen" -> Color(0xFFEFF6FF)
-        else -> Color(0xFFF1F5F9)
+        "PDF" -> MaterialTheme.colorScheme.errorContainer
+        "Imagen" -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = Color(0xFFF8FAFC),
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable(onClick = onAbrirClick)
@@ -1195,14 +1196,14 @@ fun ArchivoEditarCotizacionItem(
                 text = archivo.nombre,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2
             )
 
             Text(
                 text = "$tipoReal · ${archivo.detalle}",
                 fontSize = 8.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -1213,7 +1214,7 @@ fun ArchivoEditarCotizacionItem(
             Icon(
                 imageVector = Icons.Default.DeleteOutline,
                 contentDescription = "Eliminar archivo",
-                tint = Color(0xFFDC2626),
+                tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.size(17.dp)
             )
         }
@@ -1240,13 +1241,13 @@ fun BotonArchivoEditarCotizacion(
                 imageVector = icono,
                 contentDescription = texto,
                 modifier = Modifier.size(16.dp),
-                tint = Color(0xFF334155)
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = texto,
                 fontSize = 8.sp,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
         }
@@ -1308,7 +1309,7 @@ fun BotonesEditarCotizacion(
                 .height(46.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1D4ED8)
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             Icon(
@@ -1337,7 +1338,7 @@ fun CardSeccionEditarCotizacion(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
@@ -1352,7 +1353,7 @@ fun CardSeccionEditarCotizacion(
                 Icon(
                     imageVector = icono,
                     contentDescription = null,
-                    tint = Color(0xFF334155),
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp)
                 )
 
@@ -1362,7 +1363,7 @@ fun CardSeccionEditarCotizacion(
                     text = titulo,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -1391,7 +1392,7 @@ fun CampoEditarCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1448,7 +1449,7 @@ fun CampoTextoLargoEditarCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         OutlinedTextField(
@@ -1527,7 +1528,7 @@ fun CampoFechaEditarCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Box(
@@ -1564,11 +1565,11 @@ fun CampoFechaEditarCotizacion(
                 ),
                 shape = RoundedCornerShape(7.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color.Black,
-                    disabledBorderColor = Color(0xFFE0E0E0),
-                    disabledContainerColor = Color.White,
-                    disabledPlaceholderColor = Color.Gray,
-                    disabledTrailingIconColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -1639,7 +1640,7 @@ fun CampoDropdownEditarCotizacion(
             text = titulo,
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         ExposedDropdownMenuBox(

@@ -67,7 +67,7 @@ fun EliminarGastoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -96,7 +96,7 @@ fun EliminarGastoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
         if (gasto == null) {
@@ -108,7 +108,7 @@ fun EliminarGastoScreen(
             ) {
                 Text(
                     text = "No se encontró el gasto",
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -119,7 +119,7 @@ fun EliminarGastoScreen(
                     .padding(padding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .background(Color(0xFFF5F6FA))
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -174,10 +174,10 @@ fun EliminarGastoScreen(
                         },
                         enabled = confirmarEliminacion,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFB42318),
+                            containerColor = MaterialTheme.colorScheme.onErrorContainer,
                             contentColor = Color.White,
-                            disabledContainerColor = Color(0xFFE5E7EB),
-                            disabledContentColor = Color.Gray
+                            disabledContainerColor = MaterialTheme.colorScheme.outlineVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         modifier = Modifier
                             .weight(1f)
@@ -204,7 +204,7 @@ fun CardAdvertenciaEliminarGasto() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFFFE8E6)
+            containerColor = MaterialTheme.colorScheme.errorContainer
         )
     ) {
         Row(
@@ -216,7 +216,7 @@ fun CardAdvertenciaEliminarGasto() {
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
-                tint = Color(0xFFB42318),
+                tint = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.size(26.dp)
             )
 
@@ -227,7 +227,7 @@ fun CardAdvertenciaEliminarGasto() {
                     text = "Advertencia",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFB42318)
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -235,7 +235,7 @@ fun CardAdvertenciaEliminarGasto() {
                 Text(
                     text = "Esta acción eliminará el gasto del registro. Revisa la información antes de continuar.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF7A271A)
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }
@@ -256,7 +256,7 @@ fun CardGastoEliminar(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -269,7 +269,7 @@ fun CardGastoEliminar(
                     imageVector = Icons.Default.AttachMoney,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -294,7 +294,7 @@ fun CardGastoEliminar(
                     modifier = Modifier
                         .size(72.dp)
                         .background(
-                            color = Color(0xFFEDEDED),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(8.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -303,7 +303,7 @@ fun CardGastoEliminar(
                         imageVector = Icons.Default.AttachMoney,
                         contentDescription = null,
                         modifier = Modifier.size(38.dp),
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -321,19 +321,19 @@ fun CardGastoEliminar(
                     Text(
                         text = "Categoría: $categoriaGasto",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "Proveedor: $proveedorGasto",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "Fecha: $fechaGasto",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -373,7 +373,7 @@ fun CajaInfoEliminarGasto(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF7F7F7)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -385,20 +385,20 @@ fun CajaInfoEliminarGasto(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
                 text = valor,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -413,7 +413,7 @@ fun CardImpactoEliminacionGasto(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
@@ -426,7 +426,7 @@ fun CardImpactoEliminacionGasto(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color(0xFF1F2937)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -477,7 +477,7 @@ fun ItemImpactoEliminarGasto(
             modifier = Modifier
                 .size(8.dp)
                 .background(
-                    color = if (advertencia) Color(0xFFB42318) else Color(0xFF6B7280),
+                    color = if (advertencia) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                     shape = RoundedCornerShape(50)
                 )
         )
@@ -487,7 +487,7 @@ fun ItemImpactoEliminarGasto(
         Text(
             text = texto,
             style = MaterialTheme.typography.bodySmall,
-            color = if (advertencia) Color(0xFFB42318) else Color(0xFF374151)
+            color = if (advertencia) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -502,7 +502,7 @@ fun CardConfirmacionEliminarGasto(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -526,7 +526,7 @@ fun CardConfirmacionEliminarGasto(
                 Text(
                     text = "Entiendo que este gasto será eliminado del registro.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

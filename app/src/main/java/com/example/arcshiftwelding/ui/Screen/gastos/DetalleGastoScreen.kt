@@ -27,6 +27,7 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.inventario.BotonAccionRapida
 import com.example.arcshiftwelding.ui.viewmodel.GastosViewModel
 import com.example.arcshiftwelding.utils.abrirComprobanteGasto
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +43,7 @@ fun DetalleGastoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -82,7 +83,7 @@ fun DetalleGastoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         if (gasto == null) {
@@ -94,7 +95,7 @@ fun DetalleGastoScreen(
             ) {
                 Text(
                     text = "No se encontró el gasto",
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -176,7 +177,7 @@ fun TarjetaPrincipalGasto(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -189,13 +190,13 @@ fun TarjetaPrincipalGasto(
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .background(Color(0xFFE8F5E9), CircleShape),
+                    .background(MaterialTheme.arcshiftColors.successContainer, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = iconoPorCategoriaGasto(gasto.categoria),
                     contentDescription = null,
-                    tint = Color.Black,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(38.dp)
                 )
             }
@@ -220,7 +221,7 @@ fun TarjetaPrincipalGasto(
                 Text(
                     text = "Proveedor: ${gasto.proveedor}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -258,8 +259,8 @@ fun TarjetaPrincipalGasto(
                         Text("Registrado")
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = Color(0xFFDFF3E3),
-                        labelColor = Color(0xFF2E7D32)
+                        containerColor = MaterialTheme.arcshiftColors.successContainer,
+                        labelColor = MaterialTheme.arcshiftColors.success
                     )
                 )
             }
@@ -293,7 +294,7 @@ fun DatoIconoPequeno(
             imageVector = icono,
             contentDescription = null,
             modifier = Modifier.size(14.dp),
-            tint = Color.DarkGray
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.width(4.dp))
@@ -301,7 +302,7 @@ fun DatoIconoPequeno(
         Text(
             text = texto,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -332,7 +333,7 @@ fun SeccionDetalleInformacionGeneral(
         }
         Spacer(modifier = Modifier.height(10.dp))
 
-        Divider(color = Color(0xFFE2E8F0))
+        Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -405,7 +406,7 @@ fun FilaMontoDetalle(
         Text(
             text = titulo,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
 
@@ -413,7 +414,7 @@ fun FilaMontoDetalle(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
-            color = if (destacar) Color(0xFF2E7D32) else Color.Black
+            color = if (destacar) MaterialTheme.arcshiftColors.success else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -476,13 +477,13 @@ fun SeccionDetalleEvidencia(gasto: GastoUi) {
                 Icon(
                     imageVector = Icons.Default.InsertDriveFile,
                     contentDescription = null,
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = "No se adjuntó ningún comprobante.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
@@ -500,7 +501,7 @@ fun SeccionDetalleEvidencia(gasto: GastoUi) {
                         },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     ),
                     elevation = CardDefaults.cardElevation(1.dp)
                 ) {
@@ -519,9 +520,9 @@ fun SeccionDetalleEvidencia(gasto: GastoUi) {
                             contentDescription = null,
                             modifier = Modifier.size(34.dp),
                             tint = when (comprobante.tipo) {
-                                "PDF" -> Color(0xFFDC2626)
-                                "Imagen" -> Color(0xFF2563EB)
-                                else -> Color(0xFF475569)
+                                "PDF" -> MaterialTheme.colorScheme.error
+                                "Imagen" -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
 
@@ -539,14 +540,14 @@ fun SeccionDetalleEvidencia(gasto: GastoUi) {
                             Text(
                                 text = comprobante.tipo.ifBlank { "Archivo" },
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         Icon(
                             imageVector = Icons.Default.RemoveRedEye,
                             contentDescription = "Abrir comprobante",
-                            tint = Color.DarkGray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -583,7 +584,7 @@ fun SeccionDetalleObservaciones(
         Text(
             text = observaciones.ifBlank { "Sin observaciones registradas." },
             style = MaterialTheme.typography.bodyMedium,
-            color = if (observaciones.isBlank()) Color.Gray else Color(0xFF334155),
+            color = if (observaciones.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxWidth(),
             softWrap = true
         )
@@ -633,7 +634,7 @@ fun ItemDatoConLink(
             text = titulo.removeSuffix(":"),
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(2.dp))
@@ -642,9 +643,9 @@ fun ItemDatoConLink(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             color = if (valor.startsWith("Sin ")) {
-                Color.Gray
+                MaterialTheme.colorScheme.onSurfaceVariant
             } else {
-                Color(0xFF2563EB)
+                MaterialTheme.colorScheme.primary
             },
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.fillMaxWidth(),
@@ -680,7 +681,7 @@ fun SeccionAccionesRapidasGasto(
                 icono = Icons.Default.RemoveCircleOutline,
                 onClick = onEliminar,
                 modifier = Modifier.weight(1f),
-                iconTint = Color(0xFFB42318)
+                iconTint = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
@@ -697,7 +698,7 @@ fun TarjetaDetalleGasto(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -711,7 +712,7 @@ fun TarjetaDetalleGasto(
                     imageVector = icono,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = Color(0xFF333333)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -742,7 +743,7 @@ fun ItemDatoDetalle(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -751,7 +752,7 @@ fun ItemDatoDetalle(
         Text(
             text = valor.ifBlank { "No registrado" },
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxWidth(),
             softWrap = true
         )

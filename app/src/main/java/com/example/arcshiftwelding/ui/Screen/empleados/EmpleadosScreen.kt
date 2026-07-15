@@ -67,6 +67,7 @@ import com.example.arcshiftwelding.navigation.AppRoutes
 import com.example.arcshiftwelding.ui.Screen.notificaciones.CampanaNotificacionesPrincipal
 import com.example.arcshiftwelding.ui.viewmodel.EmpleadosViewModel
 import com.example.arcshiftwelding.ui.viewmodel.formatoMoneda
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 data class EmpleadoUI(
     val id: Int,
@@ -118,7 +119,7 @@ fun EmpleadosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
         HeaderEmpleados(navController)
@@ -148,7 +149,7 @@ fun EmpleadosScreen(
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Nuevo empleado")
             }
@@ -180,7 +181,7 @@ fun HeaderEmpleados(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(start = 20.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -229,7 +230,7 @@ private fun ResumenEmpleadosCompacto(
             .animateContentSize()
             .clickable(onClick = onCambiar),
         shape = RoundedCornerShape(13.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
@@ -238,20 +239,20 @@ private fun ResumenEmpleadosCompacto(
                     titulo = "Total",
                     valor = total.toString(),
                     icono = Icons.Default.Groups,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
                 ResumenEmpleadoDato(
                     titulo = "Activos",
                     valor = activos.toString(),
                     icono = Icons.Default.PersonAdd,
-                    color = Color(0xFF16A34A),
+                    color = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = if (expandido) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (expandido) "Contraer" else "Desplegar",
-                    tint = Color(0xFF64748B),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -266,14 +267,14 @@ private fun ResumenEmpleadosCompacto(
                         titulo = "Pago activo",
                         valor = pagoActivo.formatoMoneda(),
                         icono = Icons.Default.AttachMoney,
-                        color = Color(0xFFF59E0B),
+                        color = MaterialTheme.arcshiftColors.warning,
                         modifier = Modifier.weight(1f)
                     )
                     ResumenEmpleadoDato(
                         titulo = "Trabajos",
                         valor = trabajos.toString(),
                         icono = Icons.Default.Work,
-                        color = Color(0xFF7C3AED),
+                        color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.weight(1f)
                     )
                     Spacer(modifier = Modifier.width(20.dp))
@@ -302,7 +303,7 @@ private fun ResumenEmpleadoDato(
         }
         Spacer(modifier = Modifier.width(7.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = titulo, color = Color(0xFF64748B), fontSize = 8.sp)
+            Text(text = titulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
             Text(
                 text = valor,
                 fontWeight = FontWeight.Bold,
@@ -311,7 +312,7 @@ private fun ResumenEmpleadoDato(
                     valor.length >= 11 -> 11.sp
                     else -> 14.sp
                 },
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -364,8 +365,8 @@ fun FiltrosCategoriaEmpleados(
                     }
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (seleccionada == categoria) Color(0xFFE0ECFF) else Color.White,
-                    labelColor = if (seleccionada == categoria) Color(0xFF1D4ED8) else Color(0xFF334155)
+                    containerColor = if (seleccionada == categoria) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    labelColor = if (seleccionada == categoria) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -386,12 +387,12 @@ fun ListaEmpleados(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
                         text = "No hay empleados para los filtros seleccionados.",
                         modifier = Modifier.padding(18.dp),
-                        color = Color(0xFF64748B),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
@@ -414,7 +415,7 @@ fun ItemEmpleado(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -427,8 +428,8 @@ fun ItemEmpleado(
                 fotoUri = empleado.fotoUri,
                 iniciales = obtenerInicialesEmpleado(empleado.nombre),
                 modifier = Modifier.size(42.dp),
-                colorFondo = Color(0xFFE0ECFF),
-                colorContenido = Color(0xFF2563EB)
+                colorFondo = MaterialTheme.colorScheme.primaryContainer,
+                colorContenido = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(9.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -445,7 +446,7 @@ fun ItemEmpleado(
                 }
                 Text(
                     text = empleado.puesto,
-                    color = Color(0xFF334155),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -467,7 +468,7 @@ fun ItemEmpleado(
             ) {
                 Text(
                     text = empleado.pagoTotal,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = when {
                         empleado.pagoTotal.length >= 12 -> 9.sp
@@ -479,7 +480,7 @@ fun ItemEmpleado(
                 )
                 Text(
                     text = empleado.periodoPago,
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 8.sp,
                     maxLines = 1
                 )
@@ -488,7 +489,7 @@ fun ItemEmpleado(
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = "Ver detalle",
-                tint = Color(0xFF94A3B8),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(19.dp)
             )
         }
@@ -509,11 +510,11 @@ fun InfoEmpleadoLinea(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icono, contentDescription = null, modifier = Modifier.size(12.dp), tint = Color(0xFF94A3B8))
+        Icon(icono, contentDescription = null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = texto.ifBlank { "Sin información" },
-            color = Color(0xFF64748B),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 8.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -524,9 +525,9 @@ fun InfoEmpleadoLinea(
 @Composable
 fun EstadoEmpleadoBadge(estado: String) {
     val color = when {
-        estado.equals("Activo", true) -> Color(0xFF16A34A)
-        estado.equals("Inactivo", true) -> Color(0xFF64748B)
-        else -> Color(0xFFF59E0B)
+        estado.equals("Activo", true) -> MaterialTheme.arcshiftColors.success
+        estado.equals("Inactivo", true) -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.arcshiftColors.warning
     }
     Text(
         text = estado,

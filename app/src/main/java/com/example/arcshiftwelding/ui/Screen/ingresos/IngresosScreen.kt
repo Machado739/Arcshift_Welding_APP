@@ -39,6 +39,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 enum class PeriodoIngresos(val etiqueta: String) {
@@ -136,9 +137,9 @@ fun FiltroPeriodoIngresos(
                         FontWeight.Normal
                     },
                     color = if (estaSeleccionado) {
-                        Color(0xFF1D4ED8)
+                        MaterialTheme.colorScheme.primary
                     } else {
-                        Color(0xFF64748B)
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     },
                     maxLines = 1
                 )
@@ -151,7 +152,7 @@ fun FiltroPeriodoIngresos(
                         .height(2.dp)
                         .background(
                             color = if (estaSeleccionado) {
-                                Color(0xFF1D4ED8)
+                                MaterialTheme.colorScheme.primary
                             } else {
                                 Color.Transparent
                             },
@@ -248,7 +249,7 @@ fun IngresosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(
                 start = 8.dp,
                 top = 0.dp,
@@ -343,7 +344,7 @@ fun HeaderIngresos(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(
                 start = 20.dp,
                 top = 8.dp,
@@ -406,7 +407,7 @@ fun ResumenIngresos(
             .animateContentSize()
             .clickable { onCambiarExpandido() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -422,8 +423,8 @@ fun ResumenIngresos(
                     titulo = "Recibido",
                     monto = totalRecibido.formatoDinero(),
                     icono = Icons.Default.AttachMoney,
-                    color = Color(0xFF2563EB),
-                    fondo = Color(0xFFEFF6FF),
+                    color = MaterialTheme.colorScheme.primary,
+                    fondo = MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -432,15 +433,15 @@ fun ResumenIngresos(
                         .padding(horizontal = 8.dp)
                         .width(1.dp)
                         .height(34.dp)
-                        .background(Color(0xFFE2E8F0))
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
 
                 ResumenPrincipalIngreso(
                     titulo = "Por cobrar",
                     monto = totalPorCobrar.formatoDinero(),
                     icono = Icons.Default.Schedule,
-                    color = Color(0xFF7C3AED),
-                    fondo = Color(0xFFF5F3FF),
+                    color = MaterialTheme.colorScheme.secondary,
+                    fondo = MaterialTheme.colorScheme.secondaryContainer,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -455,7 +456,7 @@ fun ResumenIngresos(
                     } else {
                         "Desplegar resumen"
                     },
-                    tint = Color(0xFF64748B),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -464,7 +465,7 @@ fun ResumenIngresos(
                 Column {
                     HorizontalDivider(
                         modifier = Modifier.padding(top = 9.dp, bottom = 8.dp),
-                        color = Color(0xFFE2E8F0)
+                        color = MaterialTheme.colorScheme.outlineVariant
                     )
 
                     Row(
@@ -476,8 +477,8 @@ fun ResumenIngresos(
                             monto = totalPagos.formatoDinero(),
                             subtitulo = "Directos",
                             icono = Icons.Default.CheckCircle,
-                            color = Color(0xFF16A34A),
-                            fondo = Color(0xFFF0FDF4),
+                            color = MaterialTheme.arcshiftColors.success,
+                            fondo = MaterialTheme.arcshiftColors.successContainer,
                             modifier = Modifier.weight(1f)
                         )
 
@@ -486,8 +487,8 @@ fun ResumenIngresos(
                             monto = totalAnticipos.formatoDinero(),
                             subtitulo = "Iniciales",
                             icono = Icons.Default.Savings,
-                            color = Color(0xFFF59E0B),
-                            fondo = Color(0xFFFFFBEB),
+                            color = MaterialTheme.arcshiftColors.warning,
+                            fondo = MaterialTheme.arcshiftColors.warningContainer,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -537,14 +538,14 @@ private fun ResumenPrincipalIngreso(
             Text(
                 text = titulo,
                 fontSize = 9.sp,
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
             Text(
                 text = monto,
                 fontSize = tamanoMonto,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -570,7 +571,7 @@ private fun ResumenSecundarioIngreso(
 
     Row(
         modifier = modifier
-            .background(Color(0xFFF8FAFC), RoundedCornerShape(9.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(9.dp))
             .padding(horizontal = 9.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -594,21 +595,21 @@ private fun ResumenSecundarioIngreso(
             Text(
                 text = titulo,
                 fontSize = 9.sp,
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
             Text(
                 text = monto,
                 fontSize = tamanoMonto,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = subtitulo,
                 fontSize = 8.sp,
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -654,7 +655,7 @@ fun BarraBusquedaIngresos(
             modifier = Modifier.size(46.dp),
             shape = RoundedCornerShape(10.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = Color(0xFF1D4ED8),
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White
             )
         ) {
@@ -708,10 +709,10 @@ fun CategoriaChip(
             .height(32.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        color = if (seleccionado) Color(0xFFE0ECFF) else Color.White,
+        color = if (seleccionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
-            color = if (seleccionado) Color(0xFF93C5FD) else Color(0xFFCBD5E1)
+            color = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
         )
     ) {
         Row(
@@ -723,7 +724,7 @@ fun CategoriaChip(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color(0xFF1D4ED8),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -733,7 +734,7 @@ fun CategoriaChip(
                 text = texto,
                 fontSize = 11.sp,
                 fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (seleccionado) Color(0xFF1D4ED8) else Color(0xFF334155),
+                color = if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1
             )
         }
@@ -787,7 +788,7 @@ fun ListadoIngresosYPagosPorCobrar(
                     text = "Ingresos recibidos",
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                 )
             }
@@ -806,7 +807,7 @@ fun ListadoIngresosYPagosPorCobrar(
                     text = "Por cobrar",
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
                 )
             }
@@ -858,7 +859,7 @@ fun ItemIngreso(
             },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -881,14 +882,14 @@ fun ItemIngreso(
                         text = ingreso.trabajo.ifBlank { "Sin trabajo" },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
                     )
 
                     Text(
                         text = "Cliente: ${ingreso.cliente}",
                         fontSize = 10.sp,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
 
@@ -896,7 +897,7 @@ fun ItemIngreso(
                         Text(
                             text = ingreso.concepto,
                             fontSize = 9.sp,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
                     }
@@ -916,7 +917,7 @@ fun ItemIngreso(
                 DatosIngreso(
                     titulo = if (esAnticipo) "Anticipo" else "Recibido",
                     valor = ingreso.total,
-                    color = if (esAnticipo) Color(0xFFF59E0B) else Color(0xFF16A34A),
+                    color = if (esAnticipo) MaterialTheme.arcshiftColors.warning else MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -924,28 +925,28 @@ fun ItemIngreso(
                     DatosIngreso(
                         titulo = "Total proyecto",
                         valor = ingreso.montoTotalProyecto,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
 
                     DatosIngreso(
                         titulo = "Pendiente",
                         valor = ingreso.pendiente,
-                        color = if (tienePendiente) Color(0xFFF97316) else Color(0xFF16A34A),
+                        color = if (tienePendiente) MaterialTheme.arcshiftColors.warning else MaterialTheme.arcshiftColors.success,
                         modifier = Modifier.weight(1f)
                     )
                 } else {
                     DatosIngreso(
                         titulo = "Método",
                         valor = ingreso.metodoPago.ifBlank { "N/A" },
-                        color = Color(0xFF374151),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
 
                     DatosIngreso(
                         titulo = "Fecha",
                         valor = ingreso.fecha,
-                        color = Color(0xFF374151),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -966,10 +967,10 @@ fun ItemIngreso(
                     Text(
                         text = referenciaCotizacion,
                         fontSize = 8.sp,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFEFF6FF),
+                                color = MaterialTheme.colorScheme.primaryContainer,
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 3.dp)
@@ -981,7 +982,7 @@ fun ItemIngreso(
                 Text(
                     text = ingreso.metodoPago.ifBlank { "Sin método" },
                     fontSize = 8.sp,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -989,7 +990,7 @@ fun ItemIngreso(
                 Text(
                     text = ingreso.fecha,
                     fontSize = 8.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1012,7 +1013,7 @@ fun ItemPagoPorCobrar(
             },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -1028,7 +1029,7 @@ fun ItemPagoPorCobrar(
                     modifier = Modifier
                         .size(38.dp)
                         .background(
-                            color = Color(0xFFF5F3FF),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
                             shape = RoundedCornerShape(8.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -1036,7 +1037,7 @@ fun ItemPagoPorCobrar(
                     Icon(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = null,
-                        tint = Color(0xFF7C3AED),
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(23.dp)
                     )
                 }
@@ -1050,21 +1051,21 @@ fun ItemPagoPorCobrar(
                         text = pago.trabajo,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
                     )
 
                     Text(
                         text = "Cliente: ${pago.cliente}",
                         fontSize = 9.sp,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
 
                     Text(
                         text = "Proyecto: ${pago.proyecto}",
                         fontSize = 8.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
                 }
@@ -1075,11 +1076,11 @@ fun ItemPagoPorCobrar(
                     Text(
                         text = "Próximo pago",
                         fontSize = 8.sp,
-                        color = Color(0xFF7C3AED),
+                        color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFF5F3FF),
+                                color = MaterialTheme.colorScheme.secondaryContainer,
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 3.dp)
@@ -1091,13 +1092,13 @@ fun ItemPagoPorCobrar(
                         text = pago.monto,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF7C3AED)
+                        color = MaterialTheme.colorScheme.secondary
                     )
 
                     Text(
                         text = pago.fechaProgramada,
                         fontSize = 8.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1109,7 +1110,7 @@ fun ItemPagoPorCobrar(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Row(
@@ -1121,7 +1122,7 @@ fun ItemPagoPorCobrar(
                         Icon(
                             imageVector = Icons.Default.EventNote,
                             contentDescription = null,
-                            tint = Color(0xFF64748B),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(15.dp)
                         )
 
@@ -1133,7 +1134,7 @@ fun ItemPagoPorCobrar(
                             Text(
                                 text = "${pago.cantidadPagosPosteriores} pagos posteriores programados",
                                 fontSize = 8.sp,
-                                color = Color(0xFF475569),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1
                             )
@@ -1141,7 +1142,7 @@ fun ItemPagoPorCobrar(
                             Text(
                                 text = "Total posterior: ${pago.totalPagosPosteriores}",
                                 fontSize = 8.sp,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1
                             )
                         }
@@ -1149,7 +1150,7 @@ fun ItemPagoPorCobrar(
                         Text(
                             text = "Total: ${pago.totalPendienteProgramado}",
                             fontSize = 8.sp,
-                            color = Color(0xFF7C3AED),
+                            color = MaterialTheme.colorScheme.secondary,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1
                         )
@@ -1176,25 +1177,25 @@ fun IconoCategoriaIngreso(
     }
 
     val color = when (categoria) {
-        "Anticipos" -> Color(0xFF16A34A)
-        "Por cobrar" -> Color(0xFF7C3AED)
-        "Pagos" -> Color(0xFF15803D)
-        "Cobros" -> Color(0xFF2563EB)
-        "Transferencias" -> Color(0xFF7C3AED)
-        "Efectivos" -> Color(0xFF0891B2)
-        "Tarjetas" -> Color(0xFFDB2777)
-        else -> Color(0xFF64748B)
+        "Anticipos" -> MaterialTheme.arcshiftColors.success
+        "Por cobrar" -> MaterialTheme.colorScheme.secondary
+        "Pagos" -> MaterialTheme.arcshiftColors.success
+        "Cobros" -> MaterialTheme.colorScheme.primary
+        "Transferencias" -> MaterialTheme.colorScheme.secondary
+        "Efectivos" -> MaterialTheme.arcshiftColors.info
+        "Tarjetas" -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val fondo = when (categoria) {
-        "Anticipos" -> Color(0xFFDCFCE7)
-        "Por cobrar" -> Color(0xFFF5F3FF)
-        "Pagos" -> Color(0xFFD1FAE5)
-        "Cobros" -> Color(0xFFDBEAFE)
-        "Transferencias" -> Color(0xFFEDE9FE)
-        "Efectivos" -> Color(0xFFCFFAFE)
-        "Tarjetas" -> Color(0xFFFCE7F3)
-        else -> Color(0xFFF1F5F9)
+        "Anticipos" -> MaterialTheme.arcshiftColors.successContainer
+        "Por cobrar" -> MaterialTheme.colorScheme.secondaryContainer
+        "Pagos" -> MaterialTheme.arcshiftColors.successContainer
+        "Cobros" -> MaterialTheme.colorScheme.primaryContainer
+        "Transferencias" -> MaterialTheme.colorScheme.secondaryContainer
+        "Efectivos" -> MaterialTheme.arcshiftColors.infoContainer
+        "Tarjetas" -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Box(
@@ -1225,7 +1226,7 @@ fun DatosIngreso(
     Column(
         modifier = modifier
             .background(
-                color = Color(0xFFF8FAFC),
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(8.dp)
             )
             .padding(vertical = 8.dp, horizontal = 6.dp),
@@ -1234,7 +1235,7 @@ fun DatosIngreso(
         Text(
             text = titulo,
             fontSize = 8.sp,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1
         )
 
@@ -1253,17 +1254,17 @@ fun EstadoChipIngreso(
     texto: String
 ) {
     val color = when (texto) {
-        "Anticipos" -> Color(0xFFF59E0B)
-        "Pendientes" -> Color(0xFFF97316)
-        "Pagos" -> Color(0xFF16A34A)
-        else -> Color(0xFF64748B)
+        "Anticipos" -> MaterialTheme.arcshiftColors.warning
+        "Pendientes" -> MaterialTheme.arcshiftColors.warning
+        "Pagos" -> MaterialTheme.arcshiftColors.success
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val fondo = when (texto) {
-        "Anticipos" -> Color(0xFFFFF7E6)
-        "Pendientes" -> Color(0xFFFFEDD5)
-        "Pagos" -> Color(0xFFEAF7EE)
-        else -> Color(0xFFF1F5F9)
+        "Anticipos" -> MaterialTheme.arcshiftColors.warningContainer
+        "Pendientes" -> MaterialTheme.arcshiftColors.warningContainer
+        "Pagos" -> MaterialTheme.arcshiftColors.successContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     Text(

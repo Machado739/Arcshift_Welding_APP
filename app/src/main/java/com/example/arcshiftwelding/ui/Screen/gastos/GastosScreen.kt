@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 data class GastoUi(
@@ -122,7 +123,7 @@ fun GastosScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 8.dp)
     ) {
         HeaderGastos(navController = navController)
@@ -159,7 +160,7 @@ fun GastosScreen(
         Text(
             text = if (gastosFiltrados.size == 1) "1 gasto registrado" else "${gastosFiltrados.size} gastos registrados",
             style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF475569),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
         )
@@ -173,7 +174,7 @@ fun GastosScreen(
             ) {
                 Text(
                     text = "No hay gastos para los filtros seleccionados",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -196,7 +197,7 @@ fun HeaderGastos(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(
                 start = 20.dp,
                 top = 8.dp,
@@ -241,7 +242,7 @@ private fun SelectorPeriodoGastos(
         modifier = Modifier
             .fillMaxWidth()
             .height(34.dp)
-            .background(Color(0xFFF8FAFC)),
+            .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
     ) {
         PeriodoGastos.entries.forEach { periodo ->
@@ -258,7 +259,7 @@ private fun SelectorPeriodoGastos(
                 Text(
                     text = periodo.etiqueta,
                     fontSize = 11.sp,
-                    color = if (activo) Color(0xFF1D4ED8) else Color(0xFF64748B),
+                    color = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (activo) FontWeight.SemiBold else FontWeight.Normal
                 )
 
@@ -269,7 +270,7 @@ private fun SelectorPeriodoGastos(
                         .height(2.dp)
                         .width(if (activo) 24.dp else 0.dp)
                         .background(
-                            color = if (activo) Color(0xFF2563EB) else Color.Transparent,
+                            color = if (activo) MaterialTheme.colorScheme.primary else Color.Transparent,
                             shape = RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp)
                         )
                 )
@@ -298,7 +299,7 @@ private fun ResumenCompactoGastos(
             .fillMaxWidth()
             .clickable(onClick = onCambiarExpansion),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -313,7 +314,7 @@ private fun ResumenCompactoGastos(
                     valor = formatearMonedaGasto(total),
                     subtitulo = periodo.etiqueta,
                     icono = Icons.Default.AttachMoney,
-                    colorIcono = Color(0xFF2563EB),
+                    colorIcono = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -324,14 +325,14 @@ private fun ResumenCompactoGastos(
                     valor = formatearMonedaGasto(promedio),
                     subtitulo = "Por gasto",
                     icono = Icons.Default.Analytics,
-                    colorIcono = Color(0xFFF59E0B),
+                    colorIcono = MaterialTheme.arcshiftColors.warning,
                     modifier = Modifier.weight(1f)
                 )
 
                 Icon(
                     imageVector = if (expandido) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expandido) "Contraer resumen" else "Desplegar resumen",
-                    tint = Color(0xFF64748B),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -342,7 +343,7 @@ private fun ResumenCompactoGastos(
                 exit = fadeOut() + shrinkVertically()
             ) {
                 Column {
-                    HorizontalDivider(color = Color(0xFFE2E8F0))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                     Row(
                         modifier = Modifier
@@ -400,21 +401,21 @@ private fun DatoResumenGastoCompacto(
             Text(
                 text = titulo,
                 fontSize = 10.sp,
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
             Text(
                 text = valor,
                 fontSize = tamanoTextoMonto(valor),
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F172A),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = subtitulo,
                 fontSize = 9.sp,
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -429,7 +430,7 @@ private fun DatoSecundarioResumenGasto(
 ) {
     Row(
         modifier = modifier
-            .background(Color(0xFFF8FAFC), RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
             .padding(horizontal = 10.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -437,13 +438,13 @@ private fun DatoSecundarioResumenGasto(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF64748B)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF0F172A)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -493,7 +494,7 @@ private fun BarraBusquedaGastosCompacta(
             modifier = Modifier.size(46.dp),
             shape = RoundedCornerShape(10.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = Color(0xFF1D4ED8),
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White
             )
         ) {
@@ -571,16 +572,16 @@ fun CategoriaChip(
         },
         modifier = Modifier.height(32.dp),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = Color(0xFFE0ECFF),
-            selectedLabelColor = Color(0xFF1D4ED8),
-            containerColor = Color.White,
-            labelColor = Color(0xFF334155)
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.surface,
+            labelColor = MaterialTheme.colorScheme.onSurface
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = seleccionado,
-            borderColor = Color(0xFFCBD5E1),
-            selectedBorderColor = Color(0xFF93C5FD)
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            selectedBorderColor = MaterialTheme.colorScheme.primary
         )
     )
 }
@@ -618,7 +619,7 @@ fun ItemGasto(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -643,7 +644,7 @@ fun ItemGasto(
                 Text(
                     text = "Proveedor: ${gasto.proveedor.ifBlank { "Sin proveedor" }}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -651,7 +652,7 @@ fun ItemGasto(
                 Text(
                     text = gasto.categoria,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1
                 )
             }
@@ -663,7 +664,7 @@ fun ItemGasto(
                 Text(
                     text = formatearMonedaGasto(gasto.total),
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFDC2626),
+                    color = MaterialTheme.colorScheme.error,
                     fontSize = tamanoTextoMonto(formatearMonedaGasto(gasto.total)),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -672,14 +673,14 @@ fun ItemGasto(
                 Text(
                     text = gasto.fecha,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
                 )
 
                 Text(
                     text = gasto.metodoPago,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -702,12 +703,12 @@ fun IconoCategoriaGasto(
     }
 
     val color = when (categoria) {
-        "Materiales" -> Color(0xFF2563EB)
-        "Transporte" -> Color(0xFF16A34A)
-        "Servicios" -> Color(0xFFF59E0B)
-        "Nómina" -> Color(0xFF22C55E)
-        "Herramientas" -> Color(0xFF7C3AED)
-        else -> Color.Gray
+        "Materiales" -> MaterialTheme.colorScheme.primary
+        "Transporte" -> MaterialTheme.arcshiftColors.success
+        "Servicios" -> MaterialTheme.arcshiftColors.warning
+        "Nómina" -> MaterialTheme.arcshiftColors.success
+        "Herramientas" -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(

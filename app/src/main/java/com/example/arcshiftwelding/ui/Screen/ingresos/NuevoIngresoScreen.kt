@@ -48,6 +48,7 @@ import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.mostrarErrorEnCampo
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -105,7 +106,7 @@ fun NuevoIngresoScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(
                         start = 17.dp,
                         top = 8.dp,
@@ -134,7 +135,7 @@ fun NuevoIngresoScreen(
             }
         },
         contentWindowInsets = WindowInsets(0),
-        containerColor = Color(0xFFF5F5F5)
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
 
         Column(
@@ -441,7 +442,7 @@ fun CampoTrabajoIngreso(
         Text(
             text = "Trabajo / Proyecto *",
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -471,10 +472,10 @@ fun CampoTrabajoIngreso(
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 ),
                 modifier = Modifier
                     .menuAnchor()
@@ -493,7 +494,7 @@ fun CampoTrabajoIngreso(
                             Text(
                                 text = "No hay proyectos registrados",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
                         onClick = { },
@@ -512,7 +513,7 @@ fun CampoTrabajoIngreso(
                                     Text(
                                         text = proyecto.estado,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             },
@@ -630,7 +631,7 @@ fun SeccionIngresoInformacionFinanciera(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFF7E6)
+                        containerColor = MaterialTheme.arcshiftColors.warningContainer
                     )
                 ) {
                     Column(
@@ -639,21 +640,21 @@ fun SeccionIngresoInformacionFinanciera(
                         Text(
                             text = "Pago inicial requerido",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF92400E),
+                            color = MaterialTheme.arcshiftColors.onWarningContainer,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
                             text = pagoInicialRequerido.formatoDinero(),
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF92400E),
+                            color = MaterialTheme.arcshiftColors.onWarningContainer,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
                             text = "Puedes registrar una cantidad mayor; se descontará del saldo pendiente.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -731,9 +732,9 @@ fun SeccionIngresoInformacionFinanciera(
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (esAnticipo) {
-                    Color(0xFFFFF7E6)
+                    MaterialTheme.arcshiftColors.warningContainer
                 } else {
-                    Color(0xFFE3F3E6)
+                    MaterialTheme.arcshiftColors.successContainer
                 }
             )
         ) {
@@ -748,9 +749,9 @@ fun SeccionIngresoInformacionFinanciera(
                     },
                     style = MaterialTheme.typography.labelSmall,
                     color = if (esAnticipo) {
-                        Color(0xFF92400E)
+                        MaterialTheme.arcshiftColors.onWarningContainer
                     } else {
-                        Color(0xFF2E7D32)
+                        MaterialTheme.arcshiftColors.success
                     },
                     fontWeight = FontWeight.Bold
                 )
@@ -760,9 +761,9 @@ fun SeccionIngresoInformacionFinanciera(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (esAnticipo) {
-                        Color(0xFF92400E)
+                        MaterialTheme.arcshiftColors.onWarningContainer
                     } else {
-                        Color(0xFF2E7D32)
+                        MaterialTheme.arcshiftColors.success
                     }
                 )
 
@@ -772,20 +773,20 @@ fun SeccionIngresoInformacionFinanciera(
                     Text(
                         text = "Monto total del proyecto: ${montoTotalProyecto.formatoDinero()}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "Saldo restante: ${saldoPendiente.formatoDinero()}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.DarkGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                 } else {
                     Text(
                         text = "IVA calculado: ${ivaNumero.formatoDinero()}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -842,7 +843,7 @@ fun SeccionPagosProgramadosIngreso(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFEFF6FF)
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
         ) {
             Column(
@@ -882,7 +883,7 @@ fun SeccionPagosProgramadosIngreso(
             Text(
                 text = "No hay pagos programados.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -902,7 +903,7 @@ fun SeccionPagosProgramadosIngreso(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Column(
@@ -955,7 +956,7 @@ fun SeccionPagosProgramadosIngreso(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.surface
                             )
                         ) {
                             Column(
@@ -1024,14 +1025,14 @@ fun SeccionPagosProgramadosIngreso(
             Icon(
                 imageVector = Icons.Default.AddCircleOutline,
                 contentDescription = null,
-                tint = Color(0xFF16A34A)
+                tint = MaterialTheme.arcshiftColors.success
             )
 
             Spacer(modifier = Modifier.width(6.dp))
 
             Text(
                 text = "Agregar pago programado",
-                color = Color(0xFF16A34A)
+                color = MaterialTheme.arcshiftColors.success
             )
         }
     }
@@ -1044,7 +1045,7 @@ fun ItemPagoProgramadoPagadoNoEditable(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF0FDF4)
+            containerColor = MaterialTheme.arcshiftColors.successContainer
         )
     ) {
         Column(
@@ -1057,7 +1058,7 @@ fun ItemPagoProgramadoPagadoNoEditable(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF16A34A),
+                    tint = MaterialTheme.arcshiftColors.success,
                     modifier = Modifier.size(18.dp)
                 )
 
@@ -1070,13 +1071,13 @@ fun ItemPagoProgramadoPagadoNoEditable(
                         text = "Pago realizado",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF166534)
+                        color = MaterialTheme.arcshiftColors.onSuccessContainer
                     )
 
                     Text(
                         text = "Programado: ${pago.fecha}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.DarkGray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -1084,7 +1085,7 @@ fun ItemPagoProgramadoPagadoNoEditable(
                     text = pago.monto.aDouble().formatoDinero(),
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF16A34A)
+                    color = MaterialTheme.arcshiftColors.success
                 )
             }
 
@@ -1092,14 +1093,14 @@ fun ItemPagoProgramadoPagadoNoEditable(
                 Text(
                     text = "Pagado el ${pago.fechaPago} · ${pago.metodoPago.ifBlank { "Sin método" }}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Text(
                 text = "Este pago ya fue registrado y no se puede editar desde esta pantalla.",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1116,14 +1117,14 @@ fun FilaResumenPagoProgramado(
         Text(
             text = titulo,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Text(
             text = valor,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2563EB)
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -1256,7 +1257,7 @@ fun SeccionIngresoComprobanteNuevo(
         Text(
             text = "Máximo $MAX_COMPROBANTES_POR_REGISTRO archivos de 10 MB cada uno.",
             style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (errorComprobante.isNotBlank()) {
@@ -1273,7 +1274,7 @@ fun SeccionIngresoComprobanteNuevo(
             Text(
                 text = "Sin comprobantes adjuntos.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         } else {
             Spacer(modifier = Modifier.height(10.dp))
@@ -1285,7 +1286,7 @@ fun SeccionIngresoComprobanteNuevo(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF8FAFC)
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 ) {
                     Row(
@@ -1302,9 +1303,9 @@ fun SeccionIngresoComprobanteNuevo(
                             },
                             contentDescription = null,
                             tint = when (tipoReal) {
-                                "PDF" -> Color(0xFFDC2626)
-                                "Imagen" -> Color(0xFF2563EB)
-                                else -> Color(0xFF475569)
+                                "PDF" -> MaterialTheme.colorScheme.error
+                                "Imagen" -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             },
                             modifier = Modifier.size(26.dp)
                         )
@@ -1322,7 +1323,7 @@ fun SeccionIngresoComprobanteNuevo(
                             )
                             Text(
                                 text = "$tipoReal · ${formatearTamanoComprobante(comprobante.tamanoBytes)}",
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1
                             )
@@ -1338,7 +1339,7 @@ fun SeccionIngresoComprobanteNuevo(
                             Icon(
                                 imageVector = Icons.Default.RemoveRedEye,
                                 contentDescription = "Ver comprobante",
-                                tint = Color(0xFF2563EB)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
 
@@ -1348,7 +1349,7 @@ fun SeccionIngresoComprobanteNuevo(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Quitar comprobante",
-                                tint = Color(0xFFDC2626)
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -1392,7 +1393,7 @@ fun SeccionIngresoRelacionadoNuevo(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFEFF6FF)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
                 Column(
@@ -1401,14 +1402,14 @@ fun SeccionIngresoRelacionadoNuevo(
                     Text(
                         text = "Proyecto seleccionado",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = form.proyecto,
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2563EB)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -1512,8 +1513,8 @@ fun BotonesNuevoIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         ) {
             Icon(
@@ -1537,7 +1538,7 @@ fun BotonesNuevoIngreso(
                 .height(50.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1B8F3A)
+                containerColor = MaterialTheme.arcshiftColors.success
             )
         ) {
             Icon(
@@ -1567,7 +1568,7 @@ fun TarjetaNuevoIngreso(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -1581,7 +1582,7 @@ fun TarjetaNuevoIngreso(
                     imageVector = icono,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = Color(0xFF333333)
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1617,7 +1618,7 @@ fun CampoTextoIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -1647,10 +1648,10 @@ fun CampoTextoIngreso(
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2563EB),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
     }
@@ -1674,7 +1675,7 @@ fun CampoDropdownIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -1708,10 +1709,10 @@ fun CampoDropdownIngreso(
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
 
@@ -1757,7 +1758,7 @@ fun CampoFechaIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -1793,11 +1794,11 @@ fun CampoFechaIngreso(
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color.Black,
-                    disabledBorderColor = Color(0xFFE0E0E0),
-                    disabledContainerColor = Color.White,
-                    disabledPlaceholderColor = Color.Gray,
-                    disabledTrailingIconColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -1862,7 +1863,7 @@ fun CampoSeleccionIngreso(
         Text(
             text = titulo,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -1876,8 +1877,8 @@ fun CampoSeleccionIngreso(
             shape = RoundedCornerShape(8.dp),
             contentPadding = PaddingValues(horizontal = 10.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         ) {
             Text(
@@ -1909,8 +1910,8 @@ fun BotonArchivoIngreso(
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(6.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color(0xFFFAFAFA),
-            contentColor = Color.Black
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(
@@ -1921,7 +1922,7 @@ fun BotonArchivoIngreso(
                 imageVector = icono,
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -1936,7 +1937,7 @@ fun BotonArchivoIngreso(
             Text(
                 text = subtitulo,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -2032,10 +2033,10 @@ fun SelectorProyectoIngreso(
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFF2563EB),
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
 
@@ -2057,7 +2058,7 @@ fun SelectorProyectoIngreso(
                         Text(
                             text = "No hay proyectos registrados",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     onClick = { },
@@ -2076,7 +2077,7 @@ fun SelectorProyectoIngreso(
                                 Text(
                                     text = proyecto.estado,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1
                                 )
                             }
@@ -2148,7 +2149,7 @@ fun SelectorCotizacionIngreso(
                             Text(
                                 text = cotizacion.descripcionTrabajo,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1
                             )
                         }

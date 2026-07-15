@@ -159,13 +159,13 @@ fun EditarEmpleadoProyectoScreen(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Eliminar empleado",
-                            tint = Color(0xFFDC2626)
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
             )
         },
-        containerColor = Color(0xFFF5F5F5),
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0)
     ) { padding ->
 
@@ -182,7 +182,7 @@ fun EditarEmpleadoProyectoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
                 Column(
@@ -198,13 +198,13 @@ fun EditarEmpleadoProyectoScreen(
                     Text(
                         text = empleado.puesto.ifBlank { "Sin puesto" },
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF64748B)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = "Tipo de pago: ${textoTipoPagoEmpleadoAsignado(empleado.tipoPago)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF2563EB),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )
 
@@ -216,7 +216,7 @@ fun EditarEmpleadoProyectoScreen(
                     Text(
                         text = "Pago: $detallePago",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF2563EB)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -264,11 +264,11 @@ fun EditarEmpleadoProyectoScreen(
                 Text(
                     text = "Este empleado se calcula automáticamente con ${empleado.porcentaje}% sobre el presupuesto del proyecto.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF2563EB),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFFEFF6FF),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .padding(10.dp)
@@ -279,7 +279,7 @@ fun EditarEmpleadoProyectoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFEFF6FF)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
                 Column(
@@ -289,13 +289,13 @@ fun EditarEmpleadoProyectoScreen(
                     Text(
                         text = "Costo calculado",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF1E40AF)
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
 
                     Text(
                         text = formatoMonedaProyecto(costoPreview),
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color(0xFF1E40AF),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -341,12 +341,12 @@ fun EditarEmpleadoProyectoScreen(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = null,
-                    tint = Color(0xFFDC2626)
+                    tint = MaterialTheme.colorScheme.error
                 )
 
                 Text(
                     text = "Eliminar del proyecto",
-                    color = Color(0xFFDC2626)
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -369,7 +369,7 @@ fun EditarEmpleadoProyectoScreen(
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFDC2626)
+                        containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
                     Text("Eliminar")
