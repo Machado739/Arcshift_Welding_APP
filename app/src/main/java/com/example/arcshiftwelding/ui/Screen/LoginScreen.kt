@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.arcshiftwelding.data.PerfilDatosPrueba
 import com.example.arcshiftwelding.data.local.database.ArcshiftWeldingDatabase
+import com.example.arcshiftwelding.ui.theme.arcshiftColors
 
 @Composable
 fun LoginScreen(
@@ -124,7 +125,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F7FA))
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -132,7 +133,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -145,13 +146,13 @@ fun LoginScreen(
                     modifier = Modifier
                         .size(82.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE0ECFF)),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Build,
                         contentDescription = "Logo",
-                        tint = Color(0xFF1D4ED8),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(39.dp)
                     )
                 }
@@ -162,12 +163,12 @@ fun LoginScreen(
                     text = "Arcshift Welding",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "Control administrativo",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -253,7 +254,7 @@ fun LoginScreen(
                         color = if (estadoLogin.esError) {
                             MaterialTheme.colorScheme.error
                         } else {
-                            Color(0xFF15803D)
+                            MaterialTheme.arcshiftColors.success
                         },
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -268,14 +269,14 @@ fun LoginScreen(
                             .fillMaxWidth()
                             .padding(bottom = 10.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFFFF7ED)
+                            containerColor = MaterialTheme.arcshiftColors.warningContainer
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = "Primer acceso: admin / admin123. Cámbiala desde Configuración.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF9A3412),
+                            color = MaterialTheme.arcshiftColors.onWarningContainer,
                             modifier = Modifier.padding(10.dp)
                         )
                     }
@@ -288,7 +289,7 @@ fun LoginScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1D4ED8)
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
                     enabled = !estadoCarga.cargando && !estadoLogin.cargando
                 ) {
@@ -335,7 +336,7 @@ fun LoginScreen(
                     Text(
                         text = "${estadoCarga.progreso}% · ${estadoCarga.etapa}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF475569),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -349,7 +350,7 @@ fun LoginScreen(
                         color = if (estadoCarga.esError) {
                             MaterialTheme.colorScheme.error
                         } else {
-                            Color(0xFF15803D)
+                            MaterialTheme.arcshiftColors.success
                         },
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -360,7 +361,7 @@ fun LoginScreen(
                 Text(
                     text = "Versión 1.0",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -400,7 +401,7 @@ private fun DialogoRecuperarAcceso(
                 Text(
                     text = "Utiliza uno de los códigos generados previamente en Configuración. El código quedará inutilizado después del cambio.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 OutlinedTextField(
@@ -464,7 +465,7 @@ private fun DialogoRecuperarAcceso(
                         text = mensaje,
                         style = MaterialTheme.typography.bodySmall,
                         color = if (estado.exitosa) {
-                            Color(0xFF15803D)
+                            MaterialTheme.arcshiftColors.success
                         } else {
                             MaterialTheme.colorScheme.error
                         }
@@ -550,9 +551,9 @@ private fun SelectorPerfilDatosPrueba(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (perfil == perfilSeleccionado) {
-                                Color(0xFFEAF2FF)
+                                MaterialTheme.colorScheme.primaryContainer
                             } else {
-                                Color(0xFFF8FAFC)
+                                MaterialTheme.colorScheme.background
                             }
                         )
                     ) {
@@ -574,12 +575,12 @@ private fun SelectorPerfilDatosPrueba(
                                 Text(
                                     text = perfil.descripcion,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF64748B)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = "Aproximadamente ${perfil.totalEstimado} registros",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF2563EB)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
