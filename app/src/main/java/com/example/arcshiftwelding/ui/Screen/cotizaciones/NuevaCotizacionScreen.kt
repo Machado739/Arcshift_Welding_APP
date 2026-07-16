@@ -45,6 +45,7 @@ import com.example.arcshiftwelding.ui.components.AvisoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberEstadoValidacionFormulario
 import com.example.arcshiftwelding.ui.components.rememberSnackbarValidacion
 import com.example.arcshiftwelding.ui.theme.arcshiftColors
+import androidx.compose.foundation.layout.heightIn
 
 data class ConceptoCotizacionForm(
     val tipo: String = "Materiales",
@@ -224,7 +225,6 @@ fun NuevaCotizacionScreen(
 
 
     Scaffold(
-        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarValidacion) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -615,7 +615,8 @@ fun SelectorClienteCotizacion(
                 expanded = expandido,
                 onDismissRequest = {
                     expandido = false
-                }
+                },
+                modifier = Modifier.heightIn(max = 280.dp)
             ) {
                 if (clientes.isEmpty()) {
                     DropdownMenuItem(
@@ -989,13 +990,12 @@ fun ConceptoNuevaCotizacionItem(
                     modifier = Modifier.weight(1f)
                 )
 
-                CampoConceptoCotizacion(
-                    titulo = "Unidad",
+                SelectorUnidadConceptoCotizacion(
+                    tipo = concepto.tipo,
                     valor = concepto.unidad,
                     onValueChange = {
                         onConceptoChange(concepto.copy(unidad = it))
                     },
-                    placeholder = unidadDefaultConcepto(concepto.tipo),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -1787,7 +1787,8 @@ fun CampoDropdownCotizacion(
                 expanded = expandido,
                 onDismissRequest = {
                     expandido = false
-                }
+                },
+                modifier = Modifier.heightIn(max = 280.dp)
             ) {
                 opciones.forEach { opcion ->
                     DropdownMenuItem(

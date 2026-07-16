@@ -42,6 +42,7 @@ import com.example.arcshiftwelding.utils.obtenerTipoRealComprobante
 import com.example.arcshiftwelding.utils.prepararComprobanteDesdeDocumento
 import com.example.arcshiftwelding.utils.serializarComprobantes
 import com.example.arcshiftwelding.ui.theme.arcshiftColors
+import androidx.compose.foundation.layout.heightIn
 
 
 @Composable
@@ -726,13 +727,12 @@ fun ConceptoEditarCotizacionItem(
                     modifier = Modifier.weight(1f)
                 )
 
-                CampoConceptoEditarCotizacion(
-                    titulo = "Unidad",
+                SelectorUnidadConceptoCotizacion(
+                    tipo = concepto.tipo,
                     valor = concepto.unidad,
                     onValueChange = {
                         onConceptoChange(concepto.copy(unidad = it))
                     },
-                    placeholder = "Pza",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -1679,7 +1679,8 @@ fun CampoDropdownEditarCotizacion(
                 expanded = expandido,
                 onDismissRequest = {
                     expandido = false
-                }
+                },
+                modifier = Modifier.heightIn(max = 280.dp)
             ) {
                 opciones.forEach { opcion ->
                     DropdownMenuItem(
