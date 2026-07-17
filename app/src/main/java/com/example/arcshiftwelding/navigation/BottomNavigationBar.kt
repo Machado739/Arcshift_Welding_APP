@@ -1,6 +1,6 @@
 package com.example.arcshiftwelding.navigation
 
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
@@ -9,11 +9,12 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.material3.MaterialTheme
 
 private data class ElementoNavegacionInferior(
     val titulo: String,
@@ -77,42 +77,39 @@ fun BottomNavigationBar(
         )
     )
 
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
+    NavigationBar(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        shadowElevation = 8.dp
+        tonalElevation = 3.dp,
+        windowInsets = NavigationBarDefaults.windowInsets
     ) {
-        NavigationBar(
-            modifier = Modifier.height(72.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 0.dp
-        ) {
-            elementos.forEach { elemento ->
-                val seleccionado = rutaActual in elemento.rutasRelacionadas
+        elementos.forEach { elemento ->
+            val seleccionado = rutaActual in elemento.rutasRelacionadas
 
-                NavigationBarItem(
-                    selected = seleccionado,
-                    onClick = {
-                        navController.navigateBottomBar(elemento.ruta)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = elemento.icono,
-                            contentDescription = elemento.titulo,
-                            modifier = Modifier.size(21.dp)
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = elemento.titulo,
-                            fontSize = 10.sp,
-                            maxLines = 1
-                        )
-                    },
-                    alwaysShowLabel = true,
-                    colors = bottomNavigationItemColors()
-                )
-            }
+            NavigationBarItem(
+                selected = seleccionado,
+                onClick = {
+                    navController.navigateBottomBar(elemento.ruta)
+                },
+                icon = {
+                    Icon(
+                        imageVector = elemento.icono,
+                        contentDescription = elemento.titulo,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = elemento.titulo,
+                        fontSize = 11.sp,
+                        lineHeight = 12.sp,
+                        maxLines = 1
+                    )
+                },
+                alwaysShowLabel = true,
+                colors = bottomNavigationItemColors()
+            )
         }
     }
 }
@@ -120,7 +117,7 @@ fun BottomNavigationBar(
 @Composable
 fun bottomNavigationItemColors(): NavigationBarItemColors {
     return NavigationBarItemDefaults.colors(
-        selectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
         selectedTextColor = MaterialTheme.colorScheme.primary,
         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -147,8 +144,7 @@ fun NavController.navigateBottomBar(route: String) {
 
 /**
  * Regresa a la raíz de Módulos en lugar de restaurar la última pantalla abierta
- * dentro del grupo. Esto evita que al tocar Módulos desde Ingresos, Gastos,
- * Cotizaciones, Empleados, Reportes o Configuración se restaure esa misma pantalla.
+ * dentro del grupo.
  */
 fun NavController.navigateToModulesRoot() {
     if (currentDestination?.route == AppRoutes.MODULOS) return
